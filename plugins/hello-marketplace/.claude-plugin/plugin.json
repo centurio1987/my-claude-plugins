@@ -1,0 +1,10 @@
+{
+  "name": "hello-marketplace",
+  "version": "0.1.0",
+  "description": "마켓플레이스 구조를 보여주는 예시 플러그인. 새 플러그인의 출발점으로 복사해 쓰기 좋은 템플릿이다.",
+  "author": {
+    "name": "김윤덕",
+    "email": "ghkdldjwls@gmail.com"
+  },
+  "keywords": ["example", "template", "starter"]
+}

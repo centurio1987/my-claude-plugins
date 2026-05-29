@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "centurio87-plugins",
+  "version": "0.1.0",
+  "description": "centurio87의 개인 Claude 플러그인 마켓플레이스. 개인 및 여러 프로젝트의 스킬·MCP 서버·커맨드·훅·에이전트를 플러그인으로 모아 배포한다.",
+  "owner": {
+    "name": "centurio87",
+    "email": "centurio87@naver.com"
+  },
+  "plugins": [
+    {
+      "name": "hello-marketplace",
+      "description": "마켓플레이스 구조를 보여주는 예시 플러그인. 새 플러그인을 만들 때 복사해서 시작할 수 있는 템플릿이다.",
+      "version": "0.1.0",
+      "author": {
+        "name": "centurio87",
+        "email": "centurio87@gmail.com"
+      },
+      "source": "./plugins/hello-marketplace",
+      "category": "example"
+    }
+  ]
+}
