@@ -18,6 +18,17 @@
       },
       "source": "./plugins/hello-marketplace",
       "category": "example"
+    },
+    {
+      "name": "wiki-tools",
+      "description": "LLM-driven 개인 위키를 위한 스킬 모음 — 초기화(bootstrap), 품질 검증(validate), 구조 재편성(restructure).",
+      "version": "0.1.0",
+      "author": {
+        "name": "김윤덕",
+        "email": "ghkdldjwls@gmail.com"
+      },
+      "source": "./plugins/wiki-tools",
+      "category": "productivity"
     }
   ]
 }
