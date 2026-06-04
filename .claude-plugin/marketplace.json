@@ -29,6 +29,17 @@
       },
       "source": "./plugins/wiki-tools",
       "category": "productivity"
+    },
+    {
+      "name": "interview-simulation",
+      "description": "면접 준비를 위한 질문 생성·꼬리 질문·답변 검토 스킬 + 부트스트랩 에이전트. 5종 포지션 프리셋(Node.js/DevOps/Product/CTO/PO) 포함.",
+      "version": "0.1.0",
+      "author": {
+        "name": "centurio87",
+        "email": "centurio87@naver.com"
+      },
+      "source": "./plugins/interview-simulation",
+      "category": "productivity"
     }
   ]
 }
