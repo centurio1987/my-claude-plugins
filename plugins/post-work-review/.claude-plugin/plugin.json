@@ -1,0 +1,10 @@
+{
+  "name": "post-work-review",
+  "version": "0.1.0",
+  "description": "PLAN.md/BACKLOG.md 작업 완료 후 최종 산출물을 분석해 재사용 가능한 스킬·프로젝트 룰·에이전트 후보를 찾아 제안·생성하는 사후 작업 검토 키트. 체크리스트가 모두 완료되면 Stop 훅이 검토를 환기하고, post-work-review 스킬이 work-pattern-analyzer 에이전트로 결과물을 분석한다.",
+  "author": {
+    "name": "김윤덕",
+    "email": "ghkdldjwls@gmail.com"
+  },
+  "keywords": ["retrospective", "post-work", "skill", "agent", "claude-md", "automation"]
+}

@@ -20,6 +20,14 @@ my-claude-plugin/
 
 `marketplace.json`의 각 플러그인 엔트리는 `name`, `description`, `version`, `source`(이 레포 기준 상대 경로)를 가집니다. `source`는 `./plugins/<이름>` 처럼 로컬 경로이거나, GitHub/Git URL 같은 원격 소스일 수 있습니다.
 
+## 수록 플러그인
+
+| 플러그인 | 설명 |
+|---|---|
+| `hello-marketplace` | 마켓플레이스 구조 예시(템플릿) 플러그인. |
+| `wiki-tools` | LLM-driven 개인 위키용 스킬 모음(bootstrap·validate·restructure). |
+| `post-work-review` | PLAN.md/BACKLOG.md 작업 완료 후 산출물을 분석해 재사용 가능한 스킬·프로젝트 룰·에이전트 후보를 찾아 제안·생성하는 사후 작업 검토 키트(Stop 훅 + 스킬 + 에이전트). |
+
 ## 마켓 추가하기
 
 이 레포를 GitHub에 올린 뒤 Claude Code에서:
