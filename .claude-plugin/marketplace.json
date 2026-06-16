@@ -40,6 +40,17 @@
       },
       "source": "./plugins/post-work-review",
       "category": "productivity"
+    },
+    {
+      "name": "project-bootstrapper",
+      "description": "새 프로젝트를 부트스트랩하는 스킬 모음 — PLAN.md를 소통 창구로 운영 방식을 함께 정의(bootstrap-project)하고, 확정된 PLAN.md로 manage/의 거버넌스 문서와 .claude/의 claude-native 도구를 생성(materialize-bootstrap)한다.",
+      "version": "0.1.0",
+      "author": {
+        "name": "김윤덕",
+        "email": "ghkdldjwls@gmail.com"
+      },
+      "source": "./plugins/project-bootstrapper",
+      "category": "productivity"
     }
   ]
 }
