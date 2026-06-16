@@ -40,6 +40,17 @@
       },
       "source": "./plugins/interview-simulation",
       "category": "productivity"
+    },
+    {
+      "name": "post-work-review",
+      "description": "PLAN.md/BACKLOG.md 작업 완료 후 최종 산출물을 분석해 재사용 가능한 스킬·프로젝트 룰·에이전트 후보를 찾아 제안·생성하는 사후 작업 검토 키트 (Stop 훅 + post-work-review 스킬 + work-pattern-analyzer 에이전트).",
+      "version": "0.1.0",
+      "author": {
+        "name": "김윤덕",
+        "email": "ghkdldjwls@gmail.com"
+      },
+      "source": "./plugins/post-work-review",
+      "category": "productivity"
     }
   ]
 }
