@@ -1,0 +1,85 @@
+{
+  "dimensions": [
+    {
+      "id": 1,
+      "name": "DNA fidelity",
+      "points": 25,
+      "critical": true,
+      "items": [
+        {"name": "All 8 palette hexes present and unaltered (§1)", "points": 8, "pass": true},
+        {"name": "5 node taxonomy fills correct and constant across skins (§2)", "points": 7, "pass": true},
+        {"name": "font.sans stack is Helvetica Neue stack (§4)", "points": 5, "pass": true},
+        {"name": "font.mono stack is JetBrains Mono stack (§4)", "points": 3, "pass": false},
+        {"name": "Node label text and glyphs use #111 in every skin (§2)", "points": 2, "pass": true}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Skin completeness & distinctness",
+      "points": 20,
+      "critical": true,
+      "items": [
+        {"name": "All 3 skin theme files + theme.default.ts exist (§8)", "points": 3, "pass": true},
+        {"name": "surface.canvas token correct per skin (§5)", "points": 3, "pass": true},
+        {"name": "node.border token: none in candy/swiss, 2.5px solid #111 in blueprint (§5)", "points": 3, "pass": false},
+        {"name": "Edge tokens width/color/style differ per skin (§5)", "points": 3, "pass": true},
+        {"name": "C4 nesting method differs by skin (§3)", "points": 5, "pass": true},
+        {"name": "icon.mode per skin: fill/line/fill (§5)", "points": 3, "pass": true}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Render portability",
+      "points": 20,
+      "critical": true,
+      "items": [
+        {"name": "check_mdx.py exits 0 on all 3 sample files (§8)", "points": 8, "pass": true},
+        {"name": "No nested Capitalized JSX tags inside any component (§0)", "points": 5, "pass": true},
+        {"name": "All MDX samples compile via @mdx-js/mdx evaluate without error (§8)", "points": 4, "pass": true},
+        {"name": "No import statements in any MDX sample (§0)", "points": 3, "pass": true}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Prototype fidelity",
+      "points": 15,
+      "critical": false,
+      "items": [
+        {"name": "Correct glyph SVG paths for fill and line variants per §2 (all 5 types)", "points": 5, "pass": true},
+        {"name": "Blueprint nodes carry 2.5px solid #111 keyline; external dashed (§5)", "points": 3, "pass": true},
+        {"name": "[type-tags] present in blueprint, absent in candy/swiss (§5)", "points": 3, "pass": false},
+        {"name": "Group boundary treatment per skin: keyline/indent/soft (§5)", "points": 2, "pass": true},
+        {"name": "Swiss lifeline #B8B6AE dashed, band layout; others tile layout (§5)", "points": 2, "pass": true}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Playwright tests exist & PASS",
+      "points": 15,
+      "critical": true,
+      "items": [
+        {"name": "Test infrastructure files exist (package.json, playwright.config.ts, render.mjs, dna.spec.ts)", "points": 3, "pass": true},
+        {"name": "Canvas/panel background assertion passes for all 3 skins (§8)", "points": 3, "pass": true},
+        {"name": "All 8 palette hexes detected in rendered output (§8)", "points": 2, "pass": true},
+        {"name": "5 taxonomy labels present and fills correct (§8)", "points": 2, "pass": true},
+        {"name": "C4 three nested levels present and method matches skin (§8)", "points": 2, "pass": true},
+        {"name": "Font stack assertions pass (§8)", "points": 1, "pass": true},
+        {"name": "Skin-distinctness assertion passes (§8)", "points": 1, "pass": true},
+        {"name": "cd tests && npm i && npx playwright test exits 0", "points": 1, "pass": true}
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Docs & integration",
+      "points": 5,
+      "critical": false,
+      "items": [
+        {"name": "references/style-guide.md exists and covers all required sections (§8)", "points": 2, "pass": true},
+        {"name": "references/canon.md exists and covers all 11 archetypes (§8)", "points": 2, "pass": false},
+        {"name": "SKILL.md preset-selection wiring present (§8)", "points": 1, "pass": true}
+      ]
+    }
+  ],
+  "playwright_green": true,
+  "check_mdx_green": true
+}

@@ -1,0 +1,327 @@
+export const T = {
+  skin: 'swiss',
+  font: {
+    sans: "'Helvetica Neue',Helvetica,Arial,sans-serif",
+    mono: "'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace",
+  },
+  surface: { canvas:'#ECEBE7', panel:'#ECEBE7', shadow:'0 2px 14px rgba(0,0,0,.10)' },
+  ink:     { heading:'#141414', body:'#3A3A38', muted:'#6C6B66', tag:'#9A988F' },
+  palette: {
+    orange:'#EE7B4D', purple:'#C5B6EE', pink:'#F0C5DA', yellow:'#E7E058',
+    blue:'#A6C6E2',   green:'#87B79A',  brown:'#A98C7E', periwinkle:'#9CAFE7',
+  },
+  node: {
+    person:    { fill:'#C5B6EE', tag:'[person]' },
+    external:  { fill:'#EE7B4D', tag:'[external]' },
+    container: { fill:'#87B79A', tag:'[container]' },
+    database:  { fill:'#A6C6E2', tag:'[datastore]' },
+    queue:     { fill:'#E7E058', tag:'[queue]' },
+  },
+  edge:  { color:'#141414', width:1.8, style:'straight', label:'#6C6B66', lifeline:'#B8B6AE' },
+  c4: {
+    l1:{ bg:'#9CAFE7', border:'none', label:'#26345E', indent:0  },
+    l2:{ bg:'#A6C6E2', border:'none', label:'#27465A', indent:18 },
+    l3:{ bg:'#C9DAEA', border:'none', label:'#48586A', indent:36 },
+  },
+  style: {
+    nodeRadius:8, nodeBorder:'none', iconMode:'line',
+    nodeLayout:'band', showTag:false, dashedExternal:false, groupBoundary:'indent',
+  },
+  semantic: {
+    problem:  { bg:'#EE7B4D', text:'#111', accent:'#7A3B1E' },
+    solution: { bg:'#87B79A', text:'#111', accent:'#2C4A3A' },
+    info:     { bg:'#A6C6E2', text:'#111', accent:'#27465A' },
+    neutral:  { bg:'#A98C7E', text:'#111', accent:'#3E2F28' },
+    warn:     { bg:'#E7E058', text:'#111', accent:'#5E5A1E' },
+    primary:  { bg:'#C5B6EE', text:'#111', accent:'#3A3550' },
+    data:     { bg:'#F0C5DA', text:'#111', accent:'#7A3F58' },
+    second:   { bg:'#9CAFE7', text:'#111', accent:'#26345E' },
+  },
+  step: ['#C5B6EE','#A6C6E2','#87B79A','#E7E058'],
+  radius: { sm:8, md:14, lg:16, pill:9999 },
+  type:   { caption:10, tag:9, label:11, body:12, title:14, big:30 },
+  weight: { normal:400, bold:700 },
+  letterSpacing: { mono:'1.5px', tight:'-1px', label:'-.5px' },
+}
+
+export const Palette = () => {
+  const order = ['orange','purple','pink','yellow','blue','green','brown','periwinkle']
+  const swBorder = T.skin === 'blueprint' ? '2px solid #111' : 'none'
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        PALETTE · 8
+      </div>
+      <div style={{display:'flex', gap:10, flexWrap:'wrap'}}>
+        {order.map((k,i) => (
+          <div key={i} style={{width:34, height:34, background:T.palette[k],
+            border:swBorder, borderRadius:T.radius.sm}}/>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export const NodeTaxonomy = () => {
+  const types = ['person','container','database','queue','external']
+  const isFill = T.style.iconMode === 'fill'
+
+  const glyph = (type) => {
+    const s = { fill: isFill ? '#111' : 'none', stroke:'#111',
+                 strokeWidth: isFill ? 0 : 1.8, overflow:'visible' }
+    if (type==='person')    return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<circle key="c" cx="12" cy="7" r="4"/>,<path key="p" d="M3 22a9 9 0 0 1 18 0Z"/>]
+        : [<circle key="c" cx="12" cy="8" r="3.6"/>,<path key="p" d="M5 21a7 7 0 0 1 14 0"/>]}
+    </svg>)
+    if (type==='external')  return (<svg viewBox="0 0 24 24" width="20" height="20"
+      style={{fill:'none',stroke:'#111',strokeWidth:isFill?2.6:1.8,overflow:'visible'}}>
+      <path d="M8 16 17 7"/><path d="M9 7h8v8"/>
+    </svg>)
+    if (type==='container') return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<rect key="a" x="3" y="6" width="13" height="12" rx="2.5"/>,<rect key="b" x="9" y="2" width="13" height="12" rx="2.5" opacity=".45"/>]
+        : [<rect key="a" x="3" y="5" width="13" height="11" rx="2"/>,<rect key="b" x="8" y="9" width="13" height="11" rx="2"/>]}
+    </svg>)
+    if (type==='database')  return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<ellipse key="e" cx="12" cy="5.5" rx="8" ry="3.2"/>,<path key="p" d="M4 5.5v13c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2v-13" fill="none" stroke="#111" strokeWidth="2.2"/>]
+        : [<ellipse key="e" cx="12" cy="6" rx="7" ry="2.8"/>,<path key="p" d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6"/>]}
+    </svg>)
+    if (type==='queue')     return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<rect key="a" x="3" y="5" width="4" height="14" rx="1.5"/>,<rect key="b" x="10" y="5" width="4" height="14" rx="1.5"/>,<rect key="c" x="17" y="5" width="4" height="14" rx="1.5"/>]
+        : <path key="p" d="M5 6v12M11 6v12M17 6v12"/>}
+    </svg>)
+    return null
+  }
+
+  const bandNode = (type) => {
+    const n = T.node[type]
+    return (
+      <div style={{display:'flex', alignItems:'center', gap:12, background:n.fill,
+        border:'none', borderRadius:T.style.nodeRadius, padding:'10px 16px'}}>
+        {glyph(type)}
+        <div style={{fontSize:T.type.body, fontWeight:T.weight.bold, color:'#111',
+          fontFamily:T.font.sans, flex:1, textTransform:'capitalize'}}>{type}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        NODE TAXONOMY
+      </div>
+      <div style={{display:'flex', gap:8, flexDirection:'column'}}>
+        {types.map((t,i) => (<div key={i}>{bandNode(t)}</div>))}
+      </div>
+    </div>
+  )
+}
+
+export const C4Hierarchy = () => {
+  const levelLabel = (lv, text, color) => (
+    <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:color,
+      letterSpacing:T.letterSpacing.mono, textTransform:'uppercase',
+      marginBottom:6, display:'flex', justifyContent:'space-between'}}>
+      <span>{text}</span><span>{lv}</span>
+    </div>
+  )
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow,
+      display:'flex', flexDirection:'column', gap:8}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:8}}>
+        C4 HIERARCHY
+      </div>
+      <div style={{background:T.c4.l1.bg, marginLeft:T.c4.l1.indent, padding:'12px 16px',
+        borderRadius:T.style.nodeRadius}}>
+        {levelLabel('L1','Context System',T.c4.l1.label)}
+        <div style={{fontWeight:T.weight.bold, color:'#111', fontSize:T.type.body,
+          fontFamily:T.font.sans}}>E-Commerce Platform</div>
+      </div>
+      <div style={{background:T.c4.l2.bg, marginLeft:T.c4.l2.indent, padding:'12px 16px',
+        borderRadius:T.style.nodeRadius}}>
+        {levelLabel('L2','Container',T.c4.l2.label)}
+        <div style={{fontWeight:T.weight.bold, color:'#111', fontSize:T.type.body,
+          fontFamily:T.font.sans}}>Web Application</div>
+      </div>
+      <div style={{background:T.c4.l3.bg, marginLeft:T.c4.l3.indent, padding:'12px 16px',
+        borderRadius:T.style.nodeRadius}}>
+        {levelLabel('L3','Component',T.c4.l3.label)}
+        <div style={{fontWeight:T.weight.bold, color:'#111', fontSize:T.type.body,
+          fontFamily:T.font.sans}}>Auth Service</div>
+      </div>
+    </div>
+  )
+}
+
+export const C4Container = () => {
+  const W = 560, H = 320
+  const ec = T.edge.color
+  const ew = T.edge.width
+  const markerId = 'arr-swiss'
+
+  const nodes = [
+    { id:'user',  x:30,  y:130, w:90,  h:72, type:'person',    label:'User',      detail:'Web Browser' },
+    { id:'web',   x:195, y:50,  w:110, h:72, type:'container', label:'Web App',   detail:'React SPA' },
+    { id:'api',   x:195, y:195, w:110, h:72, type:'container', label:'API',       detail:'REST / Node' },
+    { id:'db',    x:385, y:195, w:110, h:72, type:'database',  label:'Database',  detail:'PostgreSQL' },
+    { id:'ext',   x:385, y:50,  w:110, h:72, type:'external',  label:'Auth Svc',  detail:'OAuth2' },
+  ]
+
+  const edges = [
+    { x1:120, y1:162, x2:195, y2:86,  label:'HTTPS', mx:157, my:114 },
+    { x1:120, y1:172, x2:195, y2:231, label:'uses',  mx:157, my:204 },
+    { x1:250, y1:122, x2:250, y2:195, label:'calls', mx:262, my:158 },
+    { x1:305, y1:231, x2:385, y2:231, label:'r/w',   mx:345, my:221 },
+    { x1:305, y1:210, x2:385, y2:86,  label:'auth',  mx:365, my:140 },
+  ]
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:12}}>
+        C4 CONTAINER
+      </div>
+      <svg width={W} height={H} viewBox={'0 0 '+W+' '+H}
+        style={{width:'100%', maxWidth:W, display:'block'}}>
+        <defs>
+          <marker id={markerId} markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill={ec}/>
+          </marker>
+        </defs>
+        {edges.map((e,i) => (
+          <g key={i}>
+            <line x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+              stroke={ec} strokeWidth={ew} markerEnd={'url(#'+markerId+')'}/>
+            <text x={e.mx} y={e.my} textAnchor="middle"
+              style={{fontFamily:T.font.mono, fontSize:T.type.caption,
+                fill:T.edge.label, letterSpacing:T.letterSpacing.mono}}>{e.label}</text>
+          </g>
+        ))}
+        {nodes.map((n,i) => (
+          <g key={i}>
+            <rect x={n.x} y={n.y} width={n.w} height={n.h}
+              rx={T.style.nodeRadius} fill={T.node[n.type].fill} stroke="none"/>
+            <text x={n.x+n.w/2} y={n.y+26} textAnchor="middle"
+              style={{fontFamily:T.font.sans, fontSize:T.type.label,
+                fontWeight:T.weight.bold, fill:'#111'}}>{n.label}</text>
+            <text x={n.x+n.w/2} y={n.y+42} textAnchor="middle"
+              style={{fontFamily:T.font.sans, fontSize:T.type.caption,
+                fill:T.ink.muted}}>{n.detail}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+export const Sequence = () => {
+  const W = 520, H = 300
+  const ec = T.edge.color
+  const ew = T.edge.width
+  const lc = T.edge.lifeline
+  const markerId = 'seq-arr-swiss'
+  const markRetId = 'seq-ret-swiss'
+
+  const actors = [
+    { x:40,  label:'Browser' },
+    { x:200, label:'API' },
+    { x:360, label:'Auth' },
+  ]
+  const AW = 100, AH = 36
+
+  const messages = [
+    { from:0, to:1, y:90,  label:'POST /login',     dashed:false },
+    { from:1, to:2, y:130, label:'verify token',     dashed:false },
+    { from:2, to:1, y:170, label:'token valid',      dashed:true  },
+    { from:1, to:0, y:210, label:'200 OK + session', dashed:true  },
+    { from:0, to:1, y:250, label:'GET /data',        dashed:false },
+  ]
+
+  const ax = (i) => actors[i].x + AW/2
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:12}}>
+        SEQUENCE DIAGRAM
+      </div>
+      <svg width={W} height={H} viewBox={'0 0 '+W+' '+H}
+        style={{width:'100%', maxWidth:W, display:'block'}}>
+        <defs>
+          <marker id={markerId} markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill={ec}/>
+          </marker>
+          <marker id={markRetId} markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill={lc}/>
+          </marker>
+        </defs>
+        {actors.map((a,i) => (
+          <g key={i}>
+            <rect x={a.x} y={10} width={AW} height={AH} rx={T.style.nodeRadius}
+              fill={T.node.container.fill} stroke="none"/>
+            <text x={ax(i)} y={10+AH/2+5} textAnchor="middle"
+              style={{fontFamily:T.font.sans, fontSize:T.type.label,
+                fontWeight:T.weight.bold, fill:'#111'}}>{a.label}</text>
+            <line x1={ax(i)} y1={10+AH} x2={ax(i)} y2={H-10}
+              stroke={lc} strokeWidth="1.5" strokeDasharray="4 4"/>
+          </g>
+        ))}
+        {messages.map((m,i) => {
+          const x1 = ax(m.from), x2 = ax(m.to)
+          const mColor = m.dashed ? lc : ec
+          const mMark  = m.dashed ? ('url(#'+markRetId+')') : ('url(#'+markerId+')')
+          return (
+            <g key={i}>
+              <line x1={x1} y1={m.y} x2={x2} y2={m.y}
+                stroke={mColor} strokeWidth={m.dashed?1.5:ew}
+                strokeDasharray={m.dashed?'5 3':undefined}
+                markerEnd={mMark}/>
+              <text x={(x1+x2)/2} y={m.y-5} textAnchor="middle"
+                style={{fontFamily:T.font.mono, fontSize:T.type.caption,
+                  fill:T.edge.label, letterSpacing:T.letterSpacing.mono}}>{m.label}</text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
+## Swiss — Reference Sample
+
+Four architecture archetypes on the light Swiss skin (band layout, line icons).
+
+### Palette
+
+<Palette/>
+
+### Node Taxonomy
+
+<NodeTaxonomy/>
+
+### C4 Hierarchy
+
+<C4Hierarchy/>
+
+### C4 Container Diagram
+
+<C4Container/>
+
+### Sequence Diagram
+
+<Sequence/>
