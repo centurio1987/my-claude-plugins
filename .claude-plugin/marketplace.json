@@ -65,8 +65,8 @@
     },
     {
       "name": "react-mdx-diagram",
-      "description": "MDX 안에 순수 React inline-style 다이어그램을 그리는 스킬. 프로젝트별 theme/디자인 시스템 초기 세팅 후 일관된 도식을 양산하고, (( )) 플레이스홀더도 채운다.",
-      "version": "0.1.0",
+      "description": "MDX 안에 순수 React inline-style 다이어그램을 그리는 스킬. 다이어그램/아키텍처 디자인 시스템(8색 팔레트·노드 의미체계·C4)을 candy-os/swiss/blueprint 3 스킨 프리셋으로 내장하고, 프로젝트별 theme 세팅 후 일관된 도식을 양산하며 (( )) 플레이스홀더도 채운다.",
+      "version": "0.2.0",
       "author": {
         "name": "김윤덕",
         "email": "ghkdldjwls@gmail.com"
