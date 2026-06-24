@@ -84,6 +84,17 @@
       },
       "source": "./plugins/web-research",
       "category": "productivity"
+    },
+    {
+      "name": "animator",
+      "description": "프론트엔드 결과물을 보고 애니메이션 적용 가능 영역을 포착(animation-scout)하고, score 기반 타당성 게이트웨이를 통과한 영역에만 적합한 애니메이션을 적용(animation-applier)하는 플러그인. 포착과 적용을 분리하고, 수집·적용을 서브에이전트로 격리해 메인 컨텍스트를 보호한다.",
+      "version": "0.1.0",
+      "author": {
+        "name": "centurio87",
+        "email": "ghkdldjwls@gmail.com"
+      },
+      "source": "./plugins/animator",
+      "category": "productivity"
     }
   ]
 }
