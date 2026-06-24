@@ -1,0 +1,10 @@
+{
+  "name": "react-mdx-diagram",
+  "version": "0.1.0",
+  "description": "프로젝트별 theme과 디자인 시스템에 맞춰 MDX 안에 순수 React(외부 라이브러리·import 없는 inline-style) 다이어그램을 그리는 스킬. 최초 사용 시 1회 초기 세팅(theme 토큰 + 디자인 시스템 바인딩)을 만들고 이후 재사용한다. (( )) 플레이스홀더 채우기도 포함.",
+  "author": {
+    "name": "김윤덕",
+    "email": "ghkdldjwls@gmail.com"
+  },
+  "keywords": ["mdx", "diagram", "react", "visualization", "design-system", "astro"]
+}
