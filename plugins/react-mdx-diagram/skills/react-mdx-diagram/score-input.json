@@ -1,0 +1,68 @@
+{
+  "_note": "Evidence-backed gate run. All items verified against actual files + rendered .out HTML + check_mdx + 28/28 Playwright. See orchestration log.",
+  "dimensions": [
+    {
+      "id": 1, "name": "DNA fidelity", "points": 25, "critical": true,
+      "items": [
+        {"name": "All 8 palette hexes present and unaltered (§1)", "points": 8, "pass": true},
+        {"name": "5 node taxonomy fills correct and constant across skins (§2)", "points": 7, "pass": true},
+        {"name": "font.sans = Helvetica Neue stack (§4)", "points": 5, "pass": true},
+        {"name": "font.mono = JetBrains Mono stack (§4)", "points": 3, "pass": true},
+        {"name": "Node label text and glyphs use #111 in every skin (§2)", "points": 2, "pass": true}
+      ]
+    },
+    {
+      "id": 2, "name": "Skin completeness & distinctness", "points": 20, "critical": true,
+      "items": [
+        {"name": "3 skin theme files + theme.default re-exports blueprint (§8)", "points": 3, "pass": true},
+        {"name": "surface.canvas correct per skin: 0B0B0B/ECEBE7/F4F3F0 (§5)", "points": 3, "pass": true},
+        {"name": "node.border none in candy/swiss, 2.5px solid #111 in blueprint (§5)", "points": 3, "pass": true},
+        {"name": "Edge tokens differ per skin: EDEBE6/3.4/straight, 141414/1.8/straight, 111/3/orthogonal (§5)", "points": 3, "pass": true},
+        {"name": "C4 nesting method differs by skin: border-widths / indent / opacity ramp (§3)", "points": 5, "pass": true},
+        {"name": "icon.mode fill/line/fill per skin (§5)", "points": 3, "pass": true}
+      ]
+    },
+    {
+      "id": 3, "name": "Render portability", "points": 20, "critical": true,
+      "items": [
+        {"name": "check_mdx.py exits 0 on all 3 samples (§8)", "points": 8, "pass": true},
+        {"name": "No nested Capitalized JSX tags inside any component (§0)", "points": 5, "pass": true},
+        {"name": "All 3 MDX samples compile via @mdx-js/mdx evaluate (§8)", "points": 4, "pass": true},
+        {"name": "No import statements in any MDX sample (§0)", "points": 3, "pass": true}
+      ]
+    },
+    {
+      "id": 4, "name": "Prototype fidelity", "points": 15, "critical": false,
+      "items": [
+        {"name": "Correct glyph SVG paths (fill+line) for all 5 types per §2", "points": 5, "pass": true},
+        {"name": "Blueprint 2.5px #111 keyline; external dashed (§5)", "points": 3, "pass": true},
+        {"name": "[type-tags] render in blueprint (10), absent in candy/swiss (0) (§5)", "points": 3, "pass": true},
+        {"name": "Group boundary keyline/indent/soft per skin (§5)", "points": 2, "pass": true},
+        {"name": "Swiss lifeline #B8B6AE + band layout; others tile (§5)", "points": 2, "pass": true}
+      ]
+    },
+    {
+      "id": 5, "name": "Playwright tests exist & PASS", "points": 15, "critical": true,
+      "items": [
+        {"name": "Test infra files exist (package.json, config, render.mjs, dna.spec.ts)", "points": 3, "pass": true},
+        {"name": "Canvas/panel bg assertion passes for all 3 skins (§8)", "points": 3, "pass": true},
+        {"name": "All 8 palette hexes detected per skin (§8)", "points": 2, "pass": true},
+        {"name": "5 taxonomy labels present and fills correct (§8)", "points": 2, "pass": true},
+        {"name": "C4 three nested levels + method matches skin (§8)", "points": 2, "pass": true},
+        {"name": "Font stack assertions pass (§8)", "points": 1, "pass": true},
+        {"name": "Skin-distinctness assertion passes (§8)", "points": 1, "pass": true},
+        {"name": "Full Playwright run exits 0 (28/28) (§8)", "points": 1, "pass": true}
+      ]
+    },
+    {
+      "id": 6, "name": "Docs & integration", "points": 5, "critical": false,
+      "items": [
+        {"name": "references/style-guide.md covers DNA, 3 skins, token table (§8)", "points": 2, "pass": true},
+        {"name": "references/canon.md covers all archetypes incl. Palette/NodeTaxonomy/C4/Flowchart/Sequence (§8)", "points": 2, "pass": true},
+        {"name": "SKILL.md preset-selection wiring + regression gate present (§8)", "points": 1, "pass": true}
+      ]
+    }
+  ],
+  "playwright_green": true,
+  "check_mdx_green": true
+}

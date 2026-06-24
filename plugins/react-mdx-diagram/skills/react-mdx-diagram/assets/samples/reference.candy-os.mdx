@@ -1,0 +1,246 @@
+export const T = {
+  skin: 'candy-os',
+  font: {
+    sans: "'Helvetica Neue',Helvetica,Arial,sans-serif",
+    mono: "'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace",
+  },
+  surface: { canvas:'#0B0B0B', panel:'#0B0B0B', shadow:'0 2px 14px rgba(0,0,0,.18)' },
+  ink:     { heading:'#F1F0ED', body:'#C9C9C6', muted:'#9A9A97', tag:'#6E6E6B' },
+  palette: {
+    orange:'#EE7B4D', purple:'#C5B6EE', pink:'#F0C5DA', yellow:'#E7E058',
+    blue:'#A6C6E2',   green:'#87B79A',  brown:'#A98C7E', periwinkle:'#9CAFE7',
+  },
+  node: {
+    person:    { fill:'#C5B6EE', tag:'[person]' },
+    external:  { fill:'#EE7B4D', tag:'[external]' },
+    container: { fill:'#87B79A', tag:'[container]' },
+    database:  { fill:'#A6C6E2', tag:'[datastore]' },
+    queue:     { fill:'#E7E058', tag:'[queue]' },
+  },
+  edge:  { color:'#EDEBE6', width:3.4, style:'straight', label:'#9A9A97', lifeline:null },
+  c4: {
+    l1:{ bg:'rgba(156,175,231,.18)', border:'1px solid #3A3A3A', label:'#9CAFE7', indent:0 },
+    l2:{ bg:'rgba(166,198,226,.42)', border:'none',              label:'#A6C6E2', indent:0 },
+    l3:{ bg:'#A6C6E2',               border:'none',              label:'#21323F', indent:0 },
+  },
+  style: {
+    nodeRadius:16, nodeBorder:'none', iconMode:'fill',
+    nodeLayout:'tile', showTag:false, dashedExternal:false, groupBoundary:'soft',
+  },
+  semantic: {
+    problem:  { bg:'#EE7B4D', text:'#111', accent:'#7A3B1E' },
+    solution: { bg:'#87B79A', text:'#111', accent:'#2C4A3A' },
+    info:     { bg:'#A6C6E2', text:'#111', accent:'#27465A' },
+    neutral:  { bg:'#A98C7E', text:'#111', accent:'#3E2F28' },
+    warn:     { bg:'#E7E058', text:'#111', accent:'#5E5A1E' },
+    primary:  { bg:'#C5B6EE', text:'#111', accent:'#3A3550' },
+    data:     { bg:'#F0C5DA', text:'#111', accent:'#7A3F58' },
+    second:   { bg:'#9CAFE7', text:'#111', accent:'#26345E' },
+  },
+  step: ['#C5B6EE','#A6C6E2','#87B79A','#E7E058'],
+  radius: { sm:8, md:14, lg:16, pill:9999 },
+  type:   { caption:10, tag:9, label:11, body:12, title:14, big:30 },
+  weight: { normal:400, bold:700 },
+  letterSpacing: { mono:'1.5px', tight:'-1px', label:'-.5px' },
+}
+
+export const Palette = () => {
+  const order = ['orange','purple','pink','yellow','blue','green','brown','periwinkle']
+  const swBorder = T.skin === 'blueprint' ? '2px solid #111' : 'none'
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        PALETTE · 8
+      </div>
+      <div style={{display:'flex', gap:10, flexWrap:'wrap'}}>
+        {order.map((k,i) => (
+          <div key={i} style={{width:34, height:34, background:T.palette[k],
+            border:swBorder, borderRadius:T.radius.sm}}/>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export const NodeTaxonomy = () => {
+  const types = ['person','container','database','queue','external']
+  const isFill = T.style.iconMode === 'fill'
+
+  const glyph = (type) => {
+    const s = { fill: isFill ? '#111' : 'none', stroke:'#111',
+                 strokeWidth: isFill ? 0 : 1.8, overflow:'visible' }
+    if (type==='person')    return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<circle key="c" cx="12" cy="7" r="4"/>,<path key="p" d="M3 22a9 9 0 0 1 18 0Z"/>]
+        : [<circle key="c" cx="12" cy="8" r="3.6"/>,<path key="p" d="M5 21a7 7 0 0 1 14 0"/>]}
+    </svg>)
+    if (type==='external')  return (<svg viewBox="0 0 24 24" width="20" height="20"
+      style={{fill:'none',stroke:'#111',strokeWidth:isFill?2.6:1.8,overflow:'visible'}}>
+      <path d="M8 16 17 7"/><path d="M9 7h8v8"/>
+    </svg>)
+    if (type==='container') return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<rect key="a" x="3" y="6" width="13" height="12" rx="2.5"/>,<rect key="b" x="9" y="2" width="13" height="12" rx="2.5" opacity=".45"/>]
+        : [<rect key="a" x="3" y="5" width="13" height="11" rx="2"/>,<rect key="b" x="8" y="9" width="13" height="11" rx="2"/>]}
+    </svg>)
+    if (type==='database')  return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<ellipse key="e" cx="12" cy="5.5" rx="8" ry="3.2"/>,<path key="p" d="M4 5.5v13c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2v-13" fill="none" stroke="#111" strokeWidth="2.2"/>]
+        : [<ellipse key="e" cx="12" cy="6" rx="7" ry="2.8"/>,<path key="p" d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6"/>]}
+    </svg>)
+    if (type==='queue')     return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<rect key="a" x="3" y="5" width="4" height="14" rx="1.5"/>,<rect key="b" x="10" y="5" width="4" height="14" rx="1.5"/>,<rect key="c" x="17" y="5" width="4" height="14" rx="1.5"/>]
+        : <path key="p" d="M5 6v12M11 6v12M17 6v12"/>}
+    </svg>)
+    return null
+  }
+
+  const tileNode = (type) => {
+    const n = T.node[type]
+    return (
+      <div style={{width:96, height:88, background:n.fill, border:'none',
+        borderRadius:T.style.nodeRadius, display:'flex', flexDirection:'column',
+        alignItems:'center', justifyContent:'center', gap:4}}>
+        {glyph(type)}
+        <div style={{fontSize:T.type.label, fontWeight:T.weight.bold, color:'#111',
+          fontFamily:T.font.sans, textAlign:'center', lineHeight:1.2,
+          textTransform:'capitalize'}}>{type}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        NODE TAXONOMY
+      </div>
+      <div style={{display:'flex', gap:12, flexDirection:'row', flexWrap:'wrap'}}>
+        {types.map((t,i) => (<div key={i}>{tileNode(t)}</div>))}
+      </div>
+    </div>
+  )
+}
+
+export const C4Hierarchy = () => {
+  const levelLabel = (lv, text, color) => (
+    <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:color,
+      letterSpacing:T.letterSpacing.mono, textTransform:'uppercase',
+      marginBottom:6, display:'flex', justifyContent:'space-between'}}>
+      <span>{text}</span><span>{lv}</span>
+    </div>
+  )
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        C4 HIERARCHY
+      </div>
+      <div style={{background:T.c4.l1.bg, border:T.c4.l1.border,
+        borderRadius:T.style.nodeRadius, padding:16}}>
+        {levelLabel('L1','Context',T.c4.l1.label)}
+        <div style={{fontWeight:T.weight.bold, color:T.ink.heading, marginBottom:12,
+          fontSize:T.type.body, fontFamily:T.font.sans}}>E-Commerce Platform</div>
+        <div style={{background:T.c4.l2.bg, borderRadius:T.style.nodeRadius, padding:12}}>
+          {levelLabel('L2','Container',T.c4.l2.label)}
+          <div style={{fontWeight:T.weight.bold, color:T.ink.heading, marginBottom:12,
+            fontSize:T.type.body, fontFamily:T.font.sans}}>Web Application</div>
+          <div style={{background:T.c4.l3.bg, borderRadius:T.style.nodeRadius, padding:10}}>
+            {levelLabel('L3','Component',T.c4.l3.label)}
+            <div style={{fontWeight:T.weight.bold, color:'#111',
+              fontSize:T.type.body, fontFamily:T.font.sans}}>Auth Service</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export const C4Container = () => {
+  const W = 560, H = 320
+  const ec = T.edge.color
+  const ew = T.edge.width
+  const markerId = 'arr-candy'
+
+  const nodes = [
+    { id:'user',  x:30,  y:130, w:90,  h:72, type:'person',    label:'User',      detail:'Web Browser' },
+    { id:'web',   x:195, y:50,  w:110, h:72, type:'container', label:'Web App',   detail:'React SPA' },
+    { id:'api',   x:195, y:195, w:110, h:72, type:'container', label:'API',       detail:'REST / Node' },
+    { id:'db',    x:385, y:195, w:110, h:72, type:'database',  label:'Database',  detail:'PostgreSQL' },
+    { id:'ext',   x:385, y:50,  w:110, h:72, type:'external',  label:'Auth Svc',  detail:'OAuth2' },
+  ]
+
+  const edges = [
+    { x1:120, y1:162, x2:195, y2:86,  label:'HTTPS', mx:157, my:114 },
+    { x1:120, y1:172, x2:195, y2:231, label:'uses',  mx:157, my:204 },
+    { x1:250, y1:122, x2:250, y2:195, label:'calls', mx:262, my:158 },
+    { x1:305, y1:231, x2:385, y2:231, label:'r/w',   mx:345, my:221 },
+    { x1:305, y1:210, x2:385, y2:86,  label:'auth',  mx:365, my:140 },
+  ]
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:12}}>
+        C4 CONTAINER
+      </div>
+      <svg width={W} height={H} viewBox={'0 0 '+W+' '+H}
+        style={{width:'100%', maxWidth:W, display:'block'}}>
+        <defs>
+          <marker id={markerId} markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill={ec}/>
+          </marker>
+        </defs>
+        {edges.map((e,i) => (
+          <g key={i}>
+            <line x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+              stroke={ec} strokeWidth={ew} markerEnd={'url(#'+markerId+')'}/>
+            <text x={e.mx} y={e.my} textAnchor="middle"
+              style={{fontFamily:T.font.mono, fontSize:T.type.caption,
+                fill:T.edge.label, letterSpacing:T.letterSpacing.mono}}>{e.label}</text>
+          </g>
+        ))}
+        {nodes.map((n,i) => (
+          <g key={i}>
+            <rect x={n.x} y={n.y} width={n.w} height={n.h}
+              rx={T.style.nodeRadius} fill={T.node[n.type].fill} stroke="none"/>
+            <text x={n.x+n.w/2} y={n.y+26} textAnchor="middle"
+              style={{fontFamily:T.font.sans, fontSize:T.type.label,
+                fontWeight:T.weight.bold, fill:'#111'}}>{n.label}</text>
+            <text x={n.x+n.w/2} y={n.y+42} textAnchor="middle"
+              style={{fontFamily:T.font.sans, fontSize:T.type.caption,
+                fill:T.ink.muted}}>{n.detail}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+## Candy OS — Reference Sample
+
+Three core architecture archetypes rendered on the dark canvas skin.
+
+### Palette
+
+<Palette/>
+
+### Node Taxonomy
+
+<NodeTaxonomy/>
+
+### C4 Hierarchy
+
+<C4Hierarchy/>
+
+### C4 Container Diagram
+
+<C4Container/>

@@ -1,0 +1,364 @@
+export const T = {
+  skin: 'blueprint',
+  font: {
+    sans: "'Helvetica Neue',Helvetica,Arial,sans-serif",
+    mono: "'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace",
+  },
+  surface: { canvas:'#F4F3F0', panel:'#F4F3F0', shadow:'0 2px 14px rgba(0,0,0,.10)' },
+  ink:     { heading:'#111111', body:'#33312E', muted:'#6C6B66', tag:'#9A988F' },
+  palette: {
+    orange:'#EE7B4D', purple:'#C5B6EE', pink:'#F0C5DA', yellow:'#E7E058',
+    blue:'#A6C6E2',   green:'#87B79A',  brown:'#A98C7E', periwinkle:'#9CAFE7',
+  },
+  node: {
+    person:    { fill:'#C5B6EE', tag:'[person]' },
+    external:  { fill:'#EE7B4D', tag:'[external]' },
+    container: { fill:'#87B79A', tag:'[container]' },
+    database:  { fill:'#A6C6E2', tag:'[datastore]' },
+    queue:     { fill:'#E7E058', tag:'[queue]' },
+  },
+  edge:  { color:'#111111', width:3, style:'orthogonal', label:'#555555', lifeline:null },
+  c4: {
+    l1:{ bg:'#E4EAF4', border:'3px solid #111', label:'#555555', indent:0 },
+    l2:{ bg:'#CFDDEC', border:'2px solid #111', label:'#555555', indent:0 },
+    l3:{ bg:'#ffffff', border:'1.4px solid #111', label:'#888888', indent:0 },
+  },
+  style: {
+    nodeRadius:14, nodeBorder:'2.5px solid #111', iconMode:'fill',
+    nodeLayout:'tile', showTag:true, dashedExternal:true, groupBoundary:'keyline',
+  },
+  semantic: {
+    problem:  { bg:'#EE7B4D', text:'#111', accent:'#7A3B1E' },
+    solution: { bg:'#87B79A', text:'#111', accent:'#2C4A3A' },
+    info:     { bg:'#A6C6E2', text:'#111', accent:'#27465A' },
+    neutral:  { bg:'#A98C7E', text:'#111', accent:'#3E2F28' },
+    warn:     { bg:'#E7E058', text:'#111', accent:'#5E5A1E' },
+    primary:  { bg:'#C5B6EE', text:'#111', accent:'#3A3550' },
+    data:     { bg:'#F0C5DA', text:'#111', accent:'#7A3F58' },
+    second:   { bg:'#9CAFE7', text:'#111', accent:'#26345E' },
+  },
+  step: ['#C5B6EE','#A6C6E2','#87B79A','#E7E058'],
+  radius: { sm:8, md:14, lg:16, pill:9999 },
+  type:   { caption:10, tag:9, label:11, body:12, title:14, big:30 },
+  weight: { normal:400, bold:700 },
+  letterSpacing: { mono:'1.5px', tight:'-1px', label:'-.5px' },
+}
+
+export const Palette = () => {
+  const order = ['orange','purple','pink','yellow','blue','green','brown','periwinkle']
+  const swBorder = T.skin === 'blueprint' ? '2px solid #111' : 'none'
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        PALETTE · 8
+      </div>
+      <div style={{display:'flex', gap:10, flexWrap:'wrap'}}>
+        {order.map((k,i) => (
+          <div key={i} style={{width:34, height:34, background:T.palette[k],
+            border:swBorder, borderRadius:T.radius.sm}}/>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export const NodeTaxonomy = () => {
+  const types = ['person','container','database','queue','external']
+  const isFill = T.style.iconMode === 'fill'
+
+  const glyph = (type) => {
+    const s = { fill: isFill ? '#111' : 'none', stroke:'#111',
+                 strokeWidth: isFill ? 0 : 1.8, overflow:'visible' }
+    if (type==='person')    return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<circle key="c" cx="12" cy="7" r="4"/>,<path key="p" d="M3 22a9 9 0 0 1 18 0Z"/>]
+        : [<circle key="c" cx="12" cy="8" r="3.6"/>,<path key="p" d="M5 21a7 7 0 0 1 14 0"/>]}
+    </svg>)
+    if (type==='external')  return (<svg viewBox="0 0 24 24" width="20" height="20"
+      style={{fill:'none',stroke:'#111',strokeWidth:isFill?2.6:1.8,overflow:'visible'}}>
+      <path d="M8 16 17 7"/><path d="M9 7h8v8"/>
+    </svg>)
+    if (type==='container') return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<rect key="a" x="3" y="6" width="13" height="12" rx="2.5"/>,<rect key="b" x="9" y="2" width="13" height="12" rx="2.5" opacity=".45"/>]
+        : [<rect key="a" x="3" y="5" width="13" height="11" rx="2"/>,<rect key="b" x="8" y="9" width="13" height="11" rx="2"/>]}
+    </svg>)
+    if (type==='database')  return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<ellipse key="e" cx="12" cy="5.5" rx="8" ry="3.2"/>,<path key="p" d="M4 5.5v13c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2v-13" fill="none" stroke="#111" strokeWidth="2.2"/>]
+        : [<ellipse key="e" cx="12" cy="6" rx="7" ry="2.8"/>,<path key="p" d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6"/>]}
+    </svg>)
+    if (type==='queue')     return (<svg viewBox="0 0 24 24" width="20" height="20" style={s}>
+      {isFill
+        ? [<rect key="a" x="3" y="5" width="4" height="14" rx="1.5"/>,<rect key="b" x="10" y="5" width="4" height="14" rx="1.5"/>,<rect key="c" x="17" y="5" width="4" height="14" rx="1.5"/>]
+        : <path key="p" d="M5 6v12M11 6v12M17 6v12"/>}
+    </svg>)
+    return null
+  }
+
+  const tileNode = (type) => {
+    const n = T.node[type]
+    const extBorder = (type==='external' && T.style.dashedExternal)
+      ? '2.5px dashed #111' : T.style.nodeBorder
+    return (
+      <div style={{width:96, height:88, background:n.fill, border:extBorder,
+        borderRadius:T.style.nodeRadius, display:'flex', flexDirection:'column',
+        alignItems:'center', justifyContent:'center', gap:4}}>
+        {glyph(type)}
+        <div style={{fontSize:T.type.label, fontWeight:T.weight.bold, color:'#111',
+          fontFamily:T.font.sans, textAlign:'center', lineHeight:1.2,
+          textTransform:'capitalize'}}>{type}</div>
+        <div style={{fontFamily:T.font.mono, fontSize:T.type.tag,
+          color:T.ink.tag, letterSpacing:T.letterSpacing.mono,
+          textTransform:'uppercase'}}>{n.tag}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        NODE TAXONOMY
+      </div>
+      <div style={{display:'flex', gap:12, flexDirection:'row', flexWrap:'wrap'}}>
+        {types.map((t,i) => (<div key={i}>{tileNode(t)}</div>))}
+      </div>
+    </div>
+  )
+}
+
+export const C4Hierarchy = () => {
+  const levelLabel = (lv, text, color) => (
+    <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:color,
+      letterSpacing:T.letterSpacing.mono, textTransform:'uppercase',
+      marginBottom:6, display:'flex', justifyContent:'space-between'}}>
+      <span>{text}</span><span>{lv}</span>
+    </div>
+  )
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:16}}>
+        C4 HIERARCHY
+      </div>
+      <div style={{background:T.c4.l1.bg, border:T.c4.l1.border,
+        borderRadius:T.style.nodeRadius, padding:16}}>
+        {levelLabel('L1','Context · border 3',T.c4.l1.label)}
+        <div style={{fontWeight:T.weight.bold, color:'#111', marginBottom:12,
+          fontSize:T.type.body, fontFamily:T.font.sans}}>E-Commerce Platform</div>
+        <div style={{background:T.c4.l2.bg, border:T.c4.l2.border,
+          borderRadius:T.style.nodeRadius, padding:12}}>
+          {levelLabel('L2','Container · border 2',T.c4.l2.label)}
+          <div style={{fontWeight:T.weight.bold, color:'#111', marginBottom:12,
+            fontSize:T.type.body, fontFamily:T.font.sans}}>Web Application</div>
+          <div style={{background:T.c4.l3.bg, border:T.c4.l3.border,
+            borderRadius:T.style.nodeRadius, padding:10}}>
+            {levelLabel('L3','Component · border 1.4',T.c4.l3.label)}
+            <div style={{fontWeight:T.weight.bold, color:'#111',
+              fontSize:T.type.body, fontFamily:T.font.sans}}>Auth Service</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export const C4Container = () => {
+  const W = 560, H = 340
+  const ec = T.edge.color
+  const ew = T.edge.width
+  const markerId = 'arr-blueprint'
+
+  const nodes = [
+    { id:'user',  x:30,  y:140, w:90,  h:80, type:'person',    label:'User',      detail:'Web Browser' },
+    { id:'web',   x:195, y:50,  w:110, h:80, type:'container', label:'Web App',   detail:'React SPA' },
+    { id:'api',   x:195, y:200, w:110, h:80, type:'container', label:'API',       detail:'REST / Node' },
+    { id:'db',    x:385, y:200, w:110, h:80, type:'database',  label:'Database',  detail:'PostgreSQL' },
+    { id:'ext',   x:385, y:50,  w:110, h:80, type:'external',  label:'Auth Svc',  detail:'OAuth2' },
+  ]
+
+  const edges = [
+    { x1:120, y1:172, x2:195, y2:90,  label:'HTTPS', mx:157, my:121 },
+    { x1:120, y1:182, x2:195, y2:240, label:'uses',  mx:157, my:213 },
+    { x1:250, y1:130, x2:250, y2:200, label:'calls', mx:264, my:165 },
+    { x1:305, y1:240, x2:385, y2:240, label:'r/w',   mx:345, my:230 },
+    { x1:305, y1:220, x2:385, y2:90,  label:'auth',  mx:370, my:148 },
+  ]
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:12}}>
+        C4 CONTAINER
+      </div>
+      <svg width={W} height={H} viewBox={'0 0 '+W+' '+H}
+        style={{width:'100%', maxWidth:W, display:'block'}}>
+        <defs>
+          <marker id={markerId} markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill={ec}/>
+          </marker>
+        </defs>
+        <rect x="170" y="20" width="380" height="300" rx={T.style.nodeRadius}
+          fill="none" stroke="#111" strokeWidth="1.5" strokeDasharray="6 4"/>
+        <text x="545" y="36" textAnchor="end"
+          style={{fontFamily:T.font.mono, fontSize:T.type.caption,
+            fill:T.ink.muted, letterSpacing:T.letterSpacing.mono}}>
+          SYSTEM BOUNDARY
+        </text>
+        {edges.map((e,i) => (
+          <g key={i}>
+            <line x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+              stroke={ec} strokeWidth={ew} markerEnd={'url(#'+markerId+')'}/>
+            <text x={e.mx} y={e.my} textAnchor="middle"
+              style={{fontFamily:T.font.mono, fontSize:T.type.caption,
+                fill:T.edge.label, letterSpacing:T.letterSpacing.mono}}>{e.label}</text>
+          </g>
+        ))}
+        {nodes.map((n,i) => {
+          const extBorder = n.type==='external' && T.style.dashedExternal
+          return (
+            <g key={i}>
+              <rect x={n.x} y={n.y} width={n.w} height={n.h}
+                rx={T.style.nodeRadius} fill={T.node[n.type].fill}
+                stroke="#111" strokeWidth="2.5"
+                strokeDasharray={extBorder?'5 3':undefined}/>
+              <text x={n.x+n.w/2} y={n.y+26} textAnchor="middle"
+                style={{fontFamily:T.font.sans, fontSize:T.type.label,
+                  fontWeight:T.weight.bold, fill:'#111'}}>{n.label}</text>
+              <text x={n.x+n.w/2} y={n.y+42} textAnchor="middle"
+                style={{fontFamily:T.font.sans, fontSize:T.type.caption,
+                  fill:T.ink.muted}}>{n.detail}</text>
+              <text x={n.x+n.w/2} y={n.y+60} textAnchor="middle"
+                style={{fontFamily:T.font.mono, fontSize:T.type.tag,
+                  fill:T.ink.tag, letterSpacing:T.letterSpacing.mono}}>
+                {T.node[n.type].tag}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
+export const Flowchart = () => {
+  const W = 480, H = 360
+  const ec = T.edge.color
+  const ew = T.edge.width
+  const markerId = 'fc-arr-blueprint'
+
+  const nodes = [
+    { id:'start', x:190, y:20,  w:100, h:40,  shape:'rect',    label:'Start',         fill:T.node.container.fill },
+    { id:'req',   x:160, y:100, w:160, h:44,  shape:'rect',    label:'HTTP Request',   fill:T.node.container.fill },
+    { id:'auth',  x:165, y:186, w:150, h:48,  shape:'diamond', label:'Authenticated?', fill:T.node.queue.fill },
+    { id:'ok',    x:320, y:272, w:120, h:40,  shape:'rect',    label:'Return 200 OK',  fill:T.node.database.fill },
+    { id:'deny',  x:30,  y:272, w:120, h:40,  shape:'rect',    label:'Return 401',     fill:T.node.external.fill },
+    { id:'db',    x:320, y:186, w:120, h:44,  shape:'cylinder',label:'Lookup DB',      fill:T.node.database.fill },
+  ]
+
+  const edges = [
+    { x1:240, y1:60,  x2:240, y2:100, label:null,  lx:250, ly:80  },
+    { x1:240, y1:144, x2:240, y2:186, label:null,  lx:250, ly:165 },
+    { x1:315, y1:210, x2:380, y2:186, label:'yes', lx:355, ly:195 },
+    { x1:380, y1:230, x2:380, y2:272, label:null,  lx:390, ly:251 },
+    { x1:165, y1:210, x2:90,  y2:272, label:'no',  lx:110, ly:238 },
+  ]
+
+  const bw = parseFloat(T.style.nodeBorder)
+
+  const nodeShape = (n) => {
+    if (n.shape === 'diamond') {
+      const cx=n.x+n.w/2, cy=n.y+n.h/2, hw=n.w/2, hh=n.h/2
+      return (<polygon
+        points={cx+','+(cy-hh)+' '+(cx+hw)+','+cy+' '+cx+','+(cy+hh)+' '+(cx-hw)+','+cy}
+        fill={n.fill} stroke={ec} strokeWidth={bw}/>)
+    }
+    if (n.shape === 'cylinder') {
+      const rx=n.w/2, ry=8
+      return (<g>
+        <ellipse cx={n.x+rx} cy={n.y+ry} rx={rx} ry={ry} fill={n.fill}
+          stroke={ec} strokeWidth={bw}/>
+        <rect x={n.x} y={n.y+ry} width={n.w} height={n.h-ry} fill={n.fill}
+          stroke={ec} strokeWidth={bw}/>
+        <ellipse cx={n.x+rx} cy={n.y+n.h} rx={rx} ry={ry} fill={n.fill}
+          stroke={ec} strokeWidth={bw}/>
+      </g>)
+    }
+    return (<rect x={n.x} y={n.y} width={n.w} height={n.h} rx={T.style.nodeRadius}
+      fill={n.fill} stroke={ec} strokeWidth={bw}/>)
+  }
+
+  const textY = (n) => {
+    if (n.shape === 'diamond')  return n.y + n.h/2 + 5
+    if (n.shape === 'cylinder') return n.y + n.h/2 + 16
+    return n.y + n.h/2 + 5
+  }
+
+  return (
+    <div style={{fontFamily:T.font.sans, background:T.surface.canvas, padding:24,
+      borderRadius:T.style.nodeRadius, boxShadow:T.surface.shadow}}>
+      <div style={{fontFamily:T.font.mono, fontSize:T.type.caption, color:T.ink.muted,
+        letterSpacing:T.letterSpacing.mono, textTransform:'uppercase', marginBottom:12}}>
+        FLOWCHART SAMPLE
+      </div>
+      <svg width={W} height={H} viewBox={'0 0 '+W+' '+H}
+        style={{width:'100%', maxWidth:W, display:'block'}}>
+        <defs>
+          <marker id={markerId} markerWidth="8" markerHeight="8"
+            refX="6" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill={ec}/>
+          </marker>
+        </defs>
+        {edges.map((e,i) => (
+          <g key={i}>
+            <line x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+              stroke={ec} strokeWidth={ew} markerEnd={'url(#'+markerId+')'}/>
+            {e.label && <text x={e.lx} y={e.ly} textAnchor="middle"
+              style={{fontFamily:T.font.mono, fontSize:T.type.caption,
+                fill:T.edge.label, letterSpacing:T.letterSpacing.mono}}>{e.label}</text>}
+          </g>
+        ))}
+        {nodes.map((n,i) => (
+          <g key={i}>
+            {nodeShape(n)}
+            <text x={n.x+n.w/2} y={textY(n)} textAnchor="middle"
+              style={{fontFamily:T.font.sans, fontSize:T.type.label,
+                fontWeight:T.weight.bold, fill:'#111'}}>{n.label}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+## Blueprint — Reference Sample
+
+Four architecture archetypes on the Blueprint skin (bold keylines, `[type-tags]`, dashed system boundary).
+
+### Palette
+
+<Palette/>
+
+### Node Taxonomy
+
+<NodeTaxonomy/>
+
+### C4 Hierarchy
+
+<C4Hierarchy/>
+
+### C4 Container Diagram
+
+<C4Container/>
+
+### Flowchart
+
+<Flowchart/>
