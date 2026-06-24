@@ -73,6 +73,17 @@
       },
       "source": "./plugins/react-mdx-diagram",
       "category": "productivity"
+    },
+    {
+      "name": "web-research",
+      "description": "범용 웹 리서치 플러그인. 주제만 주면 researcher 서브에이전트가 웹에서 신뢰 소스를 모아 출처 추적 가능한 한국어 정리 문서를 생성한다. 수집을 서브에이전트로 격리해 메인 대화 컨텍스트를 보호한다.",
+      "version": "0.1.0",
+      "author": {
+        "name": "centurio87",
+        "email": "ghkdldjwls@gmail.com"
+      },
+      "source": "./plugins/web-research",
+      "category": "productivity"
     }
   ]
 }
