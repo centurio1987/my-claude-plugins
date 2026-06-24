@@ -23,13 +23,23 @@ skill used everywhere without trouble):
     define a lowercase helper FUNCTION and invoke it as a call — `{panel(a)}` —
     never as a JSX tag `<Panel/>`.
 
+It also enforces the icon rule (principle 1): diagrams use **inline SVG vector
+glyphs**, never emoji/pictographs. The rewritten design system (see
+references/node-glyphs.md and the canon `glyph` helper) draws every semantic icon
+as an `<svg>`; an emoji like ✅ / ⚠️ / 💡 / 🔁 standing in for an icon is exactly
+what the prototype was meant to avoid. Geometric connector marks (→ ↓ ▼ and the
+like) are NOT emoji and are allowed.
+
 So this linter flags:
   - any capitalized JSX tag used NESTED (inside a component) — these are the
     sub-components that break hosts; convert them to lowercase function calls.
   - a column-0 body tag that has no matching top-level `export const`.
+  - any emoji/pictograph on an indented (diagram-JSX) line — replace it with an
+    inline SVG glyph.
 
 Detection uses indentation: a nested tag has non-empty leading text on its line;
-a body usage sits at column 0.
+a body usage sits at column 0. Emoji are only flagged on indented lines (diagram
+JSX), so emoji in column-0 prose of a content doc don't trip the gate.
 
 Usage:
     python3 check_mdx.py <file.mdx> [more.mdx ...]
@@ -42,6 +52,16 @@ from pathlib import Path
 
 TOPLEVEL_RE = re.compile(r"^export\s+const\s+([A-Za-z_]\w*)\s*=")
 JSX_TAG_RE = re.compile(r"<([A-Z]\w*)[\s/>]")
+
+# Pictographic emoji ranges only. Deliberately EXCLUDES arrows (U+2190–21FF) and
+# geometric shapes (U+25A0–25FF) so connector marks like → ↓ ▼ ▶ are allowed.
+#   U+1F000–1FAFF  emoji & supplemental symbols/pictographs (💡 🔁 📦 🚀 …)
+#   U+2600–27BF    misc symbols + dingbats (⚠ ✅ ✔ ☀ …)
+#   U+2B00–2BFF    misc symbols & arrows used as emoji (⭐ ⬛ …)
+#   U+FE0F         emoji variation selector
+EMOJI_RE = re.compile(
+    "[\U0001F000-\U0001FAFF☀-➿⬀-⯿️]"
+)
 
 
 def check_file(path):
@@ -69,6 +89,19 @@ def check_file(path):
                         f"lowercase helper invoked as {{{tag[0].lower() + tag[1:]}(...)}} "
                         f"or inline lowercase HTML instead.")
                 )
+
+        # Emoji icon check — only on indented lines (diagram JSX). Emoji in
+        # column-0 prose of a content doc are left alone.
+        if ln[:1] in (" ", "\t"):
+            found = {m.group(0) for m in EMOJI_RE.finditer(ln)}
+            if found:
+                emo = " ".join(sorted(c for c in found if c != "️"))
+                problems.append(
+                    (i, f"emoji/pictograph ({emo}) used inside diagram JSX. Icons must "
+                        f"be inline SVG vector glyphs, not emoji — draw it as an <svg> "
+                        f"(see references/node-glyphs.md / the canon `glyph` helper). "
+                        f"Geometric connector marks like → ↓ ▼ are fine.")
+                )
     return sorted(set(problems))
 
 
@@ -85,7 +118,7 @@ def main():
                 print(f"  L{line}: {msg}")
             total += len(problems)
         else:
-            print(f"✓ {path} — renderable (no nested capitalized components)")
+            print(f"✓ {path} — renderable (no nested capitalized components, no emoji icons)")
     if total:
         print(f"\n# {total} issue(s). Fix before considering the diagram done.", file=sys.stderr)
         return 1
