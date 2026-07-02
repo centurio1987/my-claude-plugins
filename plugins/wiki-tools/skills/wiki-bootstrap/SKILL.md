@@ -1,11 +1,12 @@
 ---
 name: wiki-bootstrap
 description: >
-  새로운 LLM-driven 위키 프로젝트를 초기화할 때 사용하는 스킬.
-  사용자가 "새 위키 만들어줘", "위키 프로젝트 초기화해줘", "wiki bootstrap", "wiki init",
-  "새 지식 베이스 시작하고 싶어", "wiki 구조 잡아줘", "start a new wiki", "initialize wiki",
-  "개인 위키 만들어줘", "지식 베이스 초기화" 같은 표현을 사용할 때 반드시 이 스킬을 사용한다.
-  현재 작업 디렉토리에 CLAUDE.md나 wiki/ 디렉토리가 없는 경우에도 트리거한다.
+  LLM-driven 위키의 디렉토리·CLAUDE.md 뼈대를 실제로 생성하는 저수준 스캐폴더.
+  주로 wiki-forge 가 풀 셋업(Phase 2) 중 내부적으로 호출한다. 사용자가 인터뷰·graphify 없이
+  "그냥 위키 뼈대만 잡아줘", "graphify 빼고 초기화만 해줘", "wiki bootstrap", "wiki init",
+  "wiki 구조만 잡아줘", "지식 베이스 뼈대만 초기화" 처럼 최소 초기화만 원한다고 명시할 때 직접 쓴다.
+  위키를 새로 만들거나 무엇을 위한 위키인지 규명이 필요한 일반적인 생성 요청은 wiki-forge 를 사용한다.
+  기존 위키 검증은 wiki-validate, 재구성은 wiki-restructure를 쓴다.
 ---
 
 # Wiki Bootstrap
