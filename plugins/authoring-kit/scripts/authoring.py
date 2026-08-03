@@ -442,6 +442,17 @@ def cmd_show(args) -> int:
 
 def cmd_resolve(args) -> int:
     pd = Path(args.project or ".").expanduser()
+    # 재현성의 마지막 고리 — 전역 저장이라 프로젝트 checkout 만으로는 규칙 조합이 확정되지 않는다.
+    # lock 이 그걸 메우는데, **어긋난 채로 조용히 집필하면 lock 이 있으나 마나다.**
+    if getattr(args, "frozen", False):
+        drift = lock_drift(pd)
+        if drift:
+            print("lock 과 어긋난 상태로는 집필하지 않는다 (--frozen):", file=sys.stderr)
+            for d in drift:
+                print(f"  {d}", file=sys.stderr)
+            print("\n`authoring.py lock --update` 로 갱신하고 왜 바뀌었는지 커밋에 남긴다.",
+                  file=sys.stderr)
+            return 1
     doc, meta = resolve(args.voice, args.spec, pd, profile=args.profile)
     if meta["conflicts"]:
         for c in meta["conflicts"]:
@@ -546,6 +557,35 @@ def build_lock(project_dir: Path) -> dict:
     }
 
 
+def lock_drift(project_dir: Path) -> list[str]:
+    """lock 이 기록한 규칙 조합과 지금 디스크의 상태가 어긋난 지점.
+
+    `lock` 과 `resolve --frozen` 이 **같은 잣대**를 써야 한다 — 둘이 따로 세면
+    "lock 은 통과인데 resolve 는 실패" 같은 답이 나오고, 그러면 어느 쪽도 못 믿는다.
+    """
+    lp = lock_path(project_dir)
+    if not lp.exists():
+        return ["lockfile 이 없다"]
+    old = json.loads(lp.read_text(encoding="utf-8"))
+    fresh = build_lock(project_dir)
+    drift = []
+    # 저장 위치가 바뀌면 해시가 같아도 재현 경로가 달라진다 — 스크래치에서 승격할 때 실제로 그랬다.
+    a_src = old.get("principles", {}).get("source")
+    b_src = fresh.get("principles", {}).get("source")
+    if a_src != b_src:
+        drift.append(f"principles.source: {a_src} → {b_src}")
+    for group in ("principles", "voices", "specs"):
+        a = old.get(group, {}).get("files", old.get(group, {}))
+        b = fresh.get(group, {}).get("files", fresh.get(group, {}))
+        if not isinstance(a, dict) or not isinstance(b, dict):
+            continue
+        for k in sorted(set(a) | set(b)):
+            if a.get(k) != b.get(k):
+                drift.append(f"{group}/{k}: "
+                             f"{'추가됨' if k not in a else '없어짐' if k not in b else '내용 변경'}")
+    return drift
+
+
 def cmd_lock(args) -> int:
     pd = Path(args.project or ".").expanduser()
     lp = lock_path(pd)
@@ -557,16 +597,7 @@ def cmd_lock(args) -> int:
         print(f"  원칙 {len(fresh['principles']['files'])}개 · voice {len(fresh['voices'])}개 · spec {len(fresh['specs'])}개")
         return 0
 
-    old = json.loads(lp.read_text(encoding="utf-8"))
-    stale = []
-    for group in ("principles", "voices", "specs"):
-        a = old.get(group, {}).get("files", old.get(group, {}))
-        b = fresh.get(group, {}).get("files", fresh.get(group, {}))
-        if not isinstance(a, dict) or not isinstance(b, dict):
-            continue
-        for k in sorted(set(a) | set(b)):
-            if a.get(k) != b.get(k):
-                stale.append(f"{group}/{k}: {'추가됨' if k not in a else '없어짐' if k not in b else '내용 변경'}")
+    stale = lock_drift(pd)
     if stale:
         print("lock 이 현재 상태와 어긋난다 (stale):")
         for s in stale:
@@ -681,6 +712,8 @@ def main() -> int:
     p.add_argument("--project"); p.add_argument("--out")
     p.add_argument("--profile", choices=["main", "worker"], default="worker",
                    help="main=요약(메인 스레드용) · worker=전문(집필·채점 에이전트용)")
+    p.add_argument("--frozen", action="store_true",
+                   help="lock 과 어긋나면 집필하지 않고 exit 1 (CI·재현성 게이트)")
     p.set_defaults(func=cmd_resolve)
 
     p = sub.add_parser("validate")
