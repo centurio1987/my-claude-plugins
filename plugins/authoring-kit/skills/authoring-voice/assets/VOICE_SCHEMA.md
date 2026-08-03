@@ -22,7 +22,8 @@
 | `schema_version` | ✓ | 정수 |
 | `id` | ✓ | kebab-case. 디렉토리명과 같아야 한다 |
 | `label` | ✓ | 사람이 읽는 이름 |
-| `kind` | ✓ | `human` \| `ai-persona` |
+| `kind` | ✓ | `human` \| `ai-persona` — **누구인가** |
+| `usage` | ✓ | `generate` \| `preserve` — **어떻게 쓰이는가** |
 | `status` | ✓ | `defined` \| `draft` \| `undefined` |
 | `source` | ✓ | 어디서 뽑았는가 — 역추출이면 모수까지 |
 | `axes` | ✓ | `register` · `rhythm` · `device` · `lexicon` |
@@ -30,6 +31,19 @@
 | `waivers` | | 공통 원칙 면제 |
 | `forbid` | ✓ | 이 퍼소나가 절대 하지 않는 것 |
 | `used_by` | | 어느 프로젝트·저자 id 가 이 voice 를 쓰는가 |
+
+## `usage` — 쓰는 목소리인가, 지키는 목소리인가
+
+`kind` 로는 이걸 못 가른다. `yundeok` 은 사람이지만 AI 가 그 목소리로 이력서를 쓰고,
+`ppangto`(빵관 토니) 도 사람인데 **AI 가 그 목소리로 쓰는 일은 없다** — 본인이 직접 쓴다.
+
+| 값 | 뜻 | 집필 에이전트가 할 일 |
+| --- | --- | --- |
+| `generate` | AI 가 이 목소리로 **쓴다** | 축 선언을 집필 지침으로 따른다 |
+| `preserve` | 사람이 쓴 글을 손볼 때 **지킬 색** | 새로 쓰지 않는다. 다듬을 때 이 표현들을 건드리지 않는 근거로만 본다 |
+
+이 구분이 없으면 "사용자가 직접 쓰는 저자"의 문체를 생성 지침으로 오해한다.
+`usage` 를 스키마에 박은 이유가 그 오해가 실제로 났기 때문이다.
 
 ## `status` — 셋을 구분하는 이유
 
@@ -104,7 +118,7 @@
 ## `used_by`
 
 ```json
-{ "projects": ["centurio1987.github.io", "code_test"], "author_ids": ["ppangto-teacher"] }
+{ "projects": ["centurio1987.github.io", "code_test"], "author_ids": ["ppangtolab-teacher"] }
 ```
 
 같은 퍼소나가 여러 프로젝트에서 쓰이면 여기에 모두 적는다.

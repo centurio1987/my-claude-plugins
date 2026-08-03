@@ -115,8 +115,8 @@ def main() -> int:
 
     print("\n[5] 다른 voice 로는 해석되지 않는가  ← spec 의 allowed 가 지켜지는가")
     allowed = s.get("voice", {}).get("allowed")
-    if allowed and "tony" not in allowed:
-        _, m2 = A.resolve("tony", spec_id, project)
+    if allowed and "ppangto" not in allowed:
+        _, m2 = A.resolve("ppangto", spec_id, project)
         check("허용되지 않은 voice 는 CONFLICT",
               any("CONFLICT" in c for c in m2["conflicts"]), str(m2["conflicts"]))
     else:

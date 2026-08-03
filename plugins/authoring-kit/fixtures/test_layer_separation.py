@@ -51,12 +51,12 @@ L0_MARKERS = ["영어투", "이중 피동", "쉼표 과다", "헤지", "무생�
 def main() -> int:
     print("게이트 B — 층 분리 검증\n")
 
-    tony, tony_meta = A.resolve("tony", None, Path("."))
-    teach, teach_meta = A.resolve("ppangto-teacher", None, Path("."))
+    tony, tony_meta = A.resolve("ppangto", None, Path("."))
+    teach, teach_meta = A.resolve("ppangtolab-teacher", None, Path("."))
 
     print("[1] 해석 자체가 성공하는가")
     check("tony 해석 충돌 없음", not tony_meta["conflicts"], str(tony_meta["conflicts"]))
-    check("ppangto-teacher 해석 충돌 없음", not teach_meta["conflicts"], str(teach_meta["conflicts"]))
+    check("ppangtolab-teacher 해석 충돌 없음", not teach_meta["conflicts"], str(teach_meta["conflicts"]))
 
     print("\n[2] 저자 고유 문체가 상대 voice 로 새지 않는가  ← 요구사항 ①의 핵심")
     for m in TONY_ONLY:
@@ -102,7 +102,7 @@ def main() -> int:
           any("reason" in p for p in problems3), str(problems3))
 
     print("\n[7] 해석 결과가 결정론적인가  ← 재현성의 토대")
-    again, again_meta = A.resolve("tony", None, Path("."))
+    again, again_meta = A.resolve("ppangto", None, Path("."))
     check("같은 입력 → 같은 해시", tony_meta["hash"] == again_meta["hash"],
           f"{tony_meta['hash']} vs {again_meta['hash']}")
 

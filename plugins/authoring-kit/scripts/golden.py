@@ -150,7 +150,7 @@ def facts(text: str) -> dict:
 # **표에 없는 장치는 통과가 아니라 `manual_check_devices` 로 나간다.** 여기 키를
 # 늘리는 것이 voice 를 추가할 때의 일이고, 못 늘리겠으면 그냥 두면 된다 — 사람이 본다.
 DEVICE_PATTERNS: dict[str, str] = {
-    # ── ppangto-teacher ──
+    # ── ppangtolab-teacher ──
     "ascii-art-after-concept": r"```text",
     # 상태 변화를 전/후로 나란히 보였는가. 영문 Before/After 와 한국어 '분할 전/후' 류를 함께.
     "before-after-diagram": r"[Bb]efore\b|[Aa]fter\b|(?:변형|분할|회전|삽입|삭제|이동|병합)\s*(?:전|후)\b",

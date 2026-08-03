@@ -108,8 +108,8 @@ def main() -> int:
     print("\n[6] resolve 프로파일 — main 은 요약, worker 는 전문")
     project = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")
     try:
-        main_doc, main_meta = A.resolve("ppangto-teacher", "algo-guide", project, profile="main")
-        work_doc, work_meta = A.resolve("ppangto-teacher", "algo-guide", project, profile="worker")
+        main_doc, main_meta = A.resolve("ppangtolab-teacher", "algo-guide", project, profile="main")
+        work_doc, work_meta = A.resolve("ppangtolab-teacher", "algo-guide", project, profile="worker")
     except FileNotFoundError as e:
         print(f"  (건너뜀 — {e})")
         main_doc = work_doc = ""

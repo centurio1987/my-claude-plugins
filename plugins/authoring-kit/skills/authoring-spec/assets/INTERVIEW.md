@@ -94,7 +94,7 @@
 항목      15개 (필수 13 · 조건부 2)
 작성 방법  항목마다 있음 / 빠진 것: (없음)
 범위 원칙  24개 (MUST 14 · SHOULD 3 · IF-APPLICABLE 7)
-퍼소나    ppangto-teacher (다른 voice 로는 해석 불가)
+퍼소나    ppangtolab-teacher (다른 voice 로는 해석 불가)
 템플릿    수입 — algo-guide-canvas
 ```
 

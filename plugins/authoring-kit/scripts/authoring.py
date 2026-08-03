@@ -234,6 +234,13 @@ def validate_voice(v: dict, problems: list[str]) -> None:
             problems.append(f"voice/{vid}: waiver({w.get('code')}) 에 reason 이 없다 — 조용한 면제는 금지")
     if v.get("status") not in {"defined", "draft", "undefined"}:
         problems.append(f"voice/{vid}: status 가 defined|draft|undefined 중 하나여야 한다")
+    # `usage` 는 **이 목소리로 쓰는가, 이 목소리를 지키는가**를 가른다.
+    # `kind`(human|ai-persona)로는 못 가른다 — `yundeok` 은 사람이지만 AI 가 그 목소리로 이력서를 쓴다.
+    # 이 구분이 없으면 "사용자가 직접 쓰는 저자"의 문체를 생성 지침으로 오해한다(실제로 그랬다).
+    if v.get("usage") not in {"generate", "preserve"}:
+        problems.append(
+            f"voice/{vid}: usage 가 generate|preserve 중 하나여야 한다. "
+            f"generate=AI 가 이 목소리로 집필한다 · preserve=사람이 쓴 글을 손볼 때 지킬 색이다")
 
 
 def validate_spec(s: dict, problems: list[str]) -> None:

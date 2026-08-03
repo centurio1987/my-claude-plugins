@@ -70,8 +70,8 @@
 ## `voice`
 
 ```json
-{ "default": "ppangto-teacher", "allowed": ["ppangto-teacher"],
-  "voice_map": { "인터뷰어": "tony", "인터뷰이": "ppangto-prof" } }
+{ "default": "ppangtolab-teacher", "allowed": ["ppangtolab-teacher"],
+  "voice_map": { "인터뷰어": "ppangto", "인터뷰이": "ppangtolab-prof" } }
 ```
 
 - `allowed` 밖의 voice 로 해석하면 `CONFLICT` 로 죽는다.
