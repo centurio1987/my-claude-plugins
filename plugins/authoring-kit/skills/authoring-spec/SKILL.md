@@ -97,7 +97,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/lint_placeholders.py import <파일> --out
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py validate --spec <id>
 ```
 
-검사하는 것: 스키마 버전 · **축 위반**(spec 이 퍼소나 축을 선언했는가) ·
+검사하는 것: 스키마 버전 · **갈래 위반**(spec 이 퍼소나 축을 선언했는가) ·
 principles 의 level·axis · voice 존재 · `template_ref` 가 `paths.json` 에서 해소되는가.
 
 ### 6. 왕복 확인

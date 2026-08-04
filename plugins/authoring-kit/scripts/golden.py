@@ -3,7 +3,7 @@
 
 **재현의 대상은 내용과 구성이지 문장이 아니다.**
 자연스러운 한국어 규칙이 지금은 프로젝트마다 다르게 적용돼 있어서, 통일하면 문장이 달라진다.
-그건 회귀가 아니라 이 작업의 성과다. 그래서 축마다 판정 방식이 다르다:
+그건 회귀가 아니라 이 작업의 성과다. 그래서 갈래마다 판정 방식이 다르다:
 
     내용   재현 대상 — 사실·수치·코드·핵심 주장이 빠지거나 달라지면 실패
     구성   재현 대상 — 항목 골격·순서·필수 충족이 어긋나면 실패
@@ -115,7 +115,7 @@ def norm_complexity(s: str) -> str:
 
 
 def facts(text: str) -> dict:
-    """내용 축의 재료. 수치·복잡도·식별자·코드블록을 센다.
+    """내용 항목의 재료. 수치·복잡도·식별자·코드블록을 센다.
 
     문장은 담지 않는다 — 문장이 달라지는 건 정상이기 때문이다.
     """
@@ -170,6 +170,57 @@ DEVICE_PATTERNS: dict[str, str] = {
 }
 
 
+VISUAL = re.compile(r"^\s*(```|!\[|<[A-Z][A-Za-z]*\s|\|)")
+FENCE_LINE = re.compile(r"^\s*(```|~~~)")
+
+
+def longest_prose_run(text: str) -> int:
+    """시각 자료 없이 이어지는 산문 문단의 **최장 연속 길이**.
+
+    총량만 세면 그림 30개가 앞쪽에 몰려도 통과한다. 선생님 voice 는
+    "산문 3~4문단이 그림 없이 이어지면 신호 위반"이라고 **분포**를 규정하는데,
+    장치 흔적 카운트로는 그걸 잴 수 없다. 그래서 따로 잰다.
+
+    코드펜스·이미지·JSX 컴포넌트·표를 시각 자료로 본다. 헤딩은 구간을 끊는다 —
+    절이 바뀌면 호흡도 새로 시작하기 때문이다.
+    """
+    # **코드펜스를 먼저 통째로 접는다.** 빈 줄로 블록을 쪼개면 펜스 안의 여백이 블록
+    # 경계가 되어, 그림 뒷부분이 평범한 산문 문단으로 잡힌다. 그림 안의 여백을 산문으로
+    # 세는 것은 오탐이고, 실제로 그것 때문에 한 편이 위반 7 로 잡혔다(진짜 값은 4 였다).
+    folded, in_fence, buf = [], False, []
+    for line in text.splitlines():
+        if FENCE_LINE.match(line):
+            if in_fence:
+                folded.append("```")            # 펜스 한 덩어리를 한 줄로 접는다
+            in_fence = not in_fence
+            if in_fence:
+                continue
+            continue
+        if in_fence:
+            continue
+        folded.append(line)
+    text = "\n".join(folded)
+    run = best = 0
+    for block in re.split(r"\n\s*\n", text):
+        b = block.strip()
+        if not b:
+            continue
+        if b.startswith("#"):
+            run = 0
+            continue
+        if VISUAL.match(b):
+            run = 0
+            continue
+        # 목록·인용은 **산문이 아니다.** 규칙이 말하는 것은 "산문 N문단"이므로
+        # 세지 않는다. 그렇다고 시각 자료도 아니라서 구간을 끊지도 않는다.
+        lines = [x.strip() for x in b.splitlines() if x.strip()]
+        if all(re.match(r"^([-*+]|\d+\.)\s", x) for x in lines) or all(x.startswith(">") for x in lines):
+            continue
+        run += 1
+        best = max(best, run)
+    return best
+
+
 def voice_compliance(text: str, voice_id: str) -> dict:
     """활성 voice 의 금지 목록이 본문에 나타나는지, 선언한 장치가 실제로 쓰였는지."""
     try:
@@ -180,7 +231,7 @@ def voice_compliance(text: str, voice_id: str) -> dict:
     traces = {k: len(re.findall(p, text, re.M)) for k, p in DEVICE_PATTERNS.items()}
     declared_traces = {k: n for k, n in traces.items() if k in devices}
     # 탐지기가 없는 장치는 **조용히 빠지게 두지 않는다.** 한 voice 의 장치명만
-    # 하드코딩돼 있던 탓에 다른 voice 는 device_traces 가 늘 `{}` 였고, voice 축이
+    # 하드코딩돼 있던 탓에 다른 voice 는 device_traces 가 늘 `{}` 였고, voice 항목이
     # 공허하게 통과했다. 거짓 실패보다 거짓 통과가 나쁘다.
     manual = [d for d in devices if d not in DEVICE_PATTERNS]
     return {
@@ -189,6 +240,8 @@ def voice_compliance(text: str, voice_id: str) -> dict:
         "device_traces": declared_traces,
         # 기계로 못 재는 장치 — 통과로 세지 않고 사람에게 넘긴다.
         "manual_check_devices": manual,
+        # 분포 — 총량이 아니라 **어디에 있는가**. 3 이상이면 voice 가 말한 신호 위반 구간이다.
+        "max_prose_run_without_visual": longest_prose_run(text),
         "register_hint": {
             "존댓말_종결": len(re.findall(r"(입니다|합니다|예요|봅시다)\.", text)),
             "평서체_종결": len(re.findall(r"(이다|한다|였다)\.", text)),
@@ -234,7 +287,7 @@ def measure(path: Path, spec_id: str | None, project: Path, voice_id: str | None
             spec, _ = A.load_spec(spec_id, project)
         except FileNotFoundError:
             spec = None
-    # 내용 축만 뼈대를 벗긴 본문을 쓴다. 구성·문체는 글 전체를 그대로 본다.
+    # 내용 항목만 뼈대를 벗긴 본문을 쓴다. 구성·문체는 글 전체를 그대로 본다.
     body = strip_draft_scaffolding(text, spec)
     out: dict = {
         "file": str(path),
@@ -271,7 +324,7 @@ def measure(path: Path, spec_id: str | None, project: Path, voice_id: str | None
 
 
 def compare(base: dict, cand: dict) -> dict:
-    """축마다 다른 잣대로 잰다. 문체는 '악화 없음'만 본다."""
+    """갈래마다 다른 잣대로 잰다. 문체는 '악화 없음'만 본다."""
     GRADE = {"A": 4, "B": 3, "C": 2, "D": 1}
     r: dict = {"id": base.get("id"), "verdict": {}, "detail": {}}
 
@@ -285,12 +338,21 @@ def compare(base: dict, cand: dict) -> dict:
     fixed = set(base.get("fixed_headings") or cand.get("fixed_headings") or [])
     b_fixed = [x for x in b_h2 if x in fixed]
     c_fixed = [x for x in c_h2 if x in fixed]
-    # 자유 제목 절은 **개수와 자리**로 센다. 제목 문구 변화는 보고만 한다.
     free_drift = [(b, c) for b, c in zip(b_h2, c_h2) if b != c and b not in fixed]
-    ok = (len(b_h2) == len(c_h2) and b_fixed == c_fixed
+    # **h2 개수 동일을 요구하지 않는다.** 고정 제목이 없는 명세에서는 그 요구가
+    # 사실상 "절을 정확히 N개 써라"가 되어, 명세가 조건부로 열어 둔 절을 빼는 판단
+    # (SP8: 조건부 절의 생략은 판단이지 누락이 아니다)과 정면으로 부딪힌다.
+    # 실제로 집필자가 "절을 하나 더 나눌까"를 내용이 아니라 **카운터 맞추기**로 결정했다.
+    #
+    # 대신 명세가 필수로 정한 것이 있는지를 본다. 개수 변화는 보고만 한다 —
+    # 조건부 절을 왜 뺐는지는 게이트 보고가 받고, 최종 판단은 사람이 한다.
+    required_missing = (cand.get("spec_conformance") or {}).get("missing", [])
+    ok = (b_fixed == c_fixed and not required_missing
           and all(b == c for b, c in zip(b_h2, c_h2) if b in fixed))
     r["detail"]["structure"] = {
         "baseline": b_h2, "candidate": c_h2,
+        "h2_count": [len(b_h2), len(c_h2)],
+        "required_missing": required_missing,
         "missing": [x for x in b_h2 if x not in c_h2],
         "added": [x for x in c_h2 if x not in b_h2],
         "fixed_headings_ok": b_fixed == c_fixed,
@@ -380,6 +442,40 @@ def cmd_baseline(args) -> int:
     return 0
 
 
+def cmd_selfcheck(args) -> int:
+    """집필자가 스스로 도는 점검. **기준값을 아예 만지지 않는다.**
+
+    회귀의 독립성은 "원문을 보지 마라"는 지시로는 안 지켜진다 — 채점하려면 기준값을
+    읽어야 하고 기준값에는 원문 구조가 들어 있다. 실제로 워커 둘이 그 경로로 원문
+    목차를 봤고, 한 명은 "완전한 블라인드가 아니었다"고 스스로 보고했다.
+
+    **분리가 답이다.** 집필자는 이 커맨드를 쓴다 — 명세와 voice 만 보고 자기 글을 잰다.
+    기준값 대조는 채점자(오케스트레이터)가 따로 돌린다. 집필자에게 기준값 경로를
+    주지 않으면 볼 방법 자체가 없다.
+    """
+    path = Path(args.file).expanduser()
+    project = Path(args.project or ".").expanduser()
+    m = measure(path, args.spec, project, args.voice)
+    conf = m.get("spec_conformance") or {}
+    vc = m.get("voice_compliance") or {}
+    out = {
+        "file": path.name,
+        "문체등급": m["style"]["grade"],
+        "적발": {"S1": m["style"]["s1"], "S2": m["style"]["s2"], "S3": m["style"]["s3"]},
+        "코드": m["style"]["codes"],
+        "필수절_누락": conf.get("missing", []),
+        "h2": len(m["structure"]["h2"]),
+        "산문자수": m["content"]["prose_chars"],
+        "장치_흔적": vc.get("device_traces", {}),
+        "사람이_봐야_할_장치": vc.get("manual_check_devices", []),
+        "그림없이_이어진_산문_최장": vc.get("max_prose_run_without_visual"),
+        "종결톤": vc.get("register_hint", {}),
+    }
+    print(json.dumps(out, ensure_ascii=False, indent=2))
+    bad = m["style"]["s1"] > 0 or conf.get("missing")
+    return 1 if bad else 0
+
+
 def cmd_compare(args) -> int:
     base_all = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
     base = next((x for x in base_all["items"] if x["id"] == args.id), None)
@@ -389,6 +485,22 @@ def cmd_compare(args) -> int:
     cand = measure(Path(args.candidate), base.get("spec"),
                    Path(args.project or "."), base.get("voice"))
     r = compare(base, cand)
+    if getattr(args, "brief", False):
+        # 집필자가 스스로 돌릴 때 쓴다. **기준값의 목차·식별자를 찍지 않는다** —
+        # "원문을 보지 마라"고 해 놓고 채점 명령이 원문 구조를 노출하면 그 지시가 무의미해진다.
+        # 판정과 수치 차이만 준다. 무엇을 고쳐야 하는지는 그것으로 충분하다.
+        c = r["detail"]["content"]; st = r["detail"]["structure"]
+        brief = {
+            "id": r["id"], "verdict": r["verdict"], "overall": r["overall"],
+            "산문비": c["prose_ratio"], "필수절_누락": st["required_missing"],
+            "문체": r["detail"]["style"]["candidate"],
+            "사라진_장치": r["detail"].get("voice", {}).get("devices_gone", []),
+            # 기계가 못 재는 장치는 **통과로 세지 않고 이름을 그대로 넘긴다.**
+            # 이걸 안 찍으면 voice 항목이 공허하게 통과한 것을 아무도 모른다.
+            "사람이_봐야_할_장치": (cand.get("voice_compliance") or {}).get("manual_check_devices", []),
+        }
+        print(json.dumps(brief, ensure_ascii=False, indent=2))
+        return 0
     print(json.dumps(r, ensure_ascii=False, indent=2))
     print("\n" + "=" * 56)
     for k, v in r["verdict"].items():
@@ -414,8 +526,15 @@ def main() -> int:
     b = sub.add_parser("baseline"); b.add_argument("--set", required=True)
     b.add_argument("--out", default="GOLDEN_BASELINE.json"); b.set_defaults(func=cmd_baseline)
 
+    sc = sub.add_parser("selfcheck",
+                        help="집필자 자가 점검 — 기준값을 만지지 않는다(회귀 독립성)")
+    sc.add_argument("file"); sc.add_argument("--spec"); sc.add_argument("--voice")
+    sc.add_argument("--project"); sc.set_defaults(func=cmd_selfcheck)
+
     c = sub.add_parser("compare"); c.add_argument("--baseline", required=True)
     c.add_argument("--candidate", required=True); c.add_argument("--id", required=True)
+    c.add_argument("--brief", action="store_true",
+                   help="기준값 구조를 노출하지 않고 판정만 — 집필자 자가 점검용")
     c.add_argument("--project"); c.set_defaults(func=cmd_compare)
 
     args = ap.parse_args()

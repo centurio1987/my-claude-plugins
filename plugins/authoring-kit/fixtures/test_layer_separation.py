@@ -18,6 +18,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import pathlib
 import sys
 import tempfile
 from pathlib import Path
@@ -91,8 +92,8 @@ def main() -> int:
             "axes": {"structure": "섹션 순서를 내가 정한다"}, "waivers": []}
     problems2: list[str] = []
     A.validate_voice(bad2, problems2)
-    check("voice 가 L2 소유 축(structure)을 선언하면 축 위반",
-          any("축 위반" in p for p in problems2), str(problems2))
+    check("voice 가 L2 소유 축(structure)을 선언하면 갈래 위반",
+          any("갈래 위반" in p for p in problems2), str(problems2))
 
     bad3 = {"id": "evil3", "label": "x", "kind": "ai-persona", "status": "defined",
             "axes": {}, "waivers": [{"code": "R2", "target": "L0:machine-rhythm"}]}
@@ -105,6 +106,19 @@ def main() -> int:
     again, again_meta = A.resolve("ppangto", None, Path("."))
     check("같은 입력 → 같은 해시", tony_meta["hash"] == again_meta["hash"],
           f"{tony_meta['hash']} vs {again_meta['hash']}")
+
+    print("\n[8] 퍼소나 없이는 글이 써지지 않는다")
+    # 예전에는 voice.md 가 없으면 `_voice.md 없음_` 한 줄을 싣고 넘어갔고, 그래서
+    # 집필 에이전트가 퍼소나 규칙을 못 본 채 한 편을 썼다. **구조로 막는다.**
+    check("VoiceEmpty 예외가 정의돼 있다", hasattr(A, "VoiceEmpty"))
+    thin = {"axes": {"register": "짧게"}}
+    check("축 하나뿐인 voice 는 실속 없음으로 본다",
+          not A._has_voice_substance("짧게", thin))
+    full = {"axes": {"register": "정중한 공유체다. " * 20, "rhythm": "발견 먼저. " * 20}}
+    check("축 둘 이상 + 분량이면 통과",
+          A._has_voice_substance("정중한 공유체다. " * 30, full))
+    check("defined 인데 voice.md 없으면 validate 가 잡는다",
+          "voice.md 가 없다" in (pathlib.Path(A.__file__).read_text(encoding="utf-8")))
 
     print(f"\n{'='*56}")
     print(f"통과 {PASSES} · 실패 {len(FAILS)}")

@@ -7,7 +7,7 @@
     L1  퍼소나 voice ~/.claude/authoring/voices/<id>/    그 퍼소나에만 적용
     L2  글 명세      <project>/.claude/authoring/specs/  그 글 종류에만 적용
 
-층에 전역 서열을 매기지 않는다. 대신 **축(axis)마다 소유 층을 하나로 못박고, 소유자만 그 축의
+층에 전역 서열을 매기지 않는다. 대신 **갈래(axis)마다 소유 층을 하나로 못박고, 소유자만 그 갈래의
 규칙을 쓴다.** 서열을 매기면 "누가 이기냐"가 층 단위로 전파되어, 한 사람의 문체가 전역 규칙으로
 승격되는 사고가 재발한다 — 이 도구는 그 사고를 막으려고 존재한다.
 
@@ -47,7 +47,7 @@ from pathlib import Path
 PLUGIN_ROOT = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", Path(__file__).resolve().parent.parent))
 UPSTREAM_ASSETS = PLUGIN_ROOT / "skills" / "authoring-method" / "assets"
 
-# ── 축 소유권 ────────────────────────────────────────────────────────────
+# ── 갈래 소유권 ────────────────────────────────────────────────────────────
 AXIS_OWNER = {
     "evidence": "L0",
     "grammar": "L0",
@@ -62,7 +62,7 @@ AXIS_OWNER = {
 }
 # `comprehension` 이 따로 있는 이유: "점진적 공개 · 약어 첫 등장 풀어쓰기 · 미정의 용어 없음"
 # 같은 항목은 글 종류를 가리지 않는 공통 원칙인데, 담을 축이 없었다.
-#   structure 는 L2 단독이라 L0 문서가 쓰면 축 위반이고,
+#   structure 는 L2 단독이라 L0 문서가 쓰면 갈래 위반이고,
 #   grammar(문장이 한국어다운가)도 evidence(사실이 맞는가)도 아니다.
 # 억지로 기존 축에 밀어 넣으면 라벨이 거짓이 되므로 축을 하나 늘렸다.
 HARD_FLOOR = {"evidence", "grammar", "comprehension"}   # 어떤 voice도 무력화할 수 없다
@@ -200,7 +200,7 @@ def l0_index() -> list[str]:
 
 # ── validate ─────────────────────────────────────────────────────────────
 def check_l0_axes(problems: list[str]) -> None:
-    """L0 문서에 L1/L2 소유 축이 선언돼 있으면 축 위반이다."""
+    """L0 문서에 L1/L2 소유 축이 선언돼 있으면 갈래 위반이다."""
     for name, text in load_l0():
         for m in AXIS_TAG.finditer(text):
             axis = m.group(1)
@@ -208,7 +208,7 @@ def check_l0_axes(problems: list[str]) -> None:
                 problems.append(f"L0/{name}: 알 수 없는 축 '{axis}'")
             elif AXIS_OWNER[axis] != "L0":
                 problems.append(
-                    f"L0/{name}: 축 위반 — '{axis}' 는 {AXIS_OWNER[axis]} 단독 소유인데 L0 문서가 선언했다")
+                    f"L0/{name}: 갈래 위반 — '{axis}' 는 {AXIS_OWNER[axis]} 단독 소유인데 L0 문서가 선언했다")
 
 
 def validate_voice(v: dict, problems: list[str]) -> None:
@@ -218,7 +218,7 @@ def validate_voice(v: dict, problems: list[str]) -> None:
             problems.append(f"voice/{vid}: 알 수 없는 축 '{axis}'")
         elif AXIS_OWNER[axis] != "L1":
             problems.append(
-                f"voice/{vid}: 축 위반 — '{axis}' 는 {AXIS_OWNER[axis]} 소유다. voice 가 선언할 수 없다")
+                f"voice/{vid}: 갈래 위반 — '{axis}' 는 {AXIS_OWNER[axis]} 소유다. voice 가 선언할 수 없다")
     for w in v.get("waivers", []):
         target = w.get("target", "")
         axis = target.split(":", 1)[1] if ":" in target else target
@@ -229,7 +229,7 @@ def validate_voice(v: dict, problems: list[str]) -> None:
         elif axis not in WAIVABLE:
             problems.append(
                 f"voice/{vid}: waiver 대상이 아닌 축 '{axis}' (code={w.get('code')}). "
-                f"면제 가능한 축은 {sorted(WAIVABLE)} 뿐이다")
+                f"면제 가능한 갈래은 {sorted(WAIVABLE)} 뿐이다")
         if not w.get("reason"):
             problems.append(f"voice/{vid}: waiver({w.get('code')}) 에 reason 이 없다 — 조용한 면제는 금지")
     if v.get("status") not in {"defined", "draft", "undefined"}:
@@ -237,6 +237,13 @@ def validate_voice(v: dict, problems: list[str]) -> None:
     # `usage` 는 **이 목소리로 쓰는가, 이 목소리를 지키는가**를 가른다.
     # `kind`(human|ai-persona)로는 못 가른다 — `yundeok` 은 사람이지만 AI 가 그 목소리로 이력서를 쓴다.
     # 이 구분이 없으면 "사용자가 직접 쓰는 저자"의 문체를 생성 지침으로 오해한다(실제로 그랬다).
+    # `defined` 는 "집필에 바로 쓸 수 있다"는 선언이다. 사람이 읽는 확장판이 없으면
+    # 그 선언이 거짓이다 — 실제로 확장판 없이 `defined` 인 voice 로 글이 한 편 나갔다.
+    if v.get("status") == "defined" and not (voices_dir() / vid / "voice.md").exists():
+        problems.append(
+            f"voice/{vid}: status 가 defined 인데 voice.md 가 없다. "
+            f"확장판 없이 defined 로 두면 집필 에이전트가 축 선언만 보고 쓰게 된다 — "
+            f"voice.md 를 쓰거나 status 를 draft 로 내려라")
     if v.get("usage") not in {"generate", "preserve"}:
         problems.append(
             f"voice/{vid}: usage 가 generate|preserve 중 하나여야 한다. "
@@ -251,7 +258,7 @@ def validate_spec(s: dict, problems: list[str]) -> None:
             problems.append(f"spec/{sid}: 알 수 없는 축 '{axis}' (code={pr.get('code')})")
         elif AXIS_OWNER[axis] not in {"L2", "L0"}:
             problems.append(
-                f"spec/{sid}: 축 위반 — principles 의 '{axis}' 는 {AXIS_OWNER[axis]} 소유다 "
+                f"spec/{sid}: 갈래 위반 — principles 의 '{axis}' 는 {AXIS_OWNER[axis]} 소유다 "
                 f"(code={pr.get('code')}). spec 은 structure·scope-principle·evidence 만 쓴다")
         if pr.get("level") not in {"MUST", "SHOULD", "IF-APPLICABLE"}:
             problems.append(f"spec/{sid}: level 이 MUST|SHOULD|IF-APPLICABLE 이 아니다 (code={pr.get('code')})")
@@ -265,6 +272,52 @@ def validate_spec(s: dict, problems: list[str]) -> None:
 
 
 # ── resolve ──────────────────────────────────────────────────────────────
+def render_voice_json(v: dict) -> str:
+    """voice.md 가 없을 때 voice.json 으로 L1 을 채운다.
+
+    `voice.md` 는 사람이 읽는 확장판이고 `voice.json` 은 기계가 읽는 축 선언이다.
+    확장판이 아직 없다고 **축 선언까지 버리면 목소리가 통째로 사라진다.** 덜 풍부할 뿐
+    같은 규칙이므로, 없으면 이쪽을 편다. 그리고 **없다는 사실을 함께 적는다** —
+    조용히 메우면 확장판이 영영 안 써진다.
+    """
+    L = [f"> **`voice.md` 가 아직 없어 `voice.json` 의 축 선언으로 대신한다.**",
+         f"> 사람이 읽는 확장판을 쓰면 이 자리가 그것으로 바뀐다.", "",
+         f"# {v.get('label', v.get('id'))} — 문체 선언", ""]
+    for axis in ("register", "rhythm", "device", "lexicon"):
+        val = v.get("axes", {}).get(axis)
+        if not val:
+            continue
+        L.append(f"## {axis}")
+        L.append("")
+        L.extend([f"- {x}" for x in val] if isinstance(val, list) else [val])
+        L.append("")
+    if v.get("forbid"):
+        L += ["## 금지", ""] + [f"- {x}" for x in v["forbid"]] + [""]
+    if v.get("params"):
+        L += ["## 파라미터", ""] + [f"- `{k}`: {x}" for k, x in v["params"].items()] + [""]
+    if v.get("waivers"):
+        L += ["## 이 voice 가 L0 에 대해 선언한 면제", ""]
+        L += [f"- `{w.get('code')}` ({w.get('target')}) — {w.get('reason')}"
+              f"{' / 해제 조건: ' + w['limit'] if w.get('limit') else ''}" for w in v["waivers"]]
+        L.append("")
+    return "\n".join(L).strip()
+
+
+class VoiceEmpty(Exception):
+    """L1 에 실을 것이 없을 때. **조용히 빈 문서를 내주지 않기 위한 예외.**"""
+
+
+def _has_voice_substance(rendered: str, v: dict) -> bool:
+    """이 voice 가 집필 지침으로 쓸 만한 내용을 실제로 갖고 있는가.
+
+    네 항목(register·rhythm·device·lexicon) 중 **최소 둘**은 채워져 있어야 한다.
+    하나만 있으면 그건 목소리가 아니라 메모다.
+    """
+    axes = v.get("axes", {})
+    filled = [k for k in ("register", "rhythm", "device", "lexicon") if axes.get(k)]
+    return len(filled) >= 2 and len(rendered.strip()) >= 200
+
+
 def resolve(voice_id: str, spec_id: str | None, project_dir: Path,
             profile: str = "worker") -> tuple[str, dict]:
     """L0+L1+L2 를 한 벌로 병합한다.
@@ -326,7 +379,23 @@ def resolve(voice_id: str, spec_id: str | None, project_dir: Path,
         parts.append("")
         parts.append("> 예문과 근거를 포함한 전문은 집필 단계에서 `authoring-method` 가 로드한다.")
     else:
-        parts.append(v_md.strip() if v_md.strip() else "_voice.md 없음_")
+        # voice.md 가 없다고 **L1 을 비워 보내지 않는다.** 그러면 집필 에이전트가
+        # 퍼소나 규칙을 하나도 못 본 채 쓰게 되고, 아무도 그 사실을 모른다 —
+        # 실제로 그렇게 한 편이 쓰였다. 같은 정보가 voice.json 에 있으므로 거기서 편다.
+        # **L1 이 비면 해석 자체를 거부한다.**
+        # 예전에는 `_voice.md 없음_` 한 줄을 싣고 넘어갔고, 그 결과 집필 에이전트가
+        # 퍼소나 규칙을 하나도 못 본 채 글을 한 편 썼다. 아무도 몰랐고 워커가 우연히
+        # 짚어 줘서 발견했다. **퍼소나를 분리해 관리하는 구조를 만들어 놓고 퍼소나 없이
+        # 글이 나가면 그 구조가 무의미하다.** 대체 렌더는 정보 손실을 줄일 뿐 이 사고를
+        # 막지 못한다 — 막는 것은 여기서 죽는 것이다.
+        l1 = v_md.strip() or render_voice_json(v)
+        if not _has_voice_substance(l1, v):
+            raise VoiceEmpty(
+                f"voice '{voice_id}' 에 실을 문체 규칙이 없다.\n"
+                f"  voice.md 도 없고 voice.json 의 axes 도 비어 있다.\n"
+                f"  이 상태로는 집필 에이전트가 퍼소나 규칙을 못 본 채 쓰게 되므로 해석을 중단한다.\n"
+                f"  `authoring-voice` 로 등록을 마치거나 status 를 draft 로 내려라.")
+        parts.append(l1)
     parts.append("")
 
     if s:
@@ -449,6 +518,14 @@ def cmd_show(args) -> int:
 
 def cmd_resolve(args) -> int:
     pd = Path(args.project or ".").expanduser()
+    try:
+        return _cmd_resolve(args, pd)
+    except VoiceEmpty as e:
+        print(f"해석 중단 — {e}", file=sys.stderr)
+        return 1
+
+
+def _cmd_resolve(args, pd: Path) -> int:
     # 재현성의 마지막 고리 — 전역 저장이라 프로젝트 checkout 만으로는 규칙 조합이 확정되지 않는다.
     # lock 이 그걸 메우는데, **어긋난 채로 조용히 집필하면 lock 이 있으나 마나다.**
     if getattr(args, "frozen", False):
@@ -502,7 +579,7 @@ def cmd_validate(args) -> int:
             print(f"  {p}")
         print(f"\n{len(problems)}건 실패")
         return 1
-    print("통과 — 축 위반 0 · waiver 타깃 정상 · 참조 해소 정상")
+    print("통과 — 갈래 위반 0 · waiver 타깃 정상 · 참조 해소 정상")
     return 0
 
 

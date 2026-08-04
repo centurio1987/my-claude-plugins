@@ -1,7 +1,7 @@
 # L0 — AI 문체 (기계 리듬) 탐지
 
 > **층: L0 (공통 원칙) · 소유 축: `machine-rhythm`**
-> L0가 **탐지**하고, L1(활성 voice)이 코드별 `waivers` 로 **면제**할 수 있는 유일한 축이다.
+> L0가 **탐지**하고, L1(활성 voice)이 코드별 `waivers` 로 **면제**할 수 있는 유일한 갈래이다.
 > `evidence`·`grammar` 와 달리 hard floor가 아니다 — 어떤 리듬을 자기 색으로 삼을지는 voice의 권리다.
 >
 > 출처: `centurio1987.github.io/.claude/skills/_shared/AI_KOREAN_PATTERNS.md` Part A·C 이관.

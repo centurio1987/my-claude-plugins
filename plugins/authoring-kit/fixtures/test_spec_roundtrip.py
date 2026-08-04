@@ -9,7 +9,7 @@
     ④ 적용 퍼소나       spec.json.voice
     ⑤ 템플릿           spec.json.template + paths.json.templates
 
-그리고 spec 이 자기 소관이 아닌 것을 침범하지 않는지(축 소유권), 경로·명령이 spec 에
+그리고 spec 이 자기 소관이 아닌 것을 침범하지 않는지(갈래 소유권), 경로·명령이 spec 에
 섞여 들어오지 않았는지(재사용성)를 확인한다.
 
 실행:
@@ -81,11 +81,11 @@ def main() -> int:
               ref in paths.get("templates", {}),
               f"{ref} not in {list(paths.get('templates', {}))}")
 
-    print("\n[2] 축 소유권을 지키는가")
+    print("\n[2] 갈래 소유권을 지키는가")
     bad_axis = [p for p in prin if A.AXIS_OWNER.get(p["axis"]) not in {"L2", "L0"}]
     check("principles 가 L1 소유 축(register/rhythm/device/lexicon)을 침범하지 않는다",
           not bad_axis, str([(p["code"], p["axis"]) for p in bad_axis]))
-    check("spec 에 voice 축 선언이 없다", "axes" not in s)
+    check("spec 에 voice 항목 선언이 없다", "axes" not in s)
 
     print("\n[3] 경로·명령이 spec 에 섞이지 않았는가  ← 다른 프로젝트에서 재사용 가능한가")
     # `source` 는 **출처 이력**이지 운용 설정이 아니다. 어디서 가져왔는지는 경로로 적을 수밖에 없고,

@@ -14,8 +14,8 @@ L2(글 명세) 세 층으로 재배치된다. 재배치는 사람이 판단해�
   verify   확정된 인벤토리를 새 L0/L1/L2 배치와 대조한다. 이쪽이 본체다.
            유실·미분류·UNTAGGED 가 하나라도 있으면 비-0 으로 죽는다.
 
-축(axis) 태그 규약: 규칙 항목 헤딩 줄 끝에 `<!-- axis: grammar -->` 를 단다.
-소유 층이 아닌 축이 문서에 있으면 축 위반이다(authoring.py validate 소관).
+갈래(axis) 태그 규약: 규칙 항목 헤딩 줄 끝에 `<!-- axis: grammar -->` 를 단다.
+소유 층이 아닌 축이 문서에 있으면 갈래 위반이다(authoring.py validate 소관).
 
 사용법:
     python3 trace_rules.py suggest <파일|디렉토리> ... [--out RULES_INVENTORY.tsv]
@@ -139,7 +139,7 @@ def extract(path: Path) -> list[dict]:
             seen.add(key)
             own = AXIS_TAG.search(raw)
             axis = own.group("axis") if own else current_axis()
-            # 무엇이 "축 태그를 반드시 달아야 하는 규칙"인가.
+            # 무엇이 "갈래 태그를 반드시 달아야 하는 규칙"인가.
             #   · 코드가 붙은 항목(A1·D5·P3…)은 언제나 규칙이다 — 태그가 없으면 UNTAGGED.
             #   · 코드 없는 번호 항목(`1. **…**`)은 규칙 카탈로그·체크리스트 안에 있을 때만 규칙이다.
             #     서론의 설명용 나열까지 규칙으로 세면 UNTAGGED 오탐이 쏟아진다.

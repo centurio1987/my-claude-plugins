@@ -42,7 +42,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py list voices
 - 산출물 frontmatter 의 저자 필드가 **비어 스키마 기본값에 의존**하고 있는가
   — 기본값이 사람 저자면, AI가 쓴 글이 사람 이름으로 나가고 AI 표기도 붙지 않는다.
 
-### 3. 축 위반 — 규칙이 잘못된 층에 있는가
+### 3. 갈래 위반 — 규칙이 잘못된 층에 있는가
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py validate --all

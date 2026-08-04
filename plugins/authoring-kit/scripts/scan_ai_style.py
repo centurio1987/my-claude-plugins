@@ -78,16 +78,27 @@ def split_blocks(text: str) -> tuple[list[str], list[str]]:
         if not block:
             continue
         lines = [ln.strip() for ln in block.splitlines() if ln.strip()]
-        if all(re.match(r"^([-*+]|\d+\.)\s", ln) for ln in lines):
-            bullets.extend(lines)
-            continue
         if all(ln.startswith(">") for ln in lines):  # 인용 블록 — 원문 보호
             continue
         if all(ln.startswith("|") for ln in lines):  # 표
             continue
-        prose = [ln for ln in lines if not ln.startswith("#")]
-        if prose:
-            paragraphs.append(" ".join(prose))
+        # **줄 단위로 가른다.** 블록 전체가 불릿일 때만 목록으로 세면,
+        # `**라벨**` 한 줄 뒤에 빈 줄 없이 불릿이 붙은 블록이 통째로 산문 문단이 되고
+        # 그 불릿들의 쉼표가 전부 P1(쉼표 과다) 로 계산된다. 실제로 링크 목록 하나가
+        # 등급을 A 에서 C 로 떨어뜨렸고, **빈 줄 하나를 넣으면 A 로 돌아왔다** —
+        # 문장이 아니라 서식이 등급을 흔드는 자리였다.
+        run: list[str] = []
+        for ln in lines:
+            if ln.startswith("#"):
+                continue
+            if re.match(r"^([-*+]|\d+\.)\s", ln):
+                if run:
+                    paragraphs.append(" ".join(run)); run = []
+                bullets.append(ln)
+            else:
+                run.append(ln)
+        if run:
+            paragraphs.append(" ".join(run))
     return paragraphs, bullets
 
 
@@ -112,7 +123,12 @@ BUZZWORDS: dict[str, tuple[str, list[str]]] = {
 }
 
 HEDGE_TOKENS = ["다소", "어느 정도", "비교적", "대체로", "일반적으로", "보통", "아마도", "경우가 많"]
-HEDGE_TAILS = ["수 있습니다", "것 같습니다", "로 보입니다", "인 듯합니다", "수도 있습니다"]
+# `수 있다` 는 한국어에서 **가능성**(추측)이기도 하고 **능력**(사실)이기도 하다.
+# "이 API 로 파일을 읽을 수 있습니다" 는 헤지가 아니라 기능 서술이다. 그걸 완충어로 세면
+# 정당한 가능성 병렬("A 를 할 수 있고 B 도 할 수 있습니다")을 못 쓰게 된다.
+# 계사(`이다`)에 붙는 `일 수 / 될 수` 만 완충어로 본다 — "X 일 수 있습니다" = "X 일지도 모른다".
+HEDGE_TAILS = ["일 수 있습니다", "될 수 있습니다", "것 같습니다", "로 보입니다",
+               "인 듯합니다", "수도 있습니다"]
 
 DISCOURSE_HEADS = ["하지만", "그러나", "또한", "따라서", "그리고", "즉", "한편", "이처럼"]
 
@@ -171,6 +187,9 @@ EMOJI = re.compile(
     "[" "\U0001F300-\U0001FAFF" "\U0001F900-\U0001F9FF" "\U00002600-\U000026FF"
     "\U00002700-\U000027BF" "\U0001F1E6-\U0001F1FF" "\U0000FE0F" "]"
 )
+# 기호 **자체를 설명하는** 자리는 장식이 아니다 — `♭ 기호가 …를 뜻한다` 처럼 그 기호가
+# 문장의 화제일 때. 같은 줄에 `기호`·`표기`·`문자`·`심볼` 이 있으면 세지 않는다.
+SYMBOL_TALK = re.compile(r"기호|표기|문자|심볼")
 
 
 @dataclass
@@ -324,7 +343,8 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
         findings.append(Finding("P2", "S2", "줄표 남용", len(dash_paras), dash_paras))
 
     # --- P3 이모지 (S1) ------------------------------------------------------
-    emojis = EMOJI.findall(body_text)
+    emojis = [e for line in body_text.splitlines() for e in EMOJI.findall(line)
+              if not SYMBOL_TALK.search(line)]
     if emojis:
         findings.append(Finding("P3", "S1", "본문 이모지", len(emojis), [", ".join(sorted(set(emojis))[:10])]))
 
@@ -456,6 +476,57 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
         if len(hits) >= limit:
             findings.append(Finding(code, sev, label, len(hits), hits[:5]))
 
+    # --- D7 승부 비유 (S2) --------------------------------------------------
+    # `이긴다`·`이깁니다` 는 **실제로 겨룰 때만** 쓴다. 규칙이 값을 하나 정하는 상황
+    # (우선순위 표·longest prefix match·설정 병합)에는 겨루는 주체가 없다.
+    #
+    # 이 규칙은 사용자가 명시적으로 준 피드백인데 **이관 중에 유실됐다** —
+    # 구 `STYLE_GUIDE` R8 의 금지 목록에 있었으나 인벤토리에 "출처 없는 단정·덤프·반복
+    # 금지"로만 요약돼 옮겨졌다. 그 결과 새로 쓴 글 셋이 같은 표현을 다시 썼다.
+    # **기계가 잡지 않으면 또 샌다.** 그래서 여기 둔다.
+    #
+    # 국면을 가리키는 비유("진짜 승부처")는 저자 의도라 예외다 — 주어가 서로 겨루는지가
+    # 가르는 기준인데 정규식은 그걸 못 본다. 그래서 S2 로 두고 사람이 판정한다.
+    WIN_LOSE = re.compile(r"이깁니다|이긴다|이기는|이기고|이긴\s|패배(?!자)")
+    wl = [snippet(x) for x in all_sentences if WIN_LOSE.search(x)]
+    if wl:
+        findings.append(Finding(
+            "D7", "S2", "승부 비유", len(wl),
+            wl[:4] + ["규칙이 값을 정하는 상황이면 `우선한다`·`앞선다`·`고른다` 로. "
+                     "국면 비유(`진짜 승부처`)는 예외 — L0_NATURAL_KOREAN §D7"]))
+
+    # --- D8 지형 은유 / D9 축 오용 (S2) --------------------------------------
+    terrain = [snippet(x) for x in all_sentences if re.search(r"지형|지도를 그리", x)]
+    if terrain:
+        findings.append(Finding("D8", "S2", "지형 은유", len(terrain),
+                                terrain[:3] + ["무엇을 보이는지 그대로 — `한눈에 보기`·`분류`·`전체 구성`"]))
+    # `축` 은 좌표일 때만. 2차원 격자를 실제로 그리는 자리는 예외라 정규식이 못 가린다 —
+    # 그래서 S2 로 두고 사람이 판정한다. 시간축·회전축도 정상 용법이라 뺀다.
+    AXIS_OK = re.compile(r"시간축|회전축|[xXyY]\s*축|좌표축|두 축을 교차|축을 교차|가로축|세로축")
+    axis_bad = [snippet(x) for x in all_sentences
+                if re.search(r"[^가-힣]축[을이은에의로]|\d\s*축|[가-힣]+\s+축\b", x)
+                and not AXIS_OK.search(x)]
+    if axis_bad:
+        findings.append(Finding("D9", "S2", "축 오용", len(axis_bad),
+                                axis_bad[:3] + ["분류를 가리키면 `갈래`·`분류`·`항목` 으로. "
+                                                "축은 좌표평면·회전축·시간축에만"]))
+
+    # --- D10 못 박다 / D11 가격 비유 (S2) -------------------------------------
+    nail = [snippet(x) for x in all_sentences if re.search(r"못\s?박", x)]
+    if nail:
+        findings.append(Finding("D10", "S2", "못 박다", len(nail),
+                                nail[:3] + ["`정한다`·`명시한다`·`고정한다` 로 충분하다"]))
+    # 돈이 실제로 오갈 때만 가격어를 쓴다. 통화 단위나 요금 문맥이 있으면 정상이다.
+    PRICE_OK = re.compile(r"원|달러|USD|\$|요금|과금|청구|라이선스|구독료|월정액")
+    price = [snippet(x) for x in all_sentences
+             # `감싼`·`얼싼` 같은 다른 말이 걸리지 않게 앞 글자를 본다.
+             if re.search(r"비싸|비싼|저렴|값싸|헐값|(?<![감얼움차엮])싼\s", x)
+             and not PRICE_OK.search(x)]
+    if price:
+        findings.append(Finding("D11", "S2", "가격 비유", len(price),
+                                price[:3] + ["연산·쿼리는 `비용이 크다/작다`, 이득은 `이득이 크다/작다`. "
+                                             "실제 청구 금액일 때만 가격어"]))
+
     # --- H1 헤지 중첩 (S1) --------------------------------------------------
     stacked = []
     for s in all_sentences:
@@ -466,9 +537,31 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
         findings.append(Finding("H1", "S1", "헤지 중첩", len(stacked), stacked[:5]))
 
     # --- H2 추측 어미 / H3 문두 완충 (S2) ------------------------------------
-    h2 = [snippet(s) for s in all_sentences if any(t in s for t in ["인 것 같습니다", "것 같습니다", "로 보입니다", "인 듯합니다"])]
-    if len(h2) >= 2:
-        findings.append(Finding("H2", "S2", "추측 어미", len(h2), h2[:4]))
+    # H2 — **완충어의 총량이 아니라 다양성을 센다.**
+    #
+    # 완충어를 일괄 금지하면 불확실한 것을 단정하게 되어 더 나쁘다. 규칙 문서는 근거
+    # 수준별로 다른 형태를 쓰라고 정한다(연역·확실한 근거·근거의 신뢰도 유보·근거 부재·
+    # 귀류법·논리적 추론). 자리마다 근거가 다른데 **표현이 하나뿐이면 수위를 맞춘 게
+    # 아니라 습관**이다 — 그게 이 코드가 잡는 것이다.
+    #
+    # `보이다` 는 동사이기도 하다("표로 보입니다" = 드러난다). 구체 명사 뒤는 세지 않는다.
+    HEDGE_VERB_OK = re.compile(
+        r"(?:^|[\s(])[가-힣A-Za-z0-9]*(?:표|그래프|도식|그림|숫자|수치|형태|모양|색|선)으?로 보입니다")
+    HEDGE_FORMS = ["인 것 같습니다", "것 같습니다", "인 듯합니다", "로 보입니다",
+                   "수도 있습니다", "일 수 있습니다", "지 않을까 합니다"]
+    counts: dict[str, int] = {}
+    for sent in all_sentences:
+        if "로 보입니다" in sent and HEDGE_VERB_OK.search(sent):
+            continue
+        for form in HEDGE_FORMS:
+            if form in sent:
+                counts[form] = counts.get(form, 0) + 1
+                break
+    monotone = [f"`{k}` {n}회" for k, n in sorted(counts.items(), key=lambda x: -x[1]) if n >= 4]
+    if monotone:
+        findings.append(Finding(
+            "H2", "S2", "완충 표현 단조", sum(counts[k.split('`')[1]] for k in monotone),
+            monotone[:4] + ["근거 수준마다 다른 형태를 쓴다 — L0_MACHINE_RHYTHM §H 근거 수준 척도"]))
     h3 = [
         p.split()[0]
         for p in paragraphs + [s for s in all_sentences]

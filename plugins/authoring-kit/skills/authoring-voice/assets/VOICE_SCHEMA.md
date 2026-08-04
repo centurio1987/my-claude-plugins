@@ -67,7 +67,7 @@
 }
 ```
 
-**여기 없는 축을 쓰면 `validate` 가 축 위반으로 막는다.**
+**여기 없는 축을 쓰면 `validate` 가 갈래 위반으로 막는다.**
 
 - `structure`(항목·순서) → 글 명세(L2) 소관
 - `evidence`·`grammar`·`comprehension` → 공통 원칙(L0) 소관, 불가침
