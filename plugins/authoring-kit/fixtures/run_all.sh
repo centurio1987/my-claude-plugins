@@ -26,6 +26,7 @@ run "명세 등록 왕복 (요구사항 ②)" python3 "$HERE/test_spec_roundtrip
 run "플러그인 구조 · 컨텍스트 예산" python3 "$HERE/test_plugin_shape.py" "$PROJECT"
 run "문체 스캐너 세는 단위"      python3 "$HERE/test_scanner.py"
 run "린터 세는 단위"           python3 "$HERE/test_linter.py"
+run "문체 설정 (계승·가중치·편집기)" python3 "$HERE/test_style.py"
 
 echo
 echo "──────────────────────────────────────────────────────"

@@ -27,6 +27,9 @@
     authoring.py resolve --voice <id> [--spec <id>] [--project <dir>] [--out <file>]
     authoring.py validate --voice <id> | --spec <id> | --all
     authoring.py path    [--scope voices|specs|principles]
+    authoring.py style   show [--voice <id>] [--json] | validate | serve [--port N]
+
+문체 설정(전역 → voice 계승)은 `style_registry.py` 가 해석하고, `resolve` 가 L1 뒤에 싣는다.
 
 상태 위치 해석(첫 번째로 쓸 수 있는 것):
     1. $AUTHORING_KIT_HOME              명시 오버라이드 (스크래치 검증에 쓴다)
@@ -46,6 +49,9 @@ from pathlib import Path
 
 PLUGIN_ROOT = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", Path(__file__).resolve().parent.parent))
 UPSTREAM_ASSETS = PLUGIN_ROOT / "skills" / "authoring-method" / "assets"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import style_registry as SR  # noqa: E402
 
 # ── 갈래 소유권 ────────────────────────────────────────────────────────────
 AXIS_OWNER = {
@@ -398,6 +404,12 @@ def resolve(voice_id: str, spec_id: str | None, project_dir: Path,
         parts.append(l1)
     parts.append("")
 
+    # 문체 설정 — 전역을 계승한 어휘 가중치와 정성 지시. L1 소유 축만 쓰므로 L1 절 안에 싣는다.
+    style_problems = SR.validate_all_for(voice_id)
+    problems.extend(f"style: {p}" for p in style_problems)
+    parts.append(SR.render(SR.effective(voice_id), profile=profile, usage=v.get("usage", "generate")))
+    parts.append("")
+
     if s:
         parts.append("## L2 — 이 글 종류의 명세 (structure · scope-principle)")
         parts.append("")
@@ -574,12 +586,16 @@ def cmd_validate(args) -> int:
                 validate_spec(s, problems)
             except Exception as e:
                 problems.append(str(e))
+    if args.voice or args.all:
+        # 문체 설정 — 전역과 voice 의 차분이 카탈로그·hard floor·면제 규칙을 지키는가.
+        problems += [f"style: {p}" for p in
+                     (SR.validate_all() if args.all else SR.validate_all_for(args.voice))]
     if problems:
         for p in problems:
             print(f"  {p}")
         print(f"\n{len(problems)}건 실패")
         return 1
-    print("통과 — 갈래 위반 0 · waiver 타깃 정상 · 참조 해소 정상")
+    print("통과 — 갈래 위반 0 · waiver 타깃 정상 · 참조 해소 정상 · 문체 설정 정상")
     return 0
 
 
@@ -604,7 +620,7 @@ def build_lock(project_dir: Path) -> dict:
     if voices_dir().is_dir():
         for d in sorted(voices_dir().glob("*/")):
             blob = ""
-            for f in ("voice.json", "voice.md"):
+            for f in ("voice.json", "voice.md", "style.json"):
                 fp = d / f
                 if fp.exists():
                     blob += fp.read_text(encoding="utf-8")
@@ -638,6 +654,8 @@ def build_lock(project_dir: Path) -> dict:
         },
         "voices": voices,
         "specs": specs,
+        # 문체 설정의 기본 카탈로그와 전역 설정. voice 별 style.json 은 voices 해시에 들어간다.
+        "style": SR.layer_hashes(),
     }
 
 
@@ -658,7 +676,7 @@ def lock_drift(project_dir: Path) -> list[str]:
     b_src = fresh.get("principles", {}).get("source")
     if a_src != b_src:
         drift.append(f"principles.source: {a_src} → {b_src}")
-    for group in ("principles", "voices", "specs"):
+    for group in ("principles", "voices", "specs", "style"):
         a = old.get(group, {}).get("files", old.get(group, {}))
         b = fresh.get(group, {}).get("files", fresh.get(group, {}))
         if not isinstance(a, dict) or not isinstance(b, dict):
@@ -769,6 +787,30 @@ def cmd_emit_legacy_registry(args) -> int:
     return 0
 
 
+def cmd_style(args) -> int:
+    if args.action == "validate":
+        problems = SR.validate_all()
+        for p in problems:
+            print(f"  {p}")
+        print(f"\n{len(problems)}건 실패" if problems else "문체 설정 정상 — 카탈로그 · 전역 · voice 전부")
+        return 1 if problems else 0
+    if args.action == "serve":
+        import style_server  # noqa: E402
+        return style_server.serve(args.host, args.port, open_browser=args.open)
+    if args.voice and not SR.voice_exists(args.voice):
+        print(f"voice 를 찾을 수 없다: {args.voice}", file=sys.stderr)
+        return 2
+    eff = SR.effective(args.voice)
+    if args.json:
+        print(json.dumps(eff, ensure_ascii=False, indent=2))
+    else:
+        usage = "generate"
+        if args.voice:
+            usage = load_voice(args.voice)[0].get("usage", "generate")
+        print(SR.render(eff, profile="worker", usage=usage))
+    return 0
+
+
 def cmd_path(args) -> int:
     if args.scope == "principles":
         print(principles_dir())
@@ -812,6 +854,15 @@ def main() -> int:
     p = sub.add_parser("emit-legacy-registry", help="spec + paths.json 에서 구 registry 를 굽는다")
     p.add_argument("--project"); p.add_argument("--out")
     p.set_defaults(func=cmd_emit_legacy_registry)
+
+    p = sub.add_parser("style", help="문체 설정 — 유효값 보기 / 검증 / 편집기 서버")
+    p.add_argument("action", choices=["show", "validate", "serve"])
+    p.add_argument("--voice", help="show: 이 voice 의 유효값(없으면 전역까지만)")
+    p.add_argument("--json", action="store_true")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8765)
+    p.add_argument("--open", action="store_true", help="serve: 브라우저를 연다")
+    p.set_defaults(func=cmd_style)
 
     p = sub.add_parser("path")
     p.add_argument("--scope", choices=["voices", "specs", "principles"], default="voices")

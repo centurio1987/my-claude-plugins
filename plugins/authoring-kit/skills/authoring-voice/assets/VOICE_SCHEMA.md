@@ -3,13 +3,18 @@
 한 저자·퍼소나가 **어떻게 말하는가**를 담는다. **voice 는 프로젝트를 넘나든다** —
 같은 퍼소나를 프로젝트마다 따로 만들지 않는다.
 
-## 파일 두 개
+## 파일 두 개 (+ 선택 하나)
 
 ```
 ~/.claude/authoring/voices/<id>/
   voice.json   기계 판독 — 축·파라미터·면제
   voice.md     사람·에이전트 판독 — 문체 규칙 N개(예문 포함) + 금지 목록
+  style.json   (선택) 문체 설정 — 전역(`~/.claude/authoring/global/style.json`)을 계승·확장하는 차분
 ```
+
+`style.json` 스키마는 `authoring-style` 스킬의 `STYLE_SCHEMA.md` 에 있다. 어휘 목록의 가중치(-3~+3)·필터와
+정성 지시를 담는다. **면제 규칙은 여기와 같다** — L0 `machine-rhythm` 어휘를 끄거나 양수로 올리면 항목 단위 면제라
+`reason` 이 필요하고, hard floor 어휘는 올릴 수 없다.
 
 `voice.md` 형식은 **"문체 규칙 N개(각 규칙 + 예문) + 금지 목록"** 이다.
 두 프로젝트에서 이미 이 형식으로 굴러가고 있었고, 그대로 표준으로 삼았다.

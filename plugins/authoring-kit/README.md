@@ -54,6 +54,36 @@
 같은 파일명이면 ③ > ② > ①. `spec` 은 **논리만** 담고 경로·빌드명령은 `paths.json` 이 갖는다 —
 그래야 같은 명세를 다른 프로젝트에서 쓸 수 있다.
 
+## 문체 설정 — 전역을 voice 가 계승한다
+
+voice 의 목소리 중 **관리할 수 있는 부분**을 두 갈래로 뗐다. 편집은 시각화된 편집기에서 한다.
+
+```bash
+authoring.py style serve --open        # http://127.0.0.1:8765/ — 전역·voice 편집, 미리보기, 시험 스캔
+```
+
+| 갈래 | 무엇 | 판정 |
+| --- | --- | --- |
+| **정량 — 어휘 목록** | 품사·접사·어미·구 단위로 분류한 어휘 285개. 항목마다 **가중치**(-3 금지 ~ 0 보통 ~ +3 표지)와 **필터** | `scan_lexicon.py` 가 센다 |
+| **정성 — 지시 목록** | 문체 요소 분류(9범주 41말단, 축마다 하나)에 묶인 사용자 지시문 | 게이트 채점자가 **읽고만** 판정 |
+
+```
+플러그인 assets/style/            기본 카탈로그 · 정성 분류 체계 (읽기 전용)
+~/.claude/authoring/global/       전역 설정 — 모든 voice 가 계승
+~/.claude/authoring/voices/<id>/  voice 설정 — 전역을 덮고 더한다
+```
+
+각 층은 **바꾼 것만** 저장한다. 분류 체계는 조사를 먼저 하고 짰다 — 형식 축은 학교문법 5언 9품사와 어미 체계,
+기능 축은 Hyland 메타담화와 번역투 연구, 정성 분류는 Halliday·Hyland·Martin & White·이태준·Williams 등.
+근거와 검증 수준은 `skills/authoring-style/assets/STYLE_RESEARCH.md`.
+
+> **0.4.0 으로 올릴 때**: lock 에 `style` 묶음(기본 카탈로그·전역 설정 해시)이 새로 생겨서, 기존 프로젝트의
+> `lock` 은 어긋남을 보고하고 `resolve --frozen` 은 멈춘다. 규칙 조합이 실제로 바뀐 것이므로 맞는 동작이다 —
+> `authoring.py lock --update` 로 갱신하고 커밋에 이유를 남긴다. 사용자 설정이 없으면 집필 규칙 자체는 그대로다.
+
+L0 기계 리듬 어휘(W·H·D 코드)도 이 목록으로 옮겼다. voice 가 그중 하나를 끄거나 양수로 올리면
+**항목 단위 면제**가 되고 사유가 필수다. hard floor(`grammar`)에서 온 어휘는 올릴 수 없다.
+
 ## 스킬
 
 | 스킬 | 하는 일 |
@@ -62,6 +92,7 @@
 | `authoring-spec` | 글 명세 등록 — 항목·작성법·범위원칙·퍼소나·템플릿 |
 | `authoring-voice` | 퍼소나 등록. 역추출 시 **모수를 먼저 의심**하게 만든다 |
 | `authoring-gate` | 채점 + 보완 루프 ≤3R. **자동 통과 없음** |
+| `authoring-style` | 문체 설정 편집기 — 전역·voice 의 어휘 가중치와 정성 지시 |
 | `authoring-doctor` | 조용히 잘못 도는 상태 진단 |
 | `authoring-method` | 워커 전용 방법론 (사용자에게 뜨지 않는다) |
 
@@ -80,7 +111,10 @@ authoring.py resolve --voice <id> --spec <id> --profile worker   # 전문 — �
 | --- | --- |
 | `authoring.py` | 레지스트리 해석 · `resolve` · `validate` |
 | `trace_rules.py` | 규칙 추적 — 이관 중 조용히 사라진 규칙을 잡는다 |
-| `scan_ai_style.py` | 기계 리듬 정량 스캐너. **`--voice` 로 면제를 반영한다** |
+| `scan_ai_style.py` | 기계 리듬 정량 스캐너. **`--voice` 로 면제를 반영한다** — 어휘는 문체 카탈로그에서 읽는다 |
+| `scan_lexicon.py` | 가중치 어휘 스캐너 — 허용량 초과 · 분류 점검(겹침·밀도) · 표지 어휘 미사용 |
+| `style_registry.py` | 문체 설정 해석 — 기본값 → 전역 → voice 병합 · 검증 · 렌더 |
+| `style_server.py` | 편집기 서버(`ui/style-editor.html`). 표준 라이브러리만, 127.0.0.1 전용 |
 | `lint_placeholders.py` | 플레이스홀더 린터. 파일 타입별 파서 어댑터 4종 |
 | `review-external.sh` | 외부 검토(codex·agy). 축 외부화 + redaction + 실패정책 |
 
@@ -95,6 +129,7 @@ AUTHORING_KIT_HOME=<레지스트리> bash fixtures/run_all.sh <project> <spec-id
 | `test_layer_separation.py` | 공통 원칙과 퍼소나 톤이 **기계적으로** 분리돼 있다 |
 | `test_spec_roundtrip.py` | 명세 다섯 입력이 등록되고 집필 시점에 되살아난다 |
 | `test_plugin_shape.py` | 구조·이름 충돌·컨텍스트 예산·끊어진 참조 |
+| `test_style.py` | 문체 설정 — 계승·필터·가중치 대역·면제 규칙·스캐너 이관 동등성·편집기 API |
 
 ## 설계 원칙 넷
 
