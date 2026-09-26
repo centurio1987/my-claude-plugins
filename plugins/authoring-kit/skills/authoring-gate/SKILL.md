@@ -33,6 +33,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py resolve \
 ### 2. 채점
 
 **공통 항목**(A 독자 이해 · E 정확성 · F 문체 · V voice 준수)은 `QUALITY_RUBRIC.md` 에서,
+**정성 지시**(V6, `Q:<id>`)는 해석 결과의 "게이트 채점 항목 — 정성 지시" 절에서,
 **글 종류별 항목**(B 깊이 · C 구성 · D 다관점/금기 · G 기술 건전성)은 spec 의 `principles[]` 에서 온다.
 
 각 항목을 **충족 / 미흡 / 해당없음**으로 판정한다.
@@ -43,13 +44,25 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py resolve \
 기계로 세는 것은 기계에 맡긴다:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_ai_style.py "<파일>"                    # 문체 등급
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_ai_style.py "<파일>" --voice <voice>    # 문체 등급
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_lexicon.py "<파일>" --voice <voice>     # 어휘 가중치 (V5)
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/lint_placeholders.py check "<파일>" --stage final
 ```
 
 - 문체 등급 합격선 **B 이상**. **면제된 코드는 세지 않는다**(해석 결과의 면제 목록 확인).
 - `--stage final` 에서 미해결 슬롯·집필 지시·마커가 0이어야 한다.
 - 빌드·테스트는 `paths.json` 의 `commands` 로 돌린다. **명령을 스킬에 박지 않는다.**
+- 어휘 가중치(V5)는 전역 설정을 계승한 voice 의 어휘 목록으로 잰다. 금지(-3) 적발과 허용량 초과가 미흡 근거다.
+
+#### 2-1. 정성 지시(Q) — 읽고만 판정한다
+
+voice·전역 문체 설정에서 게이트에 붙인 지시는 **채점자가 본문을 읽고 스스로** 판정한다.
+
+- **기계 장치를 만들지 않는다.** 이 항목을 위해 스크립트·정규식·카운터를 쓰거나 돌리지 않는다.
+  위 스캐너 결과를 Q 판정의 근거로 끌어오지도 않는다 — 셀 수 있는 것은 이미 V4·V5 가 쟀다.
+- 지시마다 본문 인용(최대 3곳)을 근거로 **충족/미흡**. 인용이 안 나오면 미흡이다.
+- 해석 결과에 실린 **판정 질문**을 읽으며 묻는다. 스펙트럼형이면 "지시 위치 대비 실제 위치"를 한 줄로 적는다.
+- 등급은 지시가 정한다 — `MUST` 미흡은 미통과, `SHOULD` 미흡은 SHOULD 미흡 수에 더한다.
 
 ### 3. 분량 확인 — 10배를 넘으면 멈춘다
 
@@ -129,6 +142,8 @@ MUST          통과 X / 전체 Y
 SHOULD        미흡 N개
 IF-APPLICABLE 충족 / 정당한 생략(사유 포함) / 미흡
 문체 등급      A~D  (면제 코드 제외)
+어휘 가중치    통과 | 금지 N · 초과 N · 분류 점검 N
+정성 지시      Q MUST 충족 X/Y · Q SHOULD 미흡 N   (읽고 판정, 인용 포함)
 보완 라운드    N / 3
 수정률         N%  (원본 대비 누적 — 보완이 있었을 때만)
 의미 보존      6/6  (깨진 항목이 있으면 번호와 되돌린 편집)

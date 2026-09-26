@@ -24,6 +24,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py resolve \
 한 벌로 병합된 문서가 나온다. **이 결과를 그대로 따른다.** 세 층이 순서대로 들어 있다:
 
 1. **L1 — 이 글의 목소리** (`register` · `rhythm` · `device` · `lexicon` + 금지 목록 + 면제 표)
+   + **문체 설정** — 전역을 계승한 어휘 가중치 목록과 정성 지시(`Q:<id>`)
 2. **L2 — 이 글 종류의 명세** (항목별 작성 방법 + 범위 원칙)
 3. **L0 — 공통 원칙** (원칙 · 자연스러운 한국어 · 기계 리듬 · 품질 루브릭)
 
@@ -41,13 +42,17 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py resolve \
 4. **한 글 = 한 voice.** 다중 화자 spec 이 아니면 목소리를 섞지 않는다.
 5. **조건부 항목**은 해당 없으면 절을 지운다. 생략 사유는 **게이트 보고에만** — 독자용 문서에
    집필 메타를 남기지 않는다.
-6. **검증되지 않은 값을 쓰지 않는다.** 수치·경로·명령 결과는 실행하거나 손으로 검산해 확인한다.
+6. **어휘 가중치를 따른다.** 음수는 보통보다 덜, 양수는 보통보다 더. 금지(-3)는 쓰지 않는다.
+   양수 어휘를 억지로 끼워 넣지 않는다 — 자리가 왔을 때 그 말을 고른다.
+7. **정성 지시는 읽는 사람이 판정한다.** 채점 워커라면 게이트에 붙은 지시(Q)에 스크립트를 만들지 않는다.
+8. **검증되지 않은 값을 쓰지 않는다.** 수치·경로·명령 결과는 실행하거나 손으로 검산해 확인한다.
    확인 못 한 값은 그럴듯한 숫자로 메우지 말고 무엇을 확인해야 하는지 남긴다.
 
 ## 자가 점검 도구
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_ai_style.py "<파일>"          # 기계 리듬 등급
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_ai_style.py "<파일>" --voice <voice>   # 기계 리듬 등급
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_lexicon.py "<파일>" --voice <voice>    # 어휘 가중치
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/lint_placeholders.py check "<파일>" --stage draft|final
 ```
 

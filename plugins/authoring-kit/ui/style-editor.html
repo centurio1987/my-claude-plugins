@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>문체 설정</title>
+<style>
+:root {
+  --bg: #f7f7f5; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --line: #e3e2dc;
+  --accent: #2f5bd3; --accent-ink: #ffffff; --warn: #b4530a; --bad: #b42318; --ok: #1f7a4d;
+  --chip: #eeede8; --focus: #2f5bd355;
+  --w-3: #b42318; --w-2: #d9534f; --w-1: #eba59f; --w0: #c9c8c2; --w1: #9cc8b0; --w2: #3f9c6d; --w3: #1f6b47;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151514; --panel: #1f1f1d; --ink: #ecebe6; --muted: #a09f98; --line: #34332f;
+    --accent: #7c9cf5; --accent-ink: #10131c; --warn: #f0a257; --bad: #f47d74; --ok: #6fcf9d;
+    --chip: #2b2b28; --focus: #7c9cf566;
+    --w0: #4a4944;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); }
+header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+header h1 { font-size: 16px; margin: 0 8px 0 0; }
+select, input, textarea, button { font: inherit; color: inherit; }
+select, input[type=text], input[type=search], textarea { background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px 8px; }
+textarea { width: 100%; resize: vertical; }
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+button { background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+button.link { background: none; border: none; color: var(--accent); padding: 0 4px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.grow { flex: 1; }
+.status { font-size: 12px; }
+.status.bad { color: var(--bad); } .status.ok { color: var(--ok); } .status.warn { color: var(--warn); }
+nav.tabs { display: flex; gap: 2px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line); overflow-x: auto; }
+nav.tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 9px 12px; white-space: nowrap; }
+nav.tabs button.on { border-bottom-color: var(--accent); color: var(--accent); font-weight: 600; }
+main { padding: 14px 16px 60px; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 14px; align-items: start; }
+.layout > * { min-width: 0; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.tablewrap { overflow-x: auto; }
+.tablewrap table { min-width: 720px; }
+.problems, #scopeNote, .forms, .def { overflow-wrap: anywhere; }
+.node.sel .badge { color: inherit; border-color: currentColor; background: transparent; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.sticky { position: sticky; top: 108px; max-height: calc(100vh - 124px); overflow: auto; }
+@media (max-width: 860px) { .sticky { position: static; max-height: 42vh; } main { padding: 12px 16px 60px; } header { padding: 10px 16px; } }
+.tree ul { list-style: none; margin: 0; padding-left: 14px; }
+.tree > ul { padding-left: 0; }
+.tree li { margin: 1px 0; }
+.node { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 6px; cursor: pointer; }
+.node:hover { background: var(--chip); }
+.node.sel { background: var(--accent); color: var(--accent-ink); }
+.node.sel .muted { color: inherit; opacity: .8; }
+.node.off .lbl { text-decoration: line-through; opacity: .6; }
+.count { margin-left: auto; font-size: 11px; }
+.toggle { appearance: none; width: 28px; height: 16px; border-radius: 9px; background: var(--w0); position: relative; cursor: pointer; flex: none; margin: 0; }
+.toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .12s; }
+.toggle:checked { background: var(--ok); } .toggle:checked::after { left: 14px; }
+.toggle:disabled { opacity: .4; cursor: not-allowed; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 12px; background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; cursor: pointer; user-select: none; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip.static { cursor: default; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 500; position: sticky; top: 0; background: var(--panel); }
+tr.off td:not(.ctl) { opacity: .5; }
+.forms { font-weight: 600; }
+.forms code { font-family: var(--mono); font-size: 12px; font-weight: 400; }
+.wbar { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.wbar button { border: none; border-radius: 0; padding: 2px 0; width: 26px; font-size: 12px; background: var(--panel); border-right: 1px solid var(--line); }
+.wbar button:last-child { border-right: none; }
+.wbar button.on { color: #fff; font-weight: 700; }
+.wbar button[data-w="-3"].on { background: var(--w-3); } .wbar button[data-w="-2"].on { background: var(--w-2); }
+.wbar button[data-w="-1"].on { background: var(--w-1); color: #3b0d0a; } .wbar button[data-w="0"].on { background: var(--w0); color: var(--ink); }
+.wbar button[data-w="1"].on { background: var(--w1); color: #0c2e1d; } .wbar button[data-w="2"].on { background: var(--w2); } .wbar button[data-w="3"].on { background: var(--w3); }
+.wbar.locked button { cursor: not-allowed; }
+.badge { display: inline-block; font-size: 11px; border-radius: 4px; padding: 0 5px; border: 1px solid var(--line); white-space: nowrap; }
+.badge.default { color: var(--muted); } .badge.global { border-color: var(--accent); color: var(--accent); }
+.badge.voice { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.badge.l0 { border-color: var(--warn); color: var(--warn); } .badge.floor { background: var(--bad); border-color: var(--bad); color: #fff; }
+.problems { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--bad); color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.problems ul { margin: 4px 0 0; padding-left: 18px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-bottom: 8px; background: var(--panel); }
+.card.off { opacity: .6; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row + .row { margin-top: 6px; }
+details summary { cursor: pointer; }
+.def { font-size: 13px; margin: 6px 0; }
+.qs { margin: 4px 0 6px; padding-left: 18px; font-size: 12px; color: var(--muted); }
+.tmpl { display: block; width: 100%; text-align: left; font-size: 12px; margin-top: 4px; }
+pre.md { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; max-height: 70vh; overflow: auto; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; }
+.legend span i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.empty { padding: 24px; text-align: center; color: var(--muted); }
+.axisHead { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 4px; }
+.hidden { display: none !important; }
+label.inline { display: inline-flex; gap: 5px; align-items: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>문체 설정</h1>
+  <label class="inline">편집 대상
+    <select id="scope"></select>
+  </label>
+  <span id="scopeNote" class="small muted"></span>
+  <span class="grow"></span>
+  <span id="status" class="status"></span>
+  <button id="revert" disabled>되돌리기</button>
+  <button id="save" class="primary" disabled>저장</button>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-tab="lexicon" class="on">어휘 목록 (정량)</button>
+  <button data-tab="directives">정성 지시</button>
+  <button data-tab="preview">모델 지시문 미리보기</button>
+  <button data-tab="scan">시험 스캔</button>
+</nav>
+<main>
+  <div id="problems" class="problems hidden"></div>
+
+  <!-- 어휘 목록 -->
+  <section id="tab-lexicon">
+    <div class="layout">
+      <aside class="panel sticky">
+        <div class="row" style="justify-content:space-between"><strong>분류</strong>
+          <button class="link small" id="catAll">전체 보기</button></div>
+        <p class="small muted" style="margin:4px 0 8px">스위치를 끄면 그 분류 전체가 이 층에서 필터링된다(자식 포함).</p>
+        <div id="catTree" class="tree"></div>
+      </aside>
+      <div>
+        <div class="panel" style="margin-bottom:12px">
+          <div id="catInfo" class="small"></div>
+          <div class="filters">
+            <input type="search" id="q" placeholder="표면형·메모 검색" style="min-width:180px">
+            <select id="band">
+              <option value="">가중치 전체</option>
+              <option value="neg">음수 (소극)</option><option value="zero">0 (보통)</option><option value="pos">양수 (적극)</option>
+              <option value="-3">-3 금지</option><option value="-2">-2 강한 절제</option><option value="-1">-1 절제</option>
+              <option value="1">+1 선호</option><option value="2">+2 적극</option><option value="3">+3 표지</option>
+            </select>
+            <select id="origin">
+              <option value="">출처 전체</option>
+              <option value="changed">이 층에서 바꾼 것</option>
+              <option value="off">필터링된 것(꺼짐)</option>
+              <option value="added">이 층에서 추가한 것</option>
+              <option value="nol0">L0 기원 숨기기</option>
+            </select>
+            <span class="grow"></span>
+            <button id="addItemBtn">+ 항목 추가</button>
+          </div>
+          <div class="chips" id="fnChips"></div>
+          <div class="legend" id="legend" style="margin-top:8px"></div>
+        </div>
+        <div id="addItem" class="panel hidden" style="margin-bottom:12px"></div>
+        <div class="panel tablewrap"><table>
+          <thead><tr><th style="width:30%">표면형</th><th>분류 · 기능</th><th style="width:196px">가중치</th><th style="width:48px">채택</th><th style="width:140px">출처</th></tr></thead>
+          <tbody id="items"></tbody>
+        </table><div id="itemsEmpty" class="empty hidden">조건에 맞는 항목이 없다.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 정성 지시 -->
+  <section id="tab-directives" class="hidden">
+    <div class="layout">
+      <aside class="panel sticky">
+        <strong>정성 분류</strong>
+        <p class="small muted" style="margin:4px 0 8px">분류를 누르면 정의·판정 질문·지시 예시가 보인다. 예시를 누르면 지시로 추가된다.</p>
+        <div id="taxTree"></div>
+      </aside>
+      <div>
+        <div class="panel" style="margin-bottom:12px">
+          <div id="taxInfo"></div>
+          <div class="filters" style="margin-top:8px">
+            <select id="dAxis"><option value="">축 전체</option></select>
+            <select id="dGate"><option value="">게이트 전체</option><option value="on">게이트에 붙은 것</option><option value="off">붙지 않은 것</option></select>
+            <span class="grow"></span>
+            <button id="addDirBtn">+ 지시 추가</button>
+          </div>
+          <p class="small muted" style="margin:6px 0 0">게이트에 붙인 지시는 채점자가 <strong>본문을 읽고 스스로</strong> 판정한다 — 스크립트·정규식·카운터를 만들지 않는다.</p>
+        </div>
+        <div id="dirs"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 미리보기 -->
+  <section id="tab-preview" class="hidden">
+    <div class="panel">
+      <div class="row"><label class="inline"><input type="radio" name="prof" value="worker" checked> 워커(전문)</label>
+        <label class="inline"><input type="radio" name="prof" value="main"> 메인(요약)</label>
+        <span class="small muted">저장 전 편집 내용이 반영된다. `authoring.py resolve` 가 L1 절에 싣는 부분과 같다.</span></div>
+      <pre class="md" id="md"></pre>
+    </div>
+  </section>
+
+  <!-- 시험 스캔 -->
+  <section id="tab-scan" class="hidden">
+    <div class="grid2">
+      <div class="panel">
+        <strong>본문</strong>
+        <p class="small muted" style="margin:4px 0">지금 편집 중인(저장 전) 설정으로 잰다.</p>
+        <textarea id="scanText" rows="18" placeholder="시험할 글을 붙여 넣는다"></textarea>
+        <div class="row" style="margin-top:8px"><button class="primary" id="runScan">스캔</button></div>
+      </div>
+      <div class="panel" id="scanOut"><span class="muted">결과가 여기에 나온다.</span></div>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const H = {"X-Authoring-Kit": "1", "Content-Type": "application/json"};
+
+const S = { state: null, scope: "global", layer: null, savedJson: "", eff: null, problems: [],
+            cat: null, fn: new Set(), tax: null, tab: "lexicon" };
+
+async function api(method, url, body) {
+  const r = await fetch(url, { method, headers: method === "GET" ? {} : H, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({ error: `HTTP ${r.status}` }));
+  if (!r.ok && r.status !== 422) throw new Error(j.error || `HTTP ${r.status}`);
+  return { status: r.status, ...j };
+}
+const scopeKind = () => S.scope === "global" ? "global" : "voice";
+const clone = o => JSON.parse(JSON.stringify(o));
+function setStatus(msg, cls = "") { const el = $("#status"); el.textContent = msg; el.className = "status " + cls; }
+function dirty() { return JSON.stringify(S.layer) !== S.savedJson; }
+function refreshButtons() { const d = dirty(); $("#save").disabled = !d; $("#revert").disabled = !d; if (d) setStatus("저장 안 됨", "warn"); }
+window.addEventListener("beforeunload", e => { if (dirty()) { e.preventDefault(); e.returnValue = ""; } });
+
+// ── 로드 ──
+async function init() {
+  S.state = await api("GET", "/api/state");
+  const sel = $("#scope");
+  sel.innerHTML = `<option value="global">전역 — 모든 voice 가 계승</option>` +
+    S.state.voices.map(v => `<option value="voice:${esc(v.id)}">voice · ${esc(v.id)} ${v.label ? "(" + esc(v.label) + ")" : ""}${v.status !== "defined" ? " · " + esc(v.status) : ""}</option>`).join("");
+  sel.onchange = async () => {
+    if (dirty() && !confirm("저장하지 않은 변경이 있다. 버리고 이동할까?")) { sel.value = S.scope; return; }
+    await loadScope(sel.value);
+  };
+  $("#dAxis").innerHTML += S.state.l1_axes.map(a => `<option>${a}</option>`).join("");
+  buildLegend(); buildFnChips(); buildTaxTree();
+  await loadScope("global");
+}
+async function loadScope(scope) {
+  const r = await api("GET", "/api/layer?scope=" + encodeURIComponent(scope));
+  S.scope = scope; S.layer = r.layer; S.savedJson = JSON.stringify(r.layer);
+  $("#scopeNote").textContent = (r.exists ? "" : "(아직 파일 없음 — 저장하면 생긴다) ") + r.path;
+  setStatus("");
+  await recompute();
+}
+let pending = null;
+function schedule() { refreshButtons(); clearTimeout(pending); pending = setTimeout(recompute, 180); }
+async function recompute() {
+  const r = await api("POST", "/api/effective", { scope: S.scope, layer: S.layer });
+  S.eff = r.effective; S.problems = r.problems || [];
+  renderProblems(); renderAll();
+}
+function renderProblems() {
+  const el = $("#problems");
+  if (!S.problems.length) { el.classList.add("hidden"); return; }
+  el.classList.remove("hidden");
+  el.innerHTML = `<strong>검증 실패 ${S.problems.length}건 — 이 상태로는 저장되지 않는다</strong><ul>${S.problems.map(p => `<li>${esc(p)}</li>`).join("")}</ul>`;
+}
+function renderAll() {
+  renderCatTree(); if (!(document.activeElement && document.activeElement.matches("[data-chk]"))) renderCatInfo(); renderItems(); renderDirs();
+  if (S.tab === "preview") renderPreview();
+}
+
+// ── 레이어 편집 도우미 ──
+const lex = () => (S.layer.lexicon ??= { overrides: {}, categories: {}, add: [] });
+const dirL = () => (S.layer.directives ??= { overrides: {}, add: [] });
+function ownAdded(item) { return item.source === scopeKind(); }
+function setItemField(item, field, value) {
+  if (ownAdded(item)) {
+    const a = lex().add.find(x => x.id === item.id); if (a) a[field] = value;
+  } else {
+    const o = (lex().overrides[item.id] ??= {});
+    o[field] = value;
+  }
+  schedule();
+}
+function resetItem(item) { delete lex().overrides[item.id]; schedule(); }
+function removeAdded(item) { lex().add = lex().add.filter(x => x.id !== item.id); delete lex().overrides[item.id]; schedule(); }
+
+// ── 범례·기능 칩 ──
+function buildLegend() {
+  const b = S.state.weight_bands;
+  $("#legend").innerHTML = Object.keys(b).sort((a, c) => a - c).map(k =>
+    `<span title="${esc(b[k].directive)}"><i style="background:var(--w${k})"></i>${Number(k) > 0 ? "+" : ""}${k} ${esc(b[k].name)}</span>`).join("")
+    + `<span class="muted">0 이 보통. 양수는 보통보다 적극, 음수는 보통보다 소극.</span>`;
+}
+function buildFnChips() {
+  const groups = { interactive: "상호작용(글 흐름)", interactional: "상호작용(필자·독자)", "korean-style": "한국어 문체" };
+  $("#fnChips").innerHTML = Object.entries(groups).map(([g, name]) =>
+    `<span class="small muted" style="margin:0 2px 0 6px">${name}</span>` +
+    S.state.functions.filter(f => f.group === g).map(f =>
+      `<span class="chip" data-fn="${esc(f.id)}" title="${esc(f.definition)}">${esc(f.label)}</span>`).join("")).join("");
+  $$("#fnChips .chip").forEach(c => c.onclick = () => {
+    const id = c.dataset.fn; S.fn.has(id) ? S.fn.delete(id) : S.fn.add(id); c.classList.toggle("on"); renderItems();
+  });
+}
+
+// ── 분류 트리 ──
+function catIndex() { return Object.fromEntries(S.eff.categories.map(c => [c.id, c])); }
+function catPath(id) { const ix = catIndex(); const out = []; let c = ix[id]; while (c) { out.unshift(c.label); c = ix[c.parent]; } return out.join(" › "); }
+function inCat(itemCat, cid) { return itemCat === cid || itemCat.startsWith(cid + "."); }
+function renderCatTree() {
+  const cats = S.eff.categories, byParent = {};
+  cats.forEach(c => (byParent[c.parent || ""] ??= []).push(c));
+  const own = lex().categories || {};
+  const counts = id => S.eff.items.filter(x => inCat(x.category, id)).length;
+  const node = c => {
+    const ch = byParent[c.id] || [];
+    const set = own[c.id] && ("enabled" in own[c.id] || own[c.id].check);
+    return `<li><div class="node ${S.cat === c.id ? "sel" : ""} ${c.active ? "" : "off"}" data-cat="${esc(c.id)}" title="${esc(c.definition)}">
+      <input type="checkbox" class="toggle" data-ctog="${esc(c.id)}" ${c.enabled ? "checked" : ""} title="이 층에서 분류 채택/필터">
+      <span class="lbl">${esc(c.label)}</span>${set ? `<span class="badge ${scopeKind()}" title="이 층에서 설정">●</span>` : ""}
+      <span class="count muted">${counts(c.id)}</span></div>
+      ${ch.length ? `<ul>${ch.map(node).join("")}</ul>` : ""}</li>`;
+  };
+  $("#catTree").innerHTML = `<ul>${(byParent[""] || []).map(node).join("")}</ul>`;
+  $$("#catTree .node").forEach(n => n.onclick = e => { if (e.target.matches("input")) return; S.cat = n.dataset.cat; renderCatTree(); renderCatInfo(); renderItems(); });
+  $$("#catTree [data-ctog]").forEach(t => t.onchange = () => {
+    const id = t.dataset.ctog; const c = catIndex()[id];
+    const inherited = c.enabled_from !== scopeKind() ? c.enabled : null;
+    if (inherited !== null && t.checked === inherited) delete lex().categories[id];
+    else lex().categories[id] = { enabled: t.checked };
+    schedule();
+  });
+}
+$("#catAll").onclick = () => { S.cat = null; renderCatTree(); renderCatInfo(); renderItems(); };
+function renderCatInfo() {
+  if (!S.cat) { $("#catInfo").innerHTML = `<span class="muted">전체 분류 · 항목 ${S.eff.items.length}개</span>`; return; }
+  const c = catIndex()[S.cat]; const chk = c.check || {};
+  const modes = { "count": "어디서나 센다", "sentence-initial": "문장 머리에서만 센다", "sentence-final": "문장 끝에서만 센다", "paragraph-initial": "문단 첫 문장 머리에서만 센다" };
+  const own = (lex().categories[c.id] || {}).check || {};
+  const tun = { stack: "한 문장 겹침 기준(회)", density_per_1000: "밀도 기준(1,000자당)" };
+  const knobs = Object.keys(tun).filter(k => k in (c.base_check || {}) || k in own);
+  $("#catInfo").innerHTML = `<div><strong>${esc(catPath(c.id))}</strong> <span class="muted">${esc(c.gloss || "")}</span></div>
+    <div class="def">${esc(c.definition || "")}</div>
+    ${chk.mode ? `<div class="small"><span class="badge default">세는 자리</span> ${esc(modes[chk.mode] || chk.mode)}</div>` : ""}
+    ${knobs.length ? `<div class="row small" style="margin-top:4px"><span class="badge default">점검</span>
+      ${knobs.map(k => `<label class="inline">${tun[k]} <input type="number" min="${k === "stack" ? 1 : 0.5}" step="${k === "stack" ? 1 : 0.5}" style="width:72px" data-chk="${k}" value="${esc(chk[k] ?? "")}"></label>
+        ${k in own ? `<span class="badge ${scopeKind()}" title="이 층에서 조정">조정</span><button class="link small" data-chkreset="${k}">기본값 ${esc(c.base_check[k] ?? "-")}</button>` : `<span class="muted">(${c.check_from?.[k] === "global" ? "전역" : "기본값"})</span>`}`).join("")}
+      <span class="muted">— 설계 초기값이다. 글 종류에 맞게 조정한다.</span></div>` : ""}
+    ${c.basis ? `<div class="small muted">근거: ${esc(c.basis)}</div>` : ""}`;
+  $$("#catInfo [data-chk]").forEach(inp => inp.onchange = () => {
+    const k = inp.dataset.chk, v = Number(inp.value);
+    const e = (lex().categories[c.id] ??= {}); e.check ??= {};
+    if (!inp.value) delete e.check[k]; else e.check[k] = v;
+    if (!Object.keys(e.check).length) delete e.check;
+    if (!Object.keys(e).length) delete lex().categories[c.id];
+    schedule();
+  });
+  $$("#catInfo [data-chkreset]").forEach(b => b.onclick = () => {
+    const e = lex().categories[c.id]; delete e.check[b.dataset.chkreset];
+    if (!Object.keys(e.check).length) delete e.check; if (!Object.keys(e).length) delete lex().categories[c.id];
+    schedule();
+  });
+}
+
+// ── 항목 표 ──
+function provBadge(item) {
+  const k = scopeKind(), parts = [];
+  if (item.source !== "default") parts.push(`<span class="badge ${item.source}">${item.source === "global" ? "전역 추가" : "voice 추가"}</span>`);
+  else parts.push(`<span class="badge default">기본값</span>`);
+  const changed = item.weight_from !== item.source || item.enabled_from !== item.source;
+  if (changed) {
+    const who = [item.weight_from, item.enabled_from].includes("voice") ? "voice" : "global";
+    parts.push(`<span class="badge ${who}">${who === "voice" ? "voice 재정의" : "전역 재정의"}</span>`);
+  }
+  if (item.l0) parts.push(`<span class="badge ${["grammar","evidence","comprehension"].includes(item.l0.axis) ? "floor" : "l0"}" title="L0 ${esc(item.l0.axis)} 에서 온 항목">L0 ${esc(item.l0.code)}</span>`);
+  return parts.join(" ");
+}
+function passFilters(x) {
+  if (S.cat && !inCat(x.category, S.cat)) return false;
+  const q = $("#q").value.trim();
+  if (q && ![...(x.forms || []), x.regex || "", x.note || "", ...(x.alternatives || []), x.id].join(" ").includes(q)) return false;
+  if (S.fn.size && ![...S.fn].every(f => (x.functions || []).includes(f))) return false;
+  const b = $("#band").value;
+  if (b === "neg" && !(x.weight < 0)) return false;
+  if (b === "pos" && !(x.weight > 0)) return false;
+  if (b === "zero" && x.weight !== 0) return false;
+  if (/^-?\d$/.test(b) && x.weight !== Number(b)) return false;
+  const o = $("#origin").value, k = scopeKind();
+  if (o === "changed" && !(lex().overrides[x.id] || x.source === k)) return false;
+  if (o === "off" && x.active) return false;
+  if (o === "added" && x.source !== k) return false;
+  if (o === "nol0" && x.l0) return false;
+  return true;
+}
+["#q", "#band", "#origin"].forEach(s => $(s).addEventListener("input", () => renderItems()));
+function renderItems() {
+  const fns = Object.fromEntries(S.state.functions.map(f => [f.id, f]));
+  const rows = S.eff.items.filter(passFilters);
+  $("#itemsEmpty").classList.toggle("hidden", rows.length > 0);
+  const k = scopeKind();
+  $("#items").innerHTML = rows.map(x => {
+    const floor = x.l0 && ["grammar","evidence","comprehension"].includes(x.l0.axis);
+    const waivable = x.l0 && x.l0.axis === "machine-rhythm";
+    const ov = lex().overrides[x.id];
+    const needReason = waivable && (!x.enabled || x.weight > 0);
+    const forms = x.forms?.length ? x.forms.map(esc).join(" · ") : `<code>${esc(x.regex)}</code>`;
+    return `<tr class="${x.active ? "" : "off"}" data-id="${esc(x.id)}">
+      <td><div class="forms">${forms}</div>
+        ${x.alternatives?.length ? `<div class="small muted">→ ${x.alternatives.map(esc).join(" / ")}</div>` : ""}
+        ${x.note ? `<div class="small muted">${esc(x.note)}</div>` : ""}
+        ${x.except ? `<div class="small muted">예외 문맥 <code>${esc(x.except)}</code></div>` : ""}
+        ${needReason || (waivable && ov) ? `<div class="row"><input type="text" class="small grow" data-reason placeholder="면제 사유 (필수)" value="${esc(ov?.reason || x.reason || "")}"></div>` : ""}</td>
+      <td class="small"><div class="muted">${esc(catPath(x.category))}${x.mode && x.mode !== "count" ? " · " + esc(x.mode) : ""}</div>
+        <div class="chips">${(x.functions || []).map(f => `<span class="chip static" title="${esc(fns[f]?.definition || "")}">${esc(fns[f]?.label || f)}</span>`).join("")}</div></td>
+      <td class="ctl"><div class="wbar ${floor ? "locked" : ""}" title="${floor ? "hard floor — 가중치를 올릴 수 없다" : ""}">
+        ${[-3,-2,-1,0,1,2,3].map(w => `<button data-w="${w}" class="${x.weight === w ? "on" : ""}" title="${esc(S.state.weight_bands[w].name)} — ${esc(S.state.weight_bands[w].directive)}" ${floor && w > x.base_weight ? "disabled" : ""}>${w > 0 ? "+" + w : w}</button>`).join("")}
+      </div><div class="small muted">${esc(S.state.weight_bands[x.weight].name)}</div></td>
+      <td class="ctl"><input type="checkbox" class="toggle" data-en ${x.enabled ? "checked" : ""} ${floor ? "disabled" : ""} title="채택(끄면 필터링)">
+        ${x.category_enabled ? "" : `<div class="small muted">분류 꺼짐</div>`}</td>
+      <td class="ctl small">${provBadge(x)}
+        <div class="row">${ov ? `<button class="link small" data-reset>이 층 재정의 해제</button>` : ""}
+        ${x.source === k ? `<button class="link small" data-del>삭제</button>` : ""}</div></td></tr>`;
+  }).join("");
+  $$("#items tr").forEach(tr => {
+    const item = S.eff.items.find(i => i.id === tr.dataset.id);
+    $$("[data-w]", tr).forEach(b => b.onclick = () => setItemField(item, "weight", Number(b.dataset.w)));
+    const en = $("[data-en]", tr); if (en) en.onchange = () => setItemField(item, "enabled", en.checked);
+    const rs = $("[data-reason]", tr); if (rs) rs.oninput = () => { (lex().overrides[item.id] ??= {}).reason = rs.value; schedule(); };
+    const rst = $("[data-reset]", tr); if (rst) rst.onclick = () => resetItem(item);
+    const del = $("[data-del]", tr); if (del) del.onclick = () => { if (confirm("이 항목을 삭제할까?")) removeAdded(item); };
+  });
+}
+
+// ── 항목 추가 ──
+$("#addItemBtn").onclick = () => {
+  const box = $("#addItem"); box.classList.toggle("hidden"); if (box.classList.contains("hidden")) return;
+  const opts = S.eff.categories.map(c => `<option value="${esc(c.id)}" ${S.cat === c.id ? "selected" : ""}>${esc(catPath(c.id))}</option>`).join("");
+  box.innerHTML = `<strong>항목 추가 — ${S.scope === "global" ? "전역" : esc(S.scope)}</strong>
+    <div class="row"><label class="inline">분류 <select id="niCat">${opts}</select></label>
+      <label class="inline">가중치 <select id="niW">${[-3,-2,-1,0,1,2,3].map(w => `<option value="${w}" ${w === -1 ? "selected" : ""}>${w > 0 ? "+" + w : w} ${esc(S.state.weight_bands[w].name)}</option>`).join("")}</select></label></div>
+    <div class="row"><input type="text" id="niForms" class="grow" placeholder="표면형 — 쉼표로 여럿 (예: 굉장히, 엄청)"></div>
+    <div class="row"><input type="text" id="niAlt" class="grow" placeholder="대안 — 쉼표로 여럿 (선택)"></div>
+    <div class="row"><input type="text" id="niNote" class="grow" placeholder="메모 (선택)"></div>
+    <div class="row"><label class="inline">세는 자리 <select id="niMode"><option value="">분류 기본값</option>${S.state.check_modes.map(m => `<option>${m}</option>`).join("")}</select></label>
+      <label class="inline" title="어절 머리에서만 잡을지(word) 어디서나 잡을지(none)">경계 <select id="niB"><option value="">분류 기본값</option><option>word</option><option>none</option></select></label></div>
+    <div class="chips" id="niFn" style="margin-top:6px">${S.state.functions.map(f => `<span class="chip" data-fn="${esc(f.id)}">${esc(f.label)}</span>`).join("")}</div>
+    <div class="row" style="margin-top:8px"><button class="primary" id="niOk">추가</button><button id="niCancel">취소</button></div>`;
+  $$("#niFn .chip").forEach(c => c.onclick = () => c.classList.toggle("on"));
+  $("#niCancel").onclick = () => box.classList.add("hidden");
+  $("#niOk").onclick = () => {
+    const forms = $("#niForms").value.split(",").map(s => s.trim()).filter(Boolean);
+    if (!forms.length) { alert("표면형을 하나 이상 적는다"); return; }
+    const cat = $("#niCat").value;
+    const id = `${scopeKind() === "global" ? "g" : "v"}.${cat}.${Date.now().toString(36)}`.toLowerCase();
+    const it = { id, category: cat, forms, weight: Number($("#niW").value), enabled: true,
+      functions: $$("#niFn .chip.on").map(c => c.dataset.fn),
+      alternatives: $("#niAlt").value.split(",").map(s => s.trim()).filter(Boolean) };
+    if ($("#niNote").value.trim()) it.note = $("#niNote").value.trim();
+    if ($("#niMode").value) it.mode = $("#niMode").value;
+    if ($("#niB").value) it.boundary = $("#niB").value;
+    lex().add.push(it); box.classList.add("hidden"); schedule();
+  };
+};
+
+// ── 정성 분류 ──
+function taxIndex() { return Object.fromEntries((S.state.taxonomy.categories || []).map(c => [c.id, c])); }
+function buildTaxTree() {
+  const cats = S.state.taxonomy.categories || [];
+  const tops = cats.filter(c => !c.parent);
+  $("#taxTree").innerHTML = tops.map(t => `<div class="axisHead">${esc(t.label)} <span style="text-transform:none">${esc(t.gloss || "")}</span></div>
+    ${cats.filter(c => c.parent === t.id).map(c => `<div class="node" data-tax="${esc(c.id)}" title="${esc(c.definition)}">
+      <span class="lbl">${esc(c.label)}</span><span class="count muted"><span class="badge default">${esc(c.axis)}</span> <span data-tc="${esc(c.id)}"></span></span></div>`).join("")}`).join("")
+    || `<div class="empty">분류 체계가 비어 있다</div>`;
+  $$("#taxTree [data-tax]").forEach(n => n.onclick = () => { S.tax = S.tax === n.dataset.tax ? null : n.dataset.tax; renderTaxInfo(); renderDirs(); });
+}
+function renderTaxInfo() {
+  $$("#taxTree [data-tax]").forEach(n => n.classList.toggle("sel", n.dataset.tax === S.tax));
+  if (!S.tax) { $("#taxInfo").innerHTML = `<span class="muted">분류를 고르면 정의와 판정 질문이 보인다.</span>`; return; }
+  const c = taxIndex()[S.tax], parent = taxIndex()[c.parent] || {};
+  $("#taxInfo").innerHTML = `<div><strong>${esc(parent.label || "")} › ${esc(c.label)}</strong> <span class="muted">${esc(c.gloss || "")}</span> <span class="badge default">축 ${esc(c.axis)}</span></div>
+    <div class="def">${esc(c.definition || "")}</div>
+    ${c.poles ? `<div class="small"><span class="badge default">스펙트럼</span> ${esc(c.poles.join(" ↔ "))}</div>` : ""}
+    ${c.questions?.length ? `<div class="small" style="margin-top:6px"><strong>판정 질문</strong> — 채점자가 읽으며 묻는 것</div><ul class="qs">${c.questions.map(q => `<li>${esc(q)}</li>`).join("")}</ul>` : ""}
+    ${c.templates?.length ? `<div class="small"><strong>지시 예시</strong> — 누르면 추가된다</div>${c.templates.map((t, i) => `<button class="tmpl" data-tpl="${i}">＋ ${esc(t)}</button>`).join("")}` : ""}
+    ${c.basis ? `<div class="small muted" style="margin-top:6px">근거: ${esc(c.basis)}</div>` : ""}`;
+  $$("#taxInfo [data-tpl]").forEach(b => b.onclick = () => addDirective(S.tax, c.templates[Number(b.dataset.tpl)]));
+}
+function addDirective(cat, text = "") {
+  const cats = (S.state.taxonomy.categories || []).filter(c => c.parent);
+  cat = cat || S.tax || cats[0]?.id;
+  if (!cat) { alert("정성 분류가 없다"); return; }
+  const id = `${cat}.${Date.now().toString(36)}`.toLowerCase();
+  dirL().add.push({ id, category: cat, text, enabled: true, gate: { enabled: false, level: "SHOULD" } });
+  schedule();
+  setTimeout(() => { const t = $(`[data-did="${CSS.escape(id)}"] textarea`); if (t) t.focus(); }, 300);
+}
+$("#addDirBtn").onclick = () => addDirective();
+["#dAxis", "#dGate"].forEach(s => $(s).onchange = () => renderDirs());
+function setDir(d, field, value) {
+  if (d.source === scopeKind()) {
+    const a = dirL().add.find(x => x.id === d.id);
+    if (field === "gate") a.gate = { ...(a.gate || {}), ...value }; else a[field] = value;
+  } else {
+    const o = (dirL().overrides[d.id] ??= {});
+    if (field === "gate") o.gate = { ...(o.gate || {}), ...value }; else o[field] = value;
+  }
+  schedule();
+}
+function renderDirs() {
+  const tix = taxIndex(); const k = scopeKind();
+  const counts = {}; S.eff.directives.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1);
+  $$("#taxTree [data-tc]").forEach(s => s.textContent = counts[s.dataset.tc] || "");
+  renderTaxInfo();
+  const list = S.eff.directives.filter(d => (!S.tax || d.category === S.tax)
+    && (!$("#dAxis").value || d.axis === $("#dAxis").value)
+    && (!$("#dGate").value || (($("#dGate").value === "on") === !!d.gate?.enabled)));
+  if (!list.length) { $("#dirs").innerHTML = `<div class="panel empty">지시가 없다. 왼쪽 분류에서 예시를 고르거나 ‘+ 지시 추가’를 누른다.</div>`; return; }
+  const catOpts = sel => (S.state.taxonomy.categories || []).filter(c => c.parent).map(c =>
+    `<option value="${esc(c.id)}" ${c.id === sel ? "selected" : ""}>${esc((tix[c.parent]?.label || "") + " › " + c.label)}</option>`).join("");
+  $("#dirs").innerHTML = list.map(d => {
+    const mine = d.source === k; const ov = dirL().overrides[d.id];
+    const src = d.source === "global" ? (k === "global" ? "이 층(전역)" : "전역에서 계승") : "이 voice";
+    return `<div class="card ${d.enabled ? "" : "off"}" data-did="${esc(d.id)}">
+      <div class="row"><input type="checkbox" class="toggle" data-den ${d.enabled ? "checked" : ""} title="채택(끄면 모델에게 들어가지 않는다)">
+        ${mine ? `<select data-dcat class="small">${catOpts(d.category)}</select>` : `<span class="small"><strong>${esc((tix[tix[d.category]?.parent]?.label || "") + " › " + (tix[d.category]?.label || d.category))}</strong></span>`}
+        <span class="badge default">${esc(d.axis || "?")}</span>
+        <span class="badge ${d.source}">${esc(src)}</span>${d.overridden_by ? `<span class="badge ${d.overridden_by}">${d.overridden_by === "voice" ? "voice 재정의" : "전역 재정의"}</span>` : ""}
+        <span class="grow"></span>
+        <label class="inline small"><input type="checkbox" class="toggle" data-dgate ${d.gate?.enabled ? "checked" : ""}> 게이트</label>
+        <select data-dlevel class="small" ${d.gate?.enabled ? "" : "disabled"}>${S.state.gate_levels.map(l => `<option ${d.gate?.level === l ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+      <div class="row"><textarea rows="2" data-dtext placeholder="모델에게 줄 지시 — 무엇을 어떻게 할지 구체로">${esc(d.text || "")}</textarea></div>
+      ${/\d+\s*(자|회|번|개|문장|단락|%)/.test(d.text || "") ? `<div class="small muted">수치가 든 지시다. 게이트는 이것도 읽고 판정한다 — 기계로 세야 할 규칙이면 어휘 목록 쪽이 맞는지 본다.</div>` : ""}
+      <details ${d.example?.good || d.example?.bad ? "open" : ""}><summary class="small muted">예문 (선택)</summary>
+        <div class="row"><input type="text" class="grow small" data-dgood placeholder="✓ 좋은 예" value="${esc(d.example?.good || "")}"></div>
+        <div class="row"><input type="text" class="grow small" data-dbad placeholder="✗ 나쁜 예" value="${esc(d.example?.bad || "")}"></div></details>
+      <div class="row small muted"><code>Q:${esc(d.id)}</code><span class="grow"></span>
+        ${ov ? `<button class="link small" data-dreset>이 층 재정의 해제</button>` : ""}${mine ? `<button class="link small" data-ddel>삭제</button>` : ""}</div></div>`;
+  }).join("");
+  $$("#dirs .card").forEach(card => {
+    const d = S.eff.directives.find(x => x.id === card.dataset.did);
+    $("[data-den]", card).onchange = e => setDir(d, "enabled", e.target.checked);
+    $("[data-dgate]", card).onchange = e => setDir(d, "gate", { enabled: e.target.checked, level: $("[data-dlevel]", card).value });
+    $("[data-dlevel]", card).onchange = e => setDir(d, "gate", { enabled: true, level: e.target.value });
+    $("[data-dtext]", card).oninput = e => { setDir(d, "text", e.target.value); };
+    const ex = () => ({ good: $("[data-dgood]", card).value, bad: $("[data-dbad]", card).value });
+    $("[data-dgood]", card).oninput = () => setDir(d, "example", ex());
+    $("[data-dbad]", card).oninput = () => setDir(d, "example", ex());
+    const c = $("[data-dcat]", card); if (c) c.onchange = () => setDir(d, "category", c.value);
+    const r = $("[data-dreset]", card); if (r) r.onclick = () => { delete dirL().overrides[d.id]; schedule(); };
+    const x = $("[data-ddel]", card); if (x) x.onclick = () => { if (confirm("이 지시를 삭제할까?")) { dirL().add = dirL().add.filter(z => z.id !== d.id); schedule(); } };
+  });
+}
+// 입력 중에는 카드를 다시 그리지 않는다 — 커서가 튄다.
+const _renderDirs = renderDirs;
+renderDirs = function () { const a = document.activeElement; if (a && a.closest && a.closest("#dirs") && a.matches("textarea,input[type=text]")) { const counts = {}; S.eff.directives.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1); $$("#taxTree [data-tc]").forEach(s => s.textContent = counts[s.dataset.tc] || ""); return; } _renderDirs(); };
+const _renderItems = renderItems;
+renderItems = function () { const a = document.activeElement; if (a && a.matches && a.matches("[data-reason]")) return; _renderItems(); };
+
+// ── 미리보기 ──
+async function renderPreview() {
+  const prof = $("input[name=prof]:checked").value;
+  const r = await api("POST", "/api/render", { scope: S.scope, layer: S.layer, profile: prof });
+  $("#md").textContent = r.markdown;
+}
+$$("input[name=prof]").forEach(r => r.onchange = renderPreview);
+
+// ── 시험 스캔 ──
+$("#runScan").onclick = async () => {
+  const text = $("#scanText").value; if (!text.trim()) return;
+  const r = await api("POST", "/api/scan", { scope: S.scope, layer: S.layer, text });
+  const L = r.lexicon, G = r.l0;
+  const band = w => `${w > 0 ? "+" : ""}${w} ${S.state.weight_bands[w].name}`;
+  $("#scanOut").innerHTML = `<div class="row"><strong>가중치 어휘</strong><span class="badge ${L.pass ? "global" : "floor"}">${L.pass ? "통과" : "적발"}</span>
+      <span class="small muted">산문 ${L.prose_chars}자 · ${L.sentences}문장</span></div>
+    ${L.over.length ? `<p class="small"><strong>허용량 초과</strong></p><ul class="small">${L.over.map(x => `<li>[${esc(band(x.weight))}] <strong>${esc(x.forms)}</strong> ${x.count}회 / 허용 ${x.allowed} <span class="muted">${esc(x.category_path)}</span>${x.alternatives?.length ? ` → ${esc(x.alternatives.join(" / "))}` : ""}</li>`).join("")}</ul>` : ""}
+    ${L.category.length ? `<p class="small"><strong>분류 점검</strong></p><ul class="small">${L.category.map(c => `<li>${esc(c.label)} — ${c.kind === "stack" ? `한 문장 ${c.threshold}개 이상 겹침 ${c.count}문장` : `밀도 ${c.density}/1,000자 (기준 ${c.threshold})`}</li>`).join("")}</ul>` : ""}
+    ${L.unused.length ? `<p class="small"><strong>선호 어휘 미사용</strong></p><ul class="small">${L.unused.map(x => `<li>[${esc(band(x.weight))}] ${esc(x.forms)}</li>`).join("")}</ul>` : ""}
+    ${!(L.over.length || L.category.length || L.unused.length) ? `<p class="small muted">적발 없음.</p>` : ""}
+    <hr style="border:none;border-top:1px solid var(--line)">
+    <div class="row"><strong>L0 기계 리듬 등급</strong><span class="badge ${"AB".includes(G.grade) ? "global" : "floor"}">${esc(G.grade)}</span>
+      <span class="small muted">S1 ${G.s1} · S2 ${G.s2} · S3 ${G.s3}${G.waived.length ? " · 면제 " + esc(G.waived.join(", ")) : ""}</span></div>
+    <ul class="small">${G.findings.map(f => `<li><strong>${esc(f.code)}</strong> ${esc(f.label)} — ${esc(f.severity)} · ${f.count}건<div class="muted">${f.where.slice(0, 2).map(esc).join("<br>")}</div></li>`).join("")}</ul>`;
+};
+
+// ── 탭·저장 ──
+$$("#tabs button").forEach(b => b.onclick = () => {
+  S.tab = b.dataset.tab; $$("#tabs button").forEach(x => x.classList.toggle("on", x === b));
+  ["lexicon", "directives", "preview", "scan"].forEach(t => $("#tab-" + t).classList.toggle("hidden", t !== S.tab));
+  if (S.tab === "preview") renderPreview();
+});
+$("#revert").onclick = async () => { S.layer = JSON.parse(S.savedJson); refreshButtons(); setStatus(""); await recompute(); };
+$("#save").onclick = async () => {
+  const r = await api("PUT", "/api/layer?scope=" + encodeURIComponent(S.scope), { layer: S.layer });
+  if (r.status === 422) { S.problems = r.problems; renderProblems(); setStatus("검증 실패 — 저장 안 됨", "bad"); window.scrollTo(0, 0); return; }
+  S.layer = r.layer; S.savedJson = JSON.stringify(r.layer); refreshButtons(); setStatus("저장됨 · " + r.path, "ok");
+  await recompute();
+};
+document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key === "s") { e.preventDefault(); if (!$("#save").disabled) $("#save").click(); } });
+init().catch(e => { setStatus("불러오기 실패: " + e.message, "bad"); });
+</script>
+</body>
+</html>

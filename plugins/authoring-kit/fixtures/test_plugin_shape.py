@@ -125,9 +125,13 @@ def main() -> int:
         check("두 프로파일의 해시가 다르다", main_meta["hash"] != work_meta["hash"])
 
     print("\n[7] 스크립트가 갖춰져 있는가")
-    for s in ("authoring.py", "trace_rules.py", "scan_ai_style.py",
-              "lint_placeholders.py", "review-external.sh"):
+    for s in ("authoring.py", "trace_rules.py", "scan_ai_style.py", "scan_lexicon.py",
+              "style_registry.py", "style_server.py", "lint_placeholders.py", "review-external.sh"):
         check(f"scripts/{s} 존재", (PLUGIN / "scripts" / s).exists())
+    check("편집기 페이지(ui/style-editor.html) 존재", (PLUGIN / "ui" / "style-editor.html").exists())
+    for a in ("lexicon.json", "qualitative.json"):
+        check(f"문체 카탈로그 assets/style/{a} 존재",
+              (PLUGIN / "skills" / "authoring-method" / "assets" / "style" / a).exists())
 
     print("\n[8] 스킬이 가리키는 참조가 실재하는가")
     # 스킬 본문에 `assets/…` 라고 적어 놓고 파일을 안 만드는 일이 잦다. 에러가 안 나서
