@@ -543,7 +543,7 @@ function optionsBlock(c) {
     return `<span class="optgate"><label class="inline small"><input type="checkbox" class="toggle" data-ogate="${esc(oid)}" ${g.enabled ? "checked" : ""}> 게이트</label>
       <select class="small" data-olevel="${esc(oid)}" ${g.enabled ? "" : "disabled"}>${S.state.gate_levels.map(l => `<option ${g.level === l ? "selected" : ""}>${l}</option>`).join("")}</select></span>`;
   };
-  const row = o => `<div class="opt ${on(o.id) ? "on" : ""}"><label class="optmain"><input type="checkbox" data-opt="${esc(o.id)}" ${on(o.id) ? "checked" : ""}><span>${esc(o.text)}</span></label>${on(o.id) ? gateCtl(o.id) : ""}</div>`;
+  const row = o => `<div class="opt ${on(o.id) ? "on" : ""}"><label class="optmain" title="출처: ${esc(o.basis || "")}"><input type="checkbox" data-opt="${esc(o.id)}" ${on(o.id) ? "checked" : ""}><span>${esc(o.text)}</span></label>${on(o.id) ? gateCtl(o.id) : ""}</div>`;
   const spec = opts.filter(o => o.group === "spectrum"), rule = opts.filter(o => o.group !== "spectrum");
   const name = `spec-${c.id}`, specOn = spec.some(o => on(o.id));
   const radio = (val, label, checked) => `<label class="seg ${checked ? "on" : ""}"><input type="radio" name="${esc(name)}" data-spec="${esc(val)}" ${checked ? "checked" : ""}><span>${esc(label)}</span></label>`;

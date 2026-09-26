@@ -317,9 +317,13 @@ def main() -> int:
     leaves = [c for c in SR.load_taxonomy()["categories"] if c.get("parent")]
     check("하위 분류마다 선택지가 있다", all(c.get("options") for c in leaves),
           str([c["id"] for c in leaves if not c.get("options")]))
-    check("선택지는 스펙트럼 값과 지시 예시를 그대로 옮긴 것이다",
+    check("방향 선택지는 스펙트럼 값, 규칙 선택지는 지시 예시로 시작해 분류마다 5개",
           all(len([o for o in c["options"] if o["group"] == "spectrum"]) == len(c.get("poles") or [])
-              and [o["text"] for o in c["options"] if o["group"] == "rule"] == (c.get("templates") or []) for c in leaves))
+              and [o["text"] for o in c["options"] if o["group"] == "rule"][:len(c.get("templates") or [])] == (c.get("templates") or [])
+              and len([o for o in c["options"] if o["group"] == "rule"]) == 5 for c in leaves))
+    check("선택지마다 출처(basis)가 있고 같은 분류 안에서 문구가 겹치지 않는다",
+          all(o.get("basis") for c in leaves for o in c["options"])
+          and all(len({o["text"] for o in c["options"]}) == len(c["options"]) for c in leaves))
     cg = SR.empty_layer()
     cg["directives"]["choices"] = {"tenor.formality": ["s3", "t1"], "tenor.speech-level": ["s2"]}
     check("선택이 검증을 통과한다", SR.validate_layer("global", cg) == [], str(SR.validate_layer("global", cg)))

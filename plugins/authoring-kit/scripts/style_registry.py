@@ -604,9 +604,10 @@ def validate_catalog() -> list[str]:
         if len(set(oids)) != len(oids):
             problems.append(f"taxonomy/category[{c['id']}]: 선택지 id 가 겹친다")
         for o in opts:
-            if o.get("group") not in ("spectrum", "rule") or not (o.get("text") or "").strip():
+            if o.get("group") not in ("spectrum", "rule") or not (o.get("text") or "").strip() \
+                    or not (o.get("basis") or "").strip():
                 problems.append(f"taxonomy/category[{c['id']}].options[{o.get('id')}]: "
-                                f"group 은 spectrum·rule 중 하나이고 text 가 있어야 한다")
+                                f"group 은 spectrum·rule 중 하나이고 text·basis(출처)가 있어야 한다")
     return problems
 
 
