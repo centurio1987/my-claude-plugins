@@ -21,7 +21,7 @@ created: 2026-09-26
 - [x] `S3` L0 스캐너 이관 — `scan_ai_style.py` 하드코딩 어휘(W·H·D) → 카탈로그. 완료 기준: 이관 전후 같은 입력에 같은 적발
 - [x] `S4` 카탈로그 — `lexicon.json`(형식 45분류·기능 28태그·285항목), `qualitative.json`(9범주 41말단). 완료 기준: `style validate` 통과, 사람 문서 17편에서 적발 없음·과장 표본에서 적발
 - [x] `S5` 통합 — `authoring.py` resolve·validate·lock·`style` 서브커맨드, `scan_lexicon.py`. 완료 기준: resolve 가 유효 설정을 L1 절에 싣고 lock 이 어긋남을 안다
-- [ ] `S6` 편집기 — `style_server.py` + `ui/style-editor.html`. 완료 기준: 브라우저로 편집·저장·거부·미리보기·시험 스캔, 폰 너비 가로 스크롤 0
+- [x] `S6` 편집기 — `style_server.py` + `ui/style-editor.html`. 완료 기준: 브라우저로 편집·저장·거부·미리보기·시험 스캔, 폰 너비 가로 스크롤 0
 - [ ] `S7` 문서 — `authoring-style` 스킬·스키마·조사 종합, gate V5·V6, rubric·voice·method·doctor·README, 0.4.0. 완료 기준: 끊어진 assets 참조 없음
 - [ ] `S8` 검증 — `test_style.py` 신설, 기존 스위트 재실행. 완료 기준: 새 스위트 전부 통과, 기존 실패는 이전부터 있던 것만
 
@@ -49,3 +49,5 @@ created: 2026-09-26
 - 2026-09-26T14:06 · s:c2291411 · S4 done — lexicon.json 45분류·28기능·285항목(기본 음수는 합의 확인분만), qualitative.json 9범주 41말단·판정 규칙 — 과장 표본 적발·레포 문서 17편 무적발
 - 2026-09-26T14:06 · s:c2291411 · S5 doing — 착수
 - 2026-09-26T14:06 · s:c2291411 · S5 done — authoring.py resolve 에 유효 설정 절, validate·lock(style 묶음)·style show/validate/serve, scan_lexicon.py(검증 실패 설정이면 재지 않음)
+- 2026-09-26T14:06 · s:c2291411 · S6 doing — 착수
+- 2026-09-26T14:06 · s:c2291411 · S6 done — style_server.py(127.0.0.1·쓰기 헤더 가드·422 저장 거부) + ui/style-editor.html — Playwright 로 편집·저장·미리보기·스캔·390px 확인
