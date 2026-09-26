@@ -9,8 +9,7 @@
     GET  /api/state                  분류 체계 · 기능 태그 · 가중치 눈금 · voice 목록 · 레지스트리 위치
     GET  /api/layer?scope=S          S 층의 저장 파일(차분). S = global | voice:<id>
     POST /api/effective              {scope, layer?} → 저장 전 미리보기 포함 유효값 + 검증 결과
-    PUT  /api/layer?scope=S          저장. **검증을 통과해야만 쓴다** — 실패면 422 와 문제 목록.
-                                     전역 저장은 voice 층이 쓰던 전역 범주를 지우는지도 본다
+    PUT  /api/layer?scope=S          저장. **검증을 통과해야만 쓴다** — 실패면 422 와 문제 목록
     POST /api/render                 {scope, layer?, profile} → 모델이 읽게 될 지시문
     POST /api/scan                   {scope, layer?, text} → 가중치 어휘 스캔 + L0 문체 등급
 
@@ -70,30 +69,9 @@ def _validate(scope: str, layers: dict) -> list[str]:
     if problems:
         return problems
     if scope == "global":
-        return SR.validate_layer("global", layers["global"]) + _voices_broken_by(layers["global"])
+        return SR.validate_layer("global", layers["global"])
     return (SR.validate_layer("global", layers["global"])
             + SR.validate_layer(scope, layers[scope], base_layers={"global": layers["global"]}))
-
-
-def _voices_broken_by(new_global: dict) -> list[str]:
-    """전역을 바꾸면 그 위에 선 voice 층이 깨질 수 있다 — voice 가 쓰던 전역 범주를 지운 경우.
-
-    전역만 검사하면 저장은 통과하고 voice 는 다음 해석에서야 깨진다. 그래서 전역 저장 전에
-    voice 층마다 옛 전역과 새 전역 위에서 각각 검사해, **새로 생기는 문제만** 돌려준다.
-    voice 에 원래 있던 문제로 전역 저장까지 막지는 않는다.
-    """
-    old_global = SR.load_layer("global")
-    out: list[str] = []
-    for v in SR.list_voices():
-        if not v.get("has_style"):
-            continue
-        scope = f"voice:{v['id']}"
-        layer = SR.load_layer(scope)
-        before = set(SR.validate_layer(scope, layer, base_layers={"global": old_global}))
-        for p in SR.validate_layer(scope, layer, base_layers={"global": new_global}):
-            if p not in before:
-                out.append(f"{p} — 이 전역 변경이 voice '{v['id']}' 를 깨뜨린다")
-    return out
 
 
 def state() -> dict:

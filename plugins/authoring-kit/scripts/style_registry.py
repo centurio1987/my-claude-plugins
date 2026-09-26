@@ -113,7 +113,7 @@ def empty_layer() -> dict:
         "$schema": SCHEMA,
         "schema_version": 1,
         "lexicon": {"overrides": {}, "categories": {}, "add": []},
-        "directives": {"overrides": {}, "add": [], "categories": []},
+        "directives": {"overrides": {}, "add": []},
     }
 
 
@@ -161,9 +161,6 @@ def prune_layer(layer: dict) -> dict:
     d = layer.get("directives", {})
     d_over = {k: v for k, v in (d.get("overrides") or {}).items() if v}
     out["directives"] = {"overrides": dict(sorted(d_over.items())), "add": list(d.get("add") or [])}
-    # 사용자 범주는 있을 때만 쓴다 — 범주를 안 쓰는 층의 파일이 빈 키 하나로 바뀌지 않게.
-    if d.get("categories"):
-        out["directives"]["categories"] = list(d["categories"])
     return out
 
 
@@ -199,31 +196,6 @@ def _category_chain(cat_id: str, cats: dict[str, dict]) -> list[dict]:
         seen.add(cur["id"])
         cur = cats.get(cur.get("parent")) if cur.get("parent") else None
     return list(reversed(chain))
-
-
-USER_CATEGORY_FIELDS = ("id", "parent", "label", "definition", "questions")
-
-
-def _merged_taxonomy(stack: list[tuple[str, dict]]) -> list[dict]:
-    """정성 분류 = 플러그인 분류 + 층마다 사용자가 만든 하위 범주.
-
-    사용자 범주는 기존 상위 밑의 하위로만 선다. 축은 상위에서 물려받는다 — 사용자가 축을
-    고르게 두면 L1 이 아닌 축을 가리키는 범주가 생기고, 갈래 소유권이 그 자리에서 깨진다.
-    검증은 따로 한다(validate_layer). 여기서는 이상한 줄을 조용히 건너뛸 뿐이다.
-    """
-    cats = [dict(c, source="default") for c in load_taxonomy().get("categories", [])]
-    tops = {c["id"]: c for c in cats if not c.get("parent")}
-    seen = {c["id"] for c in cats}
-    for source, layer in stack:
-        for uc in (layer.get("directives", {}) or {}).get("categories") or []:
-            cid, parent = uc.get("id"), tops.get(uc.get("parent") or "")
-            if not cid or cid in seen or parent is None:
-                continue
-            seen.add(cid)
-            x = {k: copy.deepcopy(uc[k]) for k in USER_CATEGORY_FIELDS if k in uc}
-            x.update(axis=parent.get("axis"), source=source)
-            cats.append(x)
-    return cats
 
 
 def category_setting(cat_id: str, cats: dict[str, dict], key: str, default=None):
@@ -276,6 +248,7 @@ def effective(voice_id: str | None = None, *, layers: dict | None = None) -> dic
     편집기가 '상속'과 '재정의'를 보여 줘야 사용자가 무엇을 바꿨는지 안다.
     """
     catalog = load_catalog()
+    taxonomy = load_taxonomy()
     cats = _category_index(catalog)
     layers = layers or {}
     g = layers.get("global") if "global" in layers else load_layer("global")
@@ -317,9 +290,8 @@ def effective(voice_id: str | None = None, *, layers: dict | None = None) -> dic
         x["category_enabled"] = cat_on(x.get("category", ""))
         x["active"] = bool(x["enabled"]) and x["category_enabled"]
 
-    # 정성 지시 — 분류는 층의 사용자 범주까지 겹친 것을 쓴다.
-    taxonomy = _merged_taxonomy(stack)
-    tcats = {c["id"]: c for c in taxonomy}
+    # 정성 지시
+    tcats = {c["id"]: c for c in taxonomy.get("categories", [])}
     directives: dict[str, dict] = {}
     for source, layer in stack:
         d = layer.get("directives", {})
@@ -360,8 +332,6 @@ def effective(voice_id: str | None = None, *, layers: dict | None = None) -> dic
         "items": list(items.values()),
         "categories": out_cats,
         "directives": list(directives.values()),
-        # 정성 분류(플러그인 + 사용자 범주). 렌더·편집기가 범주 이름과 판정 질문을 여기서 읽는다.
-        "taxonomy": taxonomy,
     }
 
 
@@ -382,7 +352,9 @@ def validate_layer(scope: str, layer: dict, *, base_layers: dict | None = None) 
     """
     problems: list[str] = []
     catalog = load_catalog()
+    taxonomy = load_taxonomy()
     cats = _category_index(catalog)
+    tcats = {c["id"]: c for c in taxonomy.get("categories", [])}
     where = scope
 
     # 이 레이어 **아래** 층까지의 유효 항목 — override 대상과 L0 기원을 판정하는 기준.
@@ -464,36 +436,6 @@ def validate_layer(scope: str, layer: dict, *, base_layers: dict | None = None) 
                                 f"({', '.join(floor[:4])}{'…' if len(floor) > 4 else ''})")
 
     d = layer.get("directives", {}) or {}
-    # 사용자 범주 — 아래 층까지의 분류에 이 층 범주를 더한 것이 이 층 지시가 고를 수 있는 분류다.
-    tcats = {c["id"]: c for c in base["taxonomy"]}
-    tops = {cid: c for cid, c in tcats.items() if not c.get("parent")}
-    for uc in d.get("categories") or []:
-        cid = uc.get("id", "") if isinstance(uc, dict) else ""
-        w = f"{where}/directives.categories[{cid or '?'}]"
-        if not isinstance(uc, dict):
-            problems.append(f"{w}: 범주는 {{id, parent, label}} 객체다")
-            continue
-        parent = uc.get("parent") or ""
-        if parent not in tops:
-            problems.append(f"{w}: 상위 '{parent}' 가 없다 — 사용자 범주는 기존 상위 "
-                            f"({', '.join(tops)}) 밑의 하위로만 만든다")
-        elif not cid.startswith(parent + ".") or not ID_RE.match(cid):
-            problems.append(f"{w}: id 는 '{parent}.<이름>' 꼴이고 소문자·숫자·점·하이픈만 쓴다")
-        if cid in tcats:
-            problems.append(f"{w}: 이미 있는 범주 id 다")
-        if "axis" in uc:
-            problems.append(f"{w}: 축은 적지 않는다 — 상위 '{parent}' 에서 물려받는다")
-        if not (uc.get("label") or "").strip():
-            problems.append(f"{w}: 이름(label)이 비었다")
-        qs = uc.get("questions", [])
-        if not isinstance(qs, list) or not all(isinstance(q, str) and q.strip() for q in qs):
-            problems.append(f"{w}: questions 는 비지 않은 문장의 목록이다")
-        extra = set(uc) - set(USER_CATEGORY_FIELDS) - {"axis"}
-        if extra:
-            problems.append(f"{w}: 모르는 필드 {sorted(extra)} — 쓸 수 있는 것은 {USER_CATEGORY_FIELDS}")
-        if parent in tops and cid not in tcats:
-            tcats[cid] = {**uc, "axis": tops[parent].get("axis")}
-
     seen: set[str] = set()
     for di in d.get("add") or []:
         did = di.get("id", "")
@@ -705,8 +647,7 @@ def render(eff: dict, *, profile: str = "worker", usage: str = "generate") -> st
     if not dirs:
         L.append("_등록된 정성 지시가 없다._")
         L.append("")
-    # 사용자 범주까지 겹친 분류 — 없으면(옛 호출자) 플러그인 분류만.
-    tax = {c["id"]: c for c in (eff.get("taxonomy") or load_taxonomy().get("categories", []))}
+    tax = {c["id"]: c for c in load_taxonomy().get("categories", [])}
 
     def tpath(cid: str) -> str:
         c = tax.get(cid, {})

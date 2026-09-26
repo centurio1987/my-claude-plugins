@@ -106,8 +106,6 @@ pre.md { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; backg
 .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; }
 .legend span i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 .empty { padding: 24px; text-align: center; color: var(--muted); }
-.taxHead { display: flex; align-items: baseline; gap: 6px; } .taxHead > span { flex: 1; min-width: 0; }
-.taxHead button { text-transform: none; letter-spacing: 0; font-weight: 500; white-space: nowrap; }
 .axisHead { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 4px; }
 .hidden { display: none !important; }
 label.inline { display: inline-flex; gap: 5px; align-items: center; }
@@ -258,7 +256,7 @@ async function init() {
     await loadScope(sel.value);
   };
   $("#dAxis").innerHTML += S.state.l1_axes.map(a => `<option>${a}</option>`).join("");
-  buildLegend(); buildFnChips();
+  buildLegend(); buildFnChips(); buildTaxTree();
   await loadScope("global");
 }
 async function loadScope(scope) {
@@ -288,7 +286,7 @@ function renderAll() {
 
 // ── 레이어 편집 도우미 ──
 const lex = () => (S.layer.lexicon ??= { overrides: {}, categories: {}, add: [] });
-const dirL = () => (S.layer.directives ??= { overrides: {}, add: [], categories: [] });
+const dirL = () => (S.layer.directives ??= { overrides: {}, add: [] });
 function ownAdded(item) { return item.source === scopeKind(); }
 function setItemField(item, field, value) {
   if (ownAdded(item)) {
@@ -480,74 +478,30 @@ $("#addItemBtn").onclick = () => {
 };
 
 // ── 정성 분류 ──
-// 분류 = 플러그인 분류 + 층마다 사용자가 만든 하위 범주. 유효값(S.eff.taxonomy)이 겹친 결과를 준다.
-function taxList() { return S.eff?.taxonomy || S.state.taxonomy.categories || []; }
-function taxIndex() { return Object.fromEntries(taxList().map(c => [c.id, c])); }
-const userCats = () => (dirL().categories ??= []);
-const srcLabel = s => s === "global" ? (scopeKind() === "global" ? "이 층(전역)" : "전역") : "이 voice";
+function taxIndex() { return Object.fromEntries((S.state.taxonomy.categories || []).map(c => [c.id, c])); }
 function buildTaxTree() {
-  const cats = taxList();
+  const cats = S.state.taxonomy.categories || [];
   const tops = cats.filter(c => !c.parent);
-  if (S.tax && !cats.some(c => c.id === S.tax)) S.tax = null;
-  $("#taxTree").innerHTML = tops.map(t => `<div class="axisHead taxHead"><span>${esc(t.label)} <span style="text-transform:none">${esc(t.gloss || "")}</span></span>
-      <button class="link small" data-addcat="${esc(t.id)}" title="${esc(t.label)} 밑에 범주를 만든다 — 축(${esc(t.axis)})은 그대로 물려받는다">+ 범주</button></div>
-    ${cats.filter(c => c.parent === t.id).map(c => `<div class="node" data-tax="${esc(c.id)}" title="${esc(c.definition || "")}">
-      <span class="lbl">${esc(c.label || "(이름 없음)")}</span><span class="count muted">${c.source && c.source !== "default" ? `<span class="badge ${esc(c.source)}">${esc(srcLabel(c.source))}</span> ` : ""}<span class="badge default">${esc(c.axis)}</span> <span data-tc="${esc(c.id)}"></span></span></div>`).join("")}`).join("")
+  $("#taxTree").innerHTML = tops.map(t => `<div class="axisHead">${esc(t.label)} <span style="text-transform:none">${esc(t.gloss || "")}</span></div>
+    ${cats.filter(c => c.parent === t.id).map(c => `<div class="node" data-tax="${esc(c.id)}" title="${esc(c.definition)}">
+      <span class="lbl">${esc(c.label)}</span><span class="count muted"><span class="badge default">${esc(c.axis)}</span> <span data-tc="${esc(c.id)}"></span></span></div>`).join("")}`).join("")
     || `<div class="empty">분류 체계가 비어 있다</div>`;
   $$("#taxTree [data-tax]").forEach(n => n.onclick = () => { S.tax = S.tax === n.dataset.tax ? null : n.dataset.tax; renderTaxInfo(); renderDirs(); });
-  $$("#taxTree [data-addcat]").forEach(b => b.onclick = () => addCategory(b.dataset.addcat));
-}
-function addCategory(parent) {
-  const id = `${parent}.u${Date.now().toString(36)}`;
-  userCats().push({ id, parent, label: "새 범주" });
-  S.tax = id;
-  schedule();
-  setTimeout(() => { const t = $("#taxInfo [data-clabel]"); if (t) { t.focus(); t.select(); } }, 300);
-}
-function catEditor(c) {
-  // 이 층에서 만든 범주만 여기서 고친다. 전역 범주는 편집 대상을 전역으로 골라 고친다.
-  if (c.source !== scopeKind()) return `<div class="small muted" style="margin:6px 0">전역에서 만든 범주다 — 고치려면 편집 대상을 ‘전역’으로 바꾼다.</div>`;
-  const used = S.eff.directives.filter(d => d.category === c.id).length;
-  return `<div class="card" style="margin:8px 0 4px">
-    <div class="row"><label class="inline small grow">이름 <input type="text" class="grow" data-clabel value="${esc(c.label || "")}"></label></div>
-    <div class="small muted" style="margin-top:6px">정의 (선택)</div>
-    <div class="row"><textarea rows="2" data-cdef placeholder="이 범주가 무엇을 다루는가">${esc(c.definition || "")}</textarea></div>
-    <div class="small muted" style="margin-top:6px">판정 질문 (선택, 한 줄에 하나) — 게이트에 붙인 지시를 채점자가 읽으며 묻는다</div>
-    <div class="row"><textarea rows="3" data-cqs placeholder="예: 보고 대상에 맞는가?">${esc((c.questions || []).join("\n"))}</textarea></div>
-    <div class="row small muted"><code>${esc(c.id)}</code><span class="grow"></span>
-      ${used ? `<span>이 범주를 쓰는 지시 ${used}개 — 다른 범주로 옮기거나 지워야 범주를 지울 수 있다</span>` : `<button class="link small" data-cdel>범주 삭제</button>`}</div></div>`;
-}
-function setCat(id, field, value) {
-  const c = userCats().find(x => x.id === id); if (!c) return;
-  if (value === "" || (Array.isArray(value) && !value.length)) delete c[field]; else c[field] = value;
-  schedule();
 }
 function renderTaxInfo() {
   $$("#taxTree [data-tax]").forEach(n => n.classList.toggle("sel", n.dataset.tax === S.tax));
-  if (!S.tax) { $("#taxInfo").innerHTML = `<span class="muted">분류를 고르면 정의와 판정 질문이 보인다. 상위 옆 ‘+ 범주’로 범주를 직접 만들 수 있다.</span>`; return; }
+  if (!S.tax) { $("#taxInfo").innerHTML = `<span class="muted">분류를 고르면 정의와 판정 질문이 보인다.</span>`; return; }
   const c = taxIndex()[S.tax], parent = taxIndex()[c.parent] || {};
-  const user = c.source && c.source !== "default", editable = user && c.source === scopeKind();
-  $("#taxInfo").innerHTML = `<div><strong>${esc(parent.label || "")} › ${esc(c.label)}</strong> <span class="muted">${esc(c.gloss || "")}</span> <span class="badge default">축 ${esc(c.axis)}</span>${user ? ` <span class="badge ${esc(c.source)}">직접 만든 범주 · ${esc(srcLabel(c.source))}</span>` : ""}</div>
-    ${user ? catEditor(c) : ""}
-    ${editable ? "" : `<div class="def">${esc(c.definition || "")}</div>`}
+  $("#taxInfo").innerHTML = `<div><strong>${esc(parent.label || "")} › ${esc(c.label)}</strong> <span class="muted">${esc(c.gloss || "")}</span> <span class="badge default">축 ${esc(c.axis)}</span></div>
+    <div class="def">${esc(c.definition || "")}</div>
     ${c.poles ? `<div class="small"><span class="badge default">스펙트럼</span> ${esc(c.poles.join(" ↔ "))}</div>` : ""}
-    ${!editable && c.questions?.length ? `<div class="small" style="margin-top:6px"><strong>판정 질문</strong> — 채점자가 읽으며 묻는 것</div><ul class="qs">${c.questions.map(q => `<li>${esc(q)}</li>`).join("")}</ul>` : ""}
+    ${c.questions?.length ? `<div class="small" style="margin-top:6px"><strong>판정 질문</strong> — 채점자가 읽으며 묻는 것</div><ul class="qs">${c.questions.map(q => `<li>${esc(q)}</li>`).join("")}</ul>` : ""}
     ${c.templates?.length ? `<div class="small"><strong>지시 예시</strong> — 누르면 추가된다</div>${c.templates.map((t, i) => `<button class="tmpl" data-tpl="${i}">＋ ${esc(t)}</button>`).join("")}` : ""}
     ${c.basis ? `<div class="small muted" style="margin-top:6px">근거: ${esc(c.basis)}</div>` : ""}`;
   $$("#taxInfo [data-tpl]").forEach(b => b.onclick = () => addDirective(S.tax, c.templates[Number(b.dataset.tpl)]));
-  if (editable) {
-    const id = c.id;
-    $("#taxInfo [data-clabel]").oninput = e => setCat(id, "label", e.target.value);
-    $("#taxInfo [data-cdef]").oninput = e => setCat(id, "definition", e.target.value.trim());
-    $("#taxInfo [data-cqs]").oninput = e => setCat(id, "questions", e.target.value.split("\n").map(s => s.trim()).filter(Boolean));
-    // 입력 중에는 다시 그리지 않으므로, 칸을 떠날 때 트리·항목의 범주 이름을 맞춘다.
-    $$("#taxInfo [data-clabel], #taxInfo [data-cdef], #taxInfo [data-cqs]").forEach(el => el.onchange = () => setTimeout(renderDirs, 250));
-    const del = $("#taxInfo [data-cdel]");
-    if (del) del.onclick = () => { if (confirm("이 범주를 삭제할까?")) { dirL().categories = userCats().filter(x => x.id !== id); S.tax = null; schedule(); } };
-  }
 }
 function addDirective(cat, text = "") {
-  const cats = taxList().filter(c => c.parent);
+  const cats = (S.state.taxonomy.categories || []).filter(c => c.parent);
   cat = cat || S.tax || cats[0]?.id;
   if (!cat) { alert("정성 분류가 없다"); return; }
   const id = `${cat}.${Date.now().toString(36)}`.toLowerCase();
@@ -568,7 +522,6 @@ function setDir(d, field, value) {
   schedule();
 }
 function renderDirs() {
-  buildTaxTree();
   const tix = taxIndex(); const k = scopeKind();
   const counts = {}; S.eff.directives.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1);
   $$("#taxTree [data-tc]").forEach(s => s.textContent = counts[s.dataset.tc] || "");
@@ -577,7 +530,7 @@ function renderDirs() {
     && (!$("#dAxis").value || d.axis === $("#dAxis").value)
     && (!$("#dGate").value || (($("#dGate").value === "on") === !!d.gate?.enabled)));
   if (!list.length) { $("#dirs").innerHTML = `<div class="panel empty">지시가 없다. 왼쪽 분류에서 예시를 고르거나 ‘+ 지시 추가’를 누른다.</div>`; return; }
-  const catOpts = sel => taxList().filter(c => c.parent).map(c =>
+  const catOpts = sel => (S.state.taxonomy.categories || []).filter(c => c.parent).map(c =>
     `<option value="${esc(c.id)}" ${c.id === sel ? "selected" : ""}>${esc((tix[c.parent]?.label || "") + " › " + c.label)}</option>`).join("");
   $("#dirs").innerHTML = list.map(d => {
     const mine = d.source === k; const ov = dirL().overrides[d.id];
@@ -614,7 +567,7 @@ function renderDirs() {
 }
 // 입력 중에는 카드를 다시 그리지 않는다 — 커서가 튄다.
 const _renderDirs = renderDirs;
-renderDirs = function () { const a = document.activeElement; if (a && a.closest && a.closest("#dirs, #taxInfo") && a.matches("textarea,input[type=text]")) { const counts = {}; S.eff.directives.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1); $$("#taxTree [data-tc]").forEach(s => s.textContent = counts[s.dataset.tc] || ""); return; } _renderDirs(); };
+renderDirs = function () { const a = document.activeElement; if (a && a.closest && a.closest("#dirs") && a.matches("textarea,input[type=text]")) { const counts = {}; S.eff.directives.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1); $$("#taxTree [data-tc]").forEach(s => s.textContent = counts[s.dataset.tc] || ""); return; } _renderDirs(); };
 const _renderItems = renderItems;
 renderItems = function () { const a = document.activeElement; if (a && a.matches && a.matches("[data-reason]")) return; _renderItems(); };
 
