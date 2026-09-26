@@ -567,6 +567,16 @@ def validate_catalog() -> list[str]:
             continue
         if c.get("axis") and c["axis"] not in L1_AXES:
             problems.append(f"taxonomy/category[{c['id']}]: 축 '{c['axis']}' 는 L1 소유가 아니다")
+        opts = c.get("options") or []
+        if c.get("parent") and not opts:
+            problems.append(f"taxonomy/category[{c['id']}]: 고를 수 있는 선택지(options)가 없다")
+        oids = [o.get("id") for o in opts]
+        if len(set(oids)) != len(oids):
+            problems.append(f"taxonomy/category[{c['id']}]: 선택지 id 가 겹친다")
+        for o in opts:
+            if o.get("group") not in ("spectrum", "rule") or not (o.get("text") or "").strip():
+                problems.append(f"taxonomy/category[{c['id']}].options[{o.get('id')}]: "
+                                f"group 은 spectrum·rule 중 하나이고 text 가 있어야 한다")
     return problems
 
 
