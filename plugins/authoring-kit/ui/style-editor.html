@@ -105,6 +105,16 @@ details summary { cursor: pointer; }
 .opt:hover { background: var(--chip); }
 .opt input { margin-top: 3px; flex: none; }
 .opt.on { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+fieldset.spec { border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px 8px; margin: 6px 0 4px; min-width: 0; }
+fieldset.spec legend { padding: 0 4px; margin: 0; }
+.segs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.seg { position: relative; display: inline-flex; cursor: pointer; font-size: 13px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); white-space: nowrap; }
+.seg:last-child span { color: var(--muted); border-style: dashed; }
+.seg:hover span { background: var(--chip); }
+.seg.on span { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); border-style: solid; }
+.seg input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 1px; }
 pre.md { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; max-height: 70vh; overflow: auto; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
@@ -521,27 +531,35 @@ function optionsBlock(c) {
     ? (k === "voice" && st.inheritsFrom === "global" ? `<span class="badge voice">이 voice 가 전역 선택을 대신함</span>` : `<span class="badge ${k}">이 층에서 고름</span>`)
       + ` <button class="link small" data-optreset>이 층 선택 해제</button>`
     : (st.source === "global" && k === "voice" ? `<span class="badge global">전역에서 계승</span>` : "");
-  const row = o => `<label class="opt ${st.ids.includes(o.id) ? "on" : ""}"><input type="checkbox" data-opt="${esc(o.id)}" ${st.ids.includes(o.id) ? "checked" : ""}><span>${esc(o.text)}</span></label>`;
+  // 하나만 고르는 방향은 라디오 묶음, 여러 개 고르는 규칙은 체크 상자 — 모양으로 규칙이 보이게.
+  const on = id => st.ids.includes(id);
+  const row = o => `<label class="opt ${on(o.id) ? "on" : ""}"><input type="checkbox" data-opt="${esc(o.id)}" ${on(o.id) ? "checked" : ""}><span>${esc(o.text)}</span></label>`;
   const spec = opts.filter(o => o.group === "spectrum"), rule = opts.filter(o => o.group !== "spectrum");
-  return `<div class="opts"><div class="small"><strong>선택지</strong> — 체크하면 모델 지시로 들어간다 ${note}</div>
-    ${spec.length ? `<div class="grp">방향 — 하나만</div>${spec.map(row).join("")}` : ""}
-    ${rule.length ? `<div class="grp">규칙 — 여러 개</div>${rule.map(row).join("")}` : ""}</div>`;
+  const name = `spec-${c.id}`, specOn = spec.some(o => on(o.id));
+  const radio = (val, label, checked) => `<label class="seg ${checked ? "on" : ""}"><input type="radio" name="${esc(name)}" data-spec="${esc(val)}" ${checked ? "checked" : ""}><span>${esc(label)}</span></label>`;
+  return `<div class="opts"><div class="small"><strong>선택지</strong> — 고르면 모델 지시로 들어간다 ${note}</div>
+    ${spec.length ? `<fieldset class="spec"><legend class="grp">방향 — 하나만 고른다</legend>
+      <div class="segs">${spec.map(o => radio(o.id, (c.poles || [])[Number(o.id.slice(1)) - 1] || o.text, on(o.id))).join("")}${radio("", "지정 안 함", !specOn)}</div>
+      ${specOn ? `<div class="small muted">→ ${esc(spec.find(o => on(o.id)).text)}</div>` : ""}</fieldset>` : ""}
+    ${rule.length ? `<div class="grp">규칙 — 여러 개 고를 수 있다</div>${rule.map(row).join("")}` : ""}</div>`;
 }
 function bindOptions(c) {
   const opts = Object.fromEntries((c.options || []).map(o => [o.id, o]));
-  $$("#taxInfo [data-opt]").forEach(box => box.onchange = () => {
-    let ids = choiceState(c.id).ids.slice();
-    const oid = box.dataset.opt;
-    if (box.checked) {
-      if (opts[oid]?.group === "spectrum") ids = ids.filter(x => opts[x]?.group !== "spectrum");
-      ids.push(oid);
-    } else ids = ids.filter(x => x !== oid);
+  const write = ids => {
     const order = Object.keys(opts);
     ids.sort((a, b) => order.indexOf(a) - order.indexOf(b));
     const ch = (dirL().choices ??= {});
     // 전역에서 다 끄면 키를 지운다. voice 에서는 빈 목록이 "이 voice 는 고르지 않음"이라 남긴다.
     if (!ids.length && scopeKind() === "global") delete ch[c.id]; else ch[c.id] = ids;
     schedule();
+  };
+  $$("#taxInfo [data-opt]").forEach(box => box.onchange = () => {
+    const ids = choiceState(c.id).ids.filter(x => x !== box.dataset.opt);
+    write(box.checked ? [...ids, box.dataset.opt] : ids);
+  });
+  $$("#taxInfo [data-spec]").forEach(r => r.onchange = () => {
+    const ids = choiceState(c.id).ids.filter(x => opts[x]?.group !== "spectrum");
+    write(r.dataset.spec ? [...ids, r.dataset.spec] : ids);
   });
   const r = $("#taxInfo [data-optreset]");
   if (r) r.onclick = () => { delete dirL().choices[c.id]; schedule(); };

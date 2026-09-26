@@ -354,6 +354,11 @@ def main() -> int:
     check("서버가 스펙트럼 둘을 고른 저장을 422 로 거부", st == 422 and any("하나만" in p for p in body["problems"]))
     st, body = call("POST", "/api/effective", {"scope": "global", "layer": cg})
     check("유효값 API 가 고른 선택지를 준다", st == 200 and body["effective"]["choices"]["tenor.formality"]["ids"] == ["s3", "t1"])
+    # 하나만 고르는 방향은 라디오 묶음이어야 한다 — 체크 상자로 그리면 여러 개 고를 수 있어 보인다(유저 지적, 2026-09-27).
+    ui = (SR.PLUGIN_ROOT / "ui" / "style-editor.html").read_text(encoding="utf-8")
+    check("편집기: 방향 선택지는 라디오, 규칙 선택지만 체크 상자",
+          'type="radio" name="${esc(name)}" data-spec=' in ui and '"지정 안 함"' in ui
+          and 'type="checkbox" data-opt=' in ui and "rule.map(row)" in ui and "spec.map(row)" not in ui)
     srv.shutdown()
 
     print(f"\n{'=' * 56}")
