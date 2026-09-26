@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<!-- kanban-fp:472cbfe9c49247a80fc2d776697bbf1d6d57f951 -->
+<!-- kanban-fp:fe24aee327b00999363f1b88a0035690031b8e9b -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KAN-001-MJ3PE1 검토 요청</title>
 <style>
@@ -623,24 +623,24 @@ textarea { line-height: 1.6; resize: vertical; }
 
 <div class="dh">
   <div class="dh-cv"><span class="meta">수렴</span>
-    <b>0<i> / </i>2</b>
-    <span class="dh-sub">남은 2</span></div>
+    <b>2<i> / </i>2</b>
+    <span class="dh-sub">살아있는 항목 전부 승인</span></div>
   <div class="dh-sep"></div>
   <div class="dh-rail">
     <div class="dh-rail-head"><span class="meta">항목 레일 — 누르면 그 항목으로</span>
       <span class="meta">2칸</span></div>
-    <div class="rail"><a class="rail-c st-open rail-cur" href="#item-1" title="§3-1 미정 — 조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫으로만 확인">1</a><a class="rail-c st-open" href="#item-2" title="§3-2 미정 — 기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼스로 검증하">2</a></div>
+    <div class="rail"><a class="rail-c st-approved" href="#item-1" title="§3-1 승인 — 조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫으로만 확인">1</a><a class="rail-c st-approved" href="#item-2" title="§3-2 승인 — 기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼스로 검증하">2</a></div>
   </div>
   <div class="dh-sep"></div>
   <div class="dh-act">
-    <span class="tag tag-doing">검토 대기</span>
-    <a class="dh-next" href="#item-1">다음 미해결 &#9656; 1번</a></div>
+    <span class="tag tag-done">승인</span>
+    </div>
 </div>
 <div class="dh-meta">변경 42파일 · +7053 −101 · 커밋 17 · 롤백 태그 0 · 추가 의견 0</div>
 
 
 
-<h2 class="h2-row">판단 항목 2<span class="meta">열린 것 2 · 닫힌 것 0</span></h2>
+<h2 class="h2-row">판단 항목 2<span class="meta">열린 것 0 · 닫힌 것 2</span></h2>
 <p class="note">번호는 의견 순서입니다. <b>의견마다 판정과 추가 의견이 따로 붙습니다</b> — 판정은 상태이고
 추가 의견은 말입니다. 승인/반려를 아직 안 정했어도 추가 의견만 달 수 있고, 반대로 의견 하나만 먼저 닫을 수도
 있습니다. <b>판정과 추가 의견, 의견 추가는 이 화면에서 바로 합니다</b> — 누른 것은 왼쪽 아래
@@ -662,7 +662,7 @@ python3 scripts/kanban.py review-item  &lt;project-root&gt; --card KAN-001-MJ3PE
   <select id="rv-by" style="width:auto"><option>유저</option><option>ai</option></select>
   <span class="meta">이 화면에서 내는 판정·추가 의견에 붙습니다 — 기본은 유저입니다</span>
 </div>
-<ol id="rv-list"><li id="item-1" class="jd"><div class="jd-head"><span class="jd-num st-open">1</span><span class="jd-title">조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫으로만 확인했고 주장마다 확인 수준 표지를 달았습니다</span><span class="tag tag-todo">미정</span><span class="meta">판정 0 · 의견 0</span></div><div class="jd-band jd-band-ctx"><span class="jd-g">배경</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-facts"><li><span class="jd-fact">원문 지시는 「구조화에는 조사가 선행되어야 한다」와 「전문적 토대 위에 구조화」를 요구합니다.</span></li><li><span class="jd-fact">조사 때 원문 페이지 열람이 네트워크 정책에 막혀 논문·문헌 본문은 읽지 못했습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:14</span></li><li><span class="jd-fact">그래서 노트의 모든 주장에 [확인]·[추정] 같은 확인 수준 표지를 붙였습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:19</span></li></ul></div></div><div class="jd-band jd-band-ctx"><span class="jd-g">정할 것</span><span class="jd-rule"></span><div class="jd-body"><p>이 근거 수준으로 카드를 닫을 것인가.</p><div class="scroll jd-tbl"><table><thead><tr><th>선택지</th><th>대가</th><th>그러면 어떻게 되는가</th></tr></thead><tbody><tr class="jd-rec"><td><span class="tag tag-done">추천</span> 이대로 받는다</td><td>분류 일부는 원문 대조 없이 선다</td><td>카드가 닫히고, 원문 대조는 필요할 때 별도 카드로 한다</td></tr><tr><td>원문 대조 후 닫는다</td><td>열람이 되는 환경에서 조사를 다시 해야 한다</td><td>이 카드는 그때까지 검토에 머문다</td></tr></tbody></table></div></div></div><div class="jd-band jd-band-v"><span class="jd-g">판정 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">판정 없음 — <code>review-judge --card KAN-001-MJ3PE1 --item 1 --verdict 승인</code></p><ul class="jd-vs"></ul></div></div><div class="jd-band jd-band-n"><span class="jd-g">의견 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">추가 의견 없음 — <code>review-note --card KAN-001-MJ3PE1 --item 1 --text "&lt;추가 의견&gt;"</code></p><ul class="jd-ns"></ul></div></div><div class="jd-band jd-band-ops is-static"><span class="jd-g">조작</span><span class="jd-rule"></span><div class="jd-body"><div class="rv-ops" data-item="1"><div class="row"><label>판정</label><button data-judge="승인">승인</button><button data-judge="반려">반려</button><button data-judge="철회">철회</button><span class="tag tag-wait" data-pending="1" hidden></span></div><div class="row"><label>추가 의견</label><input data-note placeholder="추가 의견 — 판정을 안 바꾸고 말만 남깁니다"><button data-note-add>추가 의견 달기</button></div></div></div></div></li><li id="item-2" class="jd"><div class="jd-head"><span class="jd-num st-open">2</span><span class="jd-title">기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼스로 검증하지 않았고 편집기에서 층마다 고칠 수 있게 열어 두었습니다</span><span class="tag tag-todo">미정</span><span class="meta">판정 0 · 의견 0</span></div><div class="jd-band jd-band-ctx"><span class="jd-g">배경</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-facts"><li><span class="jd-fact">어휘가 한 문장 안에서 몇 번 겹치면, 1,000자당 몇 번 나오면 경고할지의 기준값이 있습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:23</span></li><li><span class="jd-fact">이 값은 측정으로 정한 것이 아니라 설계할 때 둔 초기값입니다.</span></li><li><span class="jd-fact">이 저장소의 사람이 쓴 문서 17편에서는 경고가 나오지 않았고, 일부러 과장한 표본에서는 나왔습니다.</span></li><li><span class="jd-fact">전역 설정과 voice 설정에서 키 하나씩 덮어 고칠 수 있습니다.</span><span class="jd-src">원문 plugins/authoring-kit/scripts/style_registry.py:279</span></li></ul></div></div><div class="jd-band jd-band-ctx"><span class="jd-g">정할 것</span><span class="jd-rule"></span><div class="jd-body"><p>초기값 그대로 내보낼 것인가.</p><div class="scroll jd-tbl"><table><thead><tr><th>선택지</th><th>대가</th><th>그러면 어떻게 되는가</th></tr></thead><tbody><tr class="jd-rec"><td><span class="tag tag-done">추천</span> 그대로 내보낸다</td><td>실제 글에서 경고가 너무 많거나 적을 수 있다</td><td>쓰면서 편집기로 조정하고, 조정한 값이 전역 설정에 쌓인다</td></tr><tr><td>코퍼스로 먼저 맞춘다</td><td>검증용 글 묶음을 모으는 작업이 따로 든다</td><td>이 카드는 그때까지 닫히지 않는다</td></tr></tbody></table></div></div></div><div class="jd-band jd-band-v"><span class="jd-g">판정 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">판정 없음 — <code>review-judge --card KAN-001-MJ3PE1 --item 2 --verdict 승인</code></p><ul class="jd-vs"></ul></div></div><div class="jd-band jd-band-n"><span class="jd-g">의견 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">추가 의견 없음 — <code>review-note --card KAN-001-MJ3PE1 --item 2 --text "&lt;추가 의견&gt;"</code></p><ul class="jd-ns"></ul></div></div><div class="jd-band jd-band-ops is-static"><span class="jd-g">조작</span><span class="jd-rule"></span><div class="jd-body"><div class="rv-ops" data-item="2"><div class="row"><label>판정</label><button data-judge="승인">승인</button><button data-judge="반려">반려</button><button data-judge="철회">철회</button><span class="tag tag-wait" data-pending="2" hidden></span></div><div class="row"><label>추가 의견</label><input data-note placeholder="추가 의견 — 판정을 안 바꾸고 말만 남깁니다"><button data-note-add>추가 의견 달기</button></div></div></div></div></li></ol>
+<ol id="rv-list"><li id="item-1" class="jd jd-closed"><details class="jd-fold"><summary><span class="jd-num st-approved">1</span><span class="jd-title">조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫으로만 확인했고 주장마다 확인 수준 표지를 달았습니다</span><span class="tag tag-done">승인</span><span class="meta">판정 1 · 의견 0</span><span class="meta jd-tog"></span></summary><div class="jd-band jd-band-ctx"><span class="jd-g">배경</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-facts"><li><span class="jd-fact">원문 지시는 「구조화에는 조사가 선행되어야 한다」와 「전문적 토대 위에 구조화」를 요구합니다.</span></li><li><span class="jd-fact">조사 때 원문 페이지 열람이 네트워크 정책에 막혀 논문·문헌 본문은 읽지 못했습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:14</span></li><li><span class="jd-fact">그래서 노트의 모든 주장에 [확인]·[추정] 같은 확인 수준 표지를 붙였습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:19</span></li></ul></div></div><div class="jd-band jd-band-ctx"><span class="jd-g">정할 것</span><span class="jd-rule"></span><div class="jd-body"><p>이 근거 수준으로 카드를 닫을 것인가.</p><div class="scroll jd-tbl"><table><thead><tr><th>선택지</th><th>대가</th><th>그러면 어떻게 되는가</th></tr></thead><tbody><tr class="jd-rec"><td><span class="tag tag-done">추천</span> 이대로 받는다</td><td>분류 일부는 원문 대조 없이 선다</td><td>카드가 닫히고, 원문 대조는 필요할 때 별도 카드로 한다</td></tr><tr><td>원문 대조 후 닫는다</td><td>열람이 되는 환경에서 조사를 다시 해야 한다</td><td>이 카드는 그때까지 검토에 머문다</td></tr></tbody></table></div></div></div><div class="jd-band jd-band-v"><span class="jd-g">판정 1</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-vs"><li><span class="meta">1회차</span><span class="tag tag-done">승인</span><span><span class="meta">유저 · 2026-09-26</span> </span></li></ul></div></div><div class="jd-band jd-band-n"><span class="jd-g">의견 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">추가 의견 없음 — <code>review-note --card KAN-001-MJ3PE1 --item 1 --text "&lt;추가 의견&gt;"</code></p><ul class="jd-ns"></ul></div></div><div class="jd-band jd-band-ops is-static"><span class="jd-g">조작</span><span class="jd-rule"></span><div class="jd-body"><div class="rv-ops" data-item="1"><div class="row"><label>판정</label><button data-judge="승인">승인</button><button data-judge="반려">반려</button><button data-judge="철회">철회</button><span class="tag tag-wait" data-pending="1" hidden></span></div><div class="row"><label>추가 의견</label><input data-note placeholder="추가 의견 — 판정을 안 바꾸고 말만 남깁니다"><button data-note-add>추가 의견 달기</button></div></div></div></div></details></li><li id="item-2" class="jd jd-closed"><details class="jd-fold"><summary><span class="jd-num st-approved">2</span><span class="jd-title">기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼스로 검증하지 않았고 편집기에서 층마다 고칠 수 있게 열어 두었습니다</span><span class="tag tag-done">승인</span><span class="meta">판정 1 · 의견 0</span><span class="meta jd-tog"></span></summary><div class="jd-band jd-band-ctx"><span class="jd-g">배경</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-facts"><li><span class="jd-fact">어휘가 한 문장 안에서 몇 번 겹치면, 1,000자당 몇 번 나오면 경고할지의 기준값이 있습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:23</span></li><li><span class="jd-fact">이 값은 측정으로 정한 것이 아니라 설계할 때 둔 초기값입니다.</span></li><li><span class="jd-fact">이 저장소의 사람이 쓴 문서 17편에서는 경고가 나오지 않았고, 일부러 과장한 표본에서는 나왔습니다.</span></li><li><span class="jd-fact">전역 설정과 voice 설정에서 키 하나씩 덮어 고칠 수 있습니다.</span><span class="jd-src">원문 plugins/authoring-kit/scripts/style_registry.py:279</span></li></ul></div></div><div class="jd-band jd-band-ctx"><span class="jd-g">정할 것</span><span class="jd-rule"></span><div class="jd-body"><p>초기값 그대로 내보낼 것인가.</p><div class="scroll jd-tbl"><table><thead><tr><th>선택지</th><th>대가</th><th>그러면 어떻게 되는가</th></tr></thead><tbody><tr class="jd-rec"><td><span class="tag tag-done">추천</span> 그대로 내보낸다</td><td>실제 글에서 경고가 너무 많거나 적을 수 있다</td><td>쓰면서 편집기로 조정하고, 조정한 값이 전역 설정에 쌓인다</td></tr><tr><td>코퍼스로 먼저 맞춘다</td><td>검증용 글 묶음을 모으는 작업이 따로 든다</td><td>이 카드는 그때까지 닫히지 않는다</td></tr></tbody></table></div></div></div><div class="jd-band jd-band-v"><span class="jd-g">판정 1</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-vs"><li><span class="meta">1회차</span><span class="tag tag-done">승인</span><span><span class="meta">유저 · 2026-09-26</span> </span></li></ul></div></div><div class="jd-band jd-band-n"><span class="jd-g">의견 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">추가 의견 없음 — <code>review-note --card KAN-001-MJ3PE1 --item 2 --text "&lt;추가 의견&gt;"</code></p><ul class="jd-ns"></ul></div></div><div class="jd-band jd-band-ops is-static"><span class="jd-g">조작</span><span class="jd-rule"></span><div class="jd-body"><div class="rv-ops" data-item="2"><div class="row"><label>판정</label><button data-judge="승인">승인</button><button data-judge="반려">반려</button><button data-judge="철회">철회</button><span class="tag tag-wait" data-pending="2" hidden></span></div><div class="row"><label>추가 의견</label><input data-note placeholder="추가 의견 — 판정을 안 바꾸고 말만 남깁니다"><button data-note-add>추가 의견 달기</button></div></div></div></div></details></li></ol>
 
 <h3>의견 추가</h3>
 <section class="card rv-panel" id="rv-add">
@@ -692,7 +692,7 @@ python3 scripts/kanban.py review-item  &lt;project-root&gt; --card KAN-001-MJ3PE
 <h2>전체 판정</h2>
 
 <section class="card rv-panel" id="rv-all">
-<p class="note"><span class="tag tag-warn">경고</span> 살아있는 항목 2개(1번 · 2번)가 안 닫혀 전체 승인은 아직 안 섭니다.</p>
+
 <p class="note">문서 전체에 대한 판정입니다 — <b>항목 판정과 다른 자리</b>입니다. 전체
 승인은 살아있는 항목이 전부 승인일 때만 섭니다(철회는 분모에서 빠집니다). <b>철회는
 항목에만</b> 있습니다 — 문서 전체를 철회하는 일은 검토를 닫는 것이 아니라 카드를 닫는
@@ -764,7 +764,11 @@ c129205 Merge claude/beautiful-mccarthy-kxg2nl into KAN-001-MJ3PE1 — 소급: �
 3dda6d1 kanban: 보드 환경 초기화 (layout 3)
 3e1ada8 feat(authoring-kit) 0.4.0: 문체 설정 — 전역을 voice 가 계승하는 어휘 가중치·정성 지시와 편집기</pre></details>
 
-
+<details><summary>판정 — 문서 전체 이력<span class="fold-n">1건</span></summary><section class="card"><p><strong>판정</strong>: 승인</p>
+<p><strong>판정 이력</strong>:</p>
+<ul>
+<li>승인 · 유저 · 2026-09-26</li>
+</ul></section></details>
 
 <p class="meta">생성 근거: .kanban/reviews/KAN-001-MJ3PE1.review.json
 · KANBAN.md · 갱신 2026-09-26</p>
