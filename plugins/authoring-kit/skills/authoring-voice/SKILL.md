@@ -23,6 +23,9 @@ metadata:
 | `device` | 독자 장치 — 호명 · 우화 · 도식 · 기억법 · 확인 질문 등 |
 | `lexicon` | 어휘군 · 인용 습관 · 연결어 |
 
+축 선언과 별도로, voice 는 **문체 설정**(`style.json`)으로 전역 설정을 계승·확장한다 —
+어휘 목록의 가중치·필터와 정성 지시. 편집은 `authoring-style` 이 맡는다.
+
 **여기 없는 것은 voice 가 정하지 않는다.** 어떤 항목이 어떤 순서로 필요한지는 글 명세(L2)가,
 사실·문장·박자는 공통 원칙(L0)이 정한다. 넘어서면 `validate` 가 갈래 위반으로 막는다.
 
@@ -78,7 +81,12 @@ metadata:
 ```
 ~/.claude/authoring/voices/<id>/voice.json    기계 판독 — 축·파라미터·면제
 ~/.claude/authoring/voices/<id>/voice.md      사람·에이전트 판독 — 규칙 N개(예문 포함) + 금지 목록
+~/.claude/authoring/voices/<id>/style.json    (선택) 문체 설정 — 전역을 계승한 어휘 가중치·정성 지시의 차분
 ```
+
+인터뷰·역추출에서 나온 것 중 **셀 수 있는 것**(즐겨 쓰는 연결어, 절대 안 쓰는 부사)은 `style.json` 의
+어휘 가중치로, **읽어야 아는 것**(확신도 조율, 마무리 방식)은 정성 지시로 옮긴다. 편집기로 해도 된다:
+`authoring.py style serve --open` 에서 이 voice 를 고른다.
 
 `voice.md` 형식은 **"문체 규칙 N개(각 규칙 + 예문) + 금지 목록"** 이다. 두 프로젝트에서 검증된 형식이다.
 

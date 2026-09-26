@@ -25,6 +25,9 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import style_registry as SR  # noqa: E402  — 어휘 목록의 단일 출처
+
 # ---------------------------------------------------------------------------
 # 1. 제외 구간 — 마커·코드·frontmatter는 스캔 대상이 아니다
 # ---------------------------------------------------------------------------
@@ -111,26 +114,44 @@ def split_sentences(paragraph: str) -> list[str]:
 # 2. 패턴 사전 — AI_KOREAN_PATTERNS.md Part A 와 코드가 1:1 대응한다
 # ---------------------------------------------------------------------------
 
-BUZZWORDS: dict[str, tuple[str, list[str]]] = {
-    "W1": ("빈 상찬 — 역할·필수", ["중요한 역할", "핵심적인 역할", "필수적입니다", "필수적인 요소"]),
-    "W2": ("빈 상찬 — 함의", ["시사하는 바", "주목할 만", "의미가 있습니다", "중요한 의미를"]),
-    "W3": ("섹션 예고", ["살펴보겠습니다", "알아보겠습니다", "정리해 보겠습니다", "알아봅시다", "살펴봅시다"]),
-    "W4": ("~에 있어서", ["에 있어서", "함에 있어", "에 있어 "]),
-    "W5": ("무근거 수량", ["다양한", "여러 가지", "수많은", "많은 경우"]),
-    "W6": ("단정 회피", ["라고 할 수 있", "라고 볼 수 있", "이라 할 수 있"]),
-    "W7": ("측정 불가 부사", ["효율적으로", "효과적으로", "원활하게", "손쉽게"]),
-    "W8": ("도입 상투구", ["점점 더 중요", "필수가 되었", "빼놓을 수 없는", "화두가 되고 있"]),
+# **어휘 목록은 여기 없다.** 문체 설정 카탈로그(`assets/style/lexicon.json`)에서 `l0.scanner`
+# 코드가 붙은 항목을 읽는다. 예전에는 이 파일에 목록이 하드코딩돼 있어 사용자가 손댈 수 없었고,
+# 편집기에서 바꾼 가중치가 스캐너에 닿지 않았다. 지금은 한 벌만 있다.
+#
+# 여기 남은 것은 **코드의 이름표**뿐이다. 무엇을 셀지는 카탈로그가, 어떻게 셀지는 이 파일이 정한다.
+#
+# `수 있다` 는 한국어에서 **가능성**(추측)이기도 하고 **능력**(사실)이기도 하다.
+# "이 API 로 파일을 읽을 수 있습니다" 는 헤지가 아니라 기능 서술이다. 그래서 H1 꼬리에는
+# 계사(`이다`)에 붙는 `일 수 / 될 수` 만 넣었다 — "X 일 수 있습니다" = "X 일지도 모른다".
+W_LABELS: dict[str, str] = {
+    "W1": "빈 상찬 — 역할·필수",
+    "W2": "빈 상찬 — 함의",
+    "W3": "섹션 예고",
+    "W4": "~에 있어서",
+    "W5": "무근거 수량",
+    "W6": "단정 회피",
+    "W7": "측정 불가 부사",
+    "W8": "도입 상투구",
 }
 
-HEDGE_TOKENS = ["다소", "어느 정도", "비교적", "대체로", "일반적으로", "보통", "아마도", "경우가 많"]
-# `수 있다` 는 한국어에서 **가능성**(추측)이기도 하고 **능력**(사실)이기도 하다.
-# "이 API 로 파일을 읽을 수 있습니다" 는 헤지가 아니라 기능 서술이다. 그걸 완충어로 세면
-# 정당한 가능성 병렬("A 를 할 수 있고 B 도 할 수 있습니다")을 못 쓰게 된다.
-# 계사(`이다`)에 붙는 `일 수 / 될 수` 만 완충어로 본다 — "X 일 수 있습니다" = "X 일지도 모른다".
-HEDGE_TAILS = ["일 수 있습니다", "될 수 있습니다", "것 같습니다", "로 보입니다",
-               "인 듯합니다", "수도 있습니다"]
+# 코드별 유효 어휘. 기본은 플러그인 카탈로그만 — `--voice` 를 주면 전역·voice 설정이 겹친다.
+LEX: dict[str, list[dict]] = SR.l0_lists()
 
-DISCOURSE_HEADS = ["하지만", "그러나", "또한", "따라서", "그리고", "즉", "한편", "이처럼"]
+
+def lex_words(code: str) -> list[str]:
+    """코드에 걸린 표면형 목록. 카탈로그 순서를 지킨다."""
+    out: list[str] = []
+    for x in LEX.get(code, []):
+        for f in x.get("forms", []):
+            if f not in out:
+                out.append(f)
+    return out
+
+
+def regex_items(code: str) -> list[tuple[re.Pattern, re.Pattern | None, str]]:
+    """정규식으로 정의된 항목 — (패턴, 예외 문맥, 교정 힌트)."""
+    return [(re.compile(x["regex"]), re.compile(x["except"]) if x.get("except") else None, x.get("note", ""))
+            for x in LEX.get(code, []) if x.get("regex")]
 
 # 따옴표 덩어리를 명사처럼 문장에 끼워 넣는 버릇 — `"X"라는 Y`, `"X"처럼 보이는`.
 # 규칙 원문은 NATURAL_KOREAN_GUIDE §D4(저자 직접 지적). 여기서는 기계 탐지만 맡고
@@ -139,18 +160,10 @@ QUOTE_NOUN = re.compile(r'"[^"\n]{2,40}"\s*(?:이?라는|처럼|으로|로|라�
 
 # 과장 은유·전투 어휘·완곡어법 무시 — NATURAL_KOREAN_GUIDE §D5·§D6(저자 직접 지적).
 # 실제로 파괴·공격이 일어나는 대목에서는 정당하므로 **판단이 필요한 후보**로만 올린다.
-OVERWROUGHT = [
-    "무너지지", "무너뜨리", "무너집", "버티는 힘", "버텨냅",
-    "걷어내겠", "걷어냅", "깨고 시작", "깨지는 문장",
-    "속이지", "쥐여 주", "쥐여줍", "밀어 올리", "걸터앉",
-    "짓밟", "맞서 싸", "때려눕", "굴복",
-]
-
-# 어절 안에 파묻힌 우연한 일치를 막는다 — `약속이지`가 `속이지`로 잡혔던 오탐.
-# 한국어에 \b가 없으므로 "앞 글자가 한글이 아니어야 한다"로 어절 머리를 판정한다.
-OVERWROUGHT_RE = {
-    w: re.compile(r"(?<![가-힣])" + re.escape(w)) for w in OVERWROUGHT
-}
+# 목록은 카탈로그의 D6 항목. 어절 안에 파묻힌 우연한 일치를 막는다 — `약속이지`가 `속이지`로
+# 잡혔던 오탐. 한국어에 \b가 없으므로 "앞 글자가 한글이 아니어야 한다"로 어절 머리를 판정한다.
+def overwrought_re() -> dict[str, re.Pattern]:
+    return {w: re.compile(r"(?<![가-힣])" + re.escape(w)) for w in lex_words("D6")}
 
 
 def wa_chains(sentence: str) -> list[str]:
@@ -464,10 +477,11 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
         )
 
     # --- W 버즈워드 ---------------------------------------------------------
-    # PROTECTED(저자 색)는 애초에 BUZZWORDS에 넣지 않는다. 근처에 있다고 적발을 지우지 않는다.
-    for code, (label, words) in BUZZWORDS.items():
+    # voice 가 자기 어휘로 올린 항목(가중치 양수·꺼짐)은 LEX 에서 이미 빠졌다(항목 단위 면제).
+    # 근처에 있다고 적발을 지우지는 않는다.
+    for code, label in W_LABELS.items():
         hits = []
-        for w in words:
+        for w in lex_words(code):
             for m in re.finditer(re.escape(w), body_text):
                 ctx = body_text[max(0, m.start() - 20) : m.end() + 20]
                 hits.append(f"'{w}' … {snippet(ctx, 40)}")
@@ -487,50 +501,23 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
     #
     # 국면을 가리키는 비유("진짜 승부처")는 저자 의도라 예외다 — 주어가 서로 겨루는지가
     # 가르는 기준인데 정규식은 그걸 못 본다. 그래서 S2 로 두고 사람이 판정한다.
-    WIN_LOSE = re.compile(r"이깁니다|이긴다|이기는|이기고|이긴\s|패배(?!자)")
-    wl = [snippet(x) for x in all_sentences if WIN_LOSE.search(x)]
-    if wl:
-        findings.append(Finding(
-            "D7", "S2", "승부 비유", len(wl),
-            wl[:4] + ["규칙이 값을 정하는 상황이면 `우선한다`·`앞선다`·`고른다` 로. "
-                     "국면 비유(`진짜 승부처`)는 예외 — L0_NATURAL_KOREAN §D7"]))
-
-    # --- D8 지형 은유 / D9 축 오용 (S2) --------------------------------------
-    terrain = [snippet(x) for x in all_sentences if re.search(r"지형|지도를 그리", x)]
-    if terrain:
-        findings.append(Finding("D8", "S2", "지형 은유", len(terrain),
-                                terrain[:3] + ["무엇을 보이는지 그대로 — `한눈에 보기`·`분류`·`전체 구성`"]))
-    # `축` 은 좌표일 때만. 2차원 격자를 실제로 그리는 자리는 예외라 정규식이 못 가린다 —
-    # 그래서 S2 로 두고 사람이 판정한다. 시간축·회전축도 정상 용법이라 뺀다.
-    AXIS_OK = re.compile(r"시간축|회전축|[xXyY]\s*축|좌표축|두 축을 교차|축을 교차|가로축|세로축")
-    axis_bad = [snippet(x) for x in all_sentences
-                if re.search(r"[^가-힣]축[을이은에의로]|\d\s*축|[가-힣]+\s+축\b", x)
-                and not AXIS_OK.search(x)]
-    if axis_bad:
-        findings.append(Finding("D9", "S2", "축 오용", len(axis_bad),
-                                axis_bad[:3] + ["분류를 가리키면 `갈래`·`분류`·`항목` 으로. "
-                                                "축은 좌표평면·회전축·시간축에만"]))
-
-    # --- D10 못 박다 / D11 가격 비유 (S2) -------------------------------------
-    nail = [snippet(x) for x in all_sentences if re.search(r"못\s?박", x)]
-    if nail:
-        findings.append(Finding("D10", "S2", "못 박다", len(nail),
-                                nail[:3] + ["`정한다`·`명시한다`·`고정한다` 로 충분하다"]))
-    # 돈이 실제로 오갈 때만 가격어를 쓴다. 통화 단위나 요금 문맥이 있으면 정상이다.
-    PRICE_OK = re.compile(r"원|달러|USD|\$|요금|과금|청구|라이선스|구독료|월정액")
-    price = [snippet(x) for x in all_sentences
-             # `감싼`·`얼싼` 같은 다른 말이 걸리지 않게 앞 글자를 본다.
-             if re.search(r"비싸|비싼|저렴|값싸|헐값|(?<![감얼움차엮])싼\s", x)
-             and not PRICE_OK.search(x)]
-    if price:
-        findings.append(Finding("D11", "S2", "가격 비유", len(price),
-                                price[:3] + ["연산·쿼리는 `비용이 크다/작다`, 이득은 `이득이 크다/작다`. "
-                                             "실제 청구 금액일 때만 가격어"]))
+    # D7~D11 의 패턴·예외 문맥·교정 힌트는 카탈로그 항목에 있다(`l0.scanner`).
+    # 예외 문맥이 필요한 이유: `축`은 좌표·회전·시간축에서, 가격어는 실제 청구 금액에서 정상이다.
+    # 정규식은 주어가 서로 겨루는지를 못 보므로 전부 S2 로 두고 사람이 판정한다.
+    for code, label in (("D7", "승부 비유"), ("D8", "지형 은유"), ("D9", "축 오용"),
+                        ("D10", "못 박다"), ("D11", "가격 비유")):
+        hits, hints = [], []
+        for rx, exc, hint in regex_items(code):
+            hits += [snippet(x) for x in all_sentences if rx.search(x) and not (exc and exc.search(x))]
+            if hint and hint not in hints:
+                hints.append(hint)
+        if hits:
+            findings.append(Finding(code, "S2", label, len(hits), hits[:4 if code == "D7" else 3] + hints))
 
     # --- H1 헤지 중첩 (S1) --------------------------------------------------
     stacked = []
     for s in all_sentences:
-        n = sum(s.count(t) for t in HEDGE_TOKENS) + sum(s.count(t) for t in HEDGE_TAILS)
+        n = sum(s.count(t) for t in lex_words("H1"))
         if n >= 2:
             stacked.append(snippet(s))
     if stacked:
@@ -547,8 +534,8 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
     # `보이다` 는 동사이기도 하다("표로 보입니다" = 드러난다). 구체 명사 뒤는 세지 않는다.
     HEDGE_VERB_OK = re.compile(
         r"(?:^|[\s(])[가-힣A-Za-z0-9]*(?:표|그래프|도식|그림|숫자|수치|형태|모양|색|선)으?로 보입니다")
-    HEDGE_FORMS = ["인 것 같습니다", "것 같습니다", "인 듯합니다", "로 보입니다",
-                   "수도 있습니다", "일 수 있습니다", "지 않을까 합니다"]
+    # 긴 꼴을 먼저 본다 — `인 것 같습니다` 가 `것 같습니다` 로 먼저 잡히면 형태 구분이 흐려진다.
+    HEDGE_FORMS = sorted(lex_words("H2"), key=len, reverse=True)
     counts: dict[str, int] = {}
     for sent in all_sentences:
         if "로 보입니다" in sent and HEDGE_VERB_OK.search(sent):
@@ -565,7 +552,7 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
     h3 = [
         p.split()[0]
         for p in paragraphs + [s for s in all_sentences]
-        if p.split() and p.split()[0].rstrip(",") in ("일반적으로", "대체로", "보통", "흔히")
+        if p.split() and p.split()[0].rstrip(",") in set(lex_words("H3"))
     ]
     if len(h3) >= 3:
         findings.append(Finding("H3", "S2", "문두 완충어", len(h3), [", ".join(sorted(set(h3)))]))
@@ -576,10 +563,11 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
         findings.append(Finding("H4", "S1", "양비론 회피", len(ambi), ambi[:3]))
 
     # --- D1 문두 접속사 3연속 (S1) ------------------------------------------
+    discourse_heads = set(lex_words("D1"))
     heads = [p.split()[0].rstrip(",") if p.split() else "" for p in paragraphs]
     run, seq = 1, []
     for i in range(1, len(heads)):
-        if heads[i] in DISCOURSE_HEADS and heads[i - 1] in DISCOURSE_HEADS:
+        if heads[i] in discourse_heads and heads[i - 1] in discourse_heads:
             run += 1
             if run >= 3:
                 seq.append(f"문단 {i-1}~{i+1}: {heads[i-2]} / {heads[i-1]} / {heads[i]}")
@@ -591,10 +579,11 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
     # --- D2 / D3 / D4 — 산문 안에서만 본다 (목록 속 '첫째'는 정상 표기) ------
     # D2 는 이름 그대로 **문두**만 잡는다. `사실상의 표준`(de facto standard)은 굳어진
     # 명사구지 무논증 filler 가 아니라, 아무 데나 걸면 기술 글에서 통째로 오탐이 된다.
-    D2_HEAD = re.compile(r"(?:^|[.!?]\s+|\n)\s*(기본적으로|사실상)(?!의)")
+    d2 = "|".join(re.escape(w) for w in lex_words("D2")) or r"(?!)"
+    D2_HEAD = re.compile(r"(?:^|[.!?]\s+|\n)\s*(" + d2 + r")(?!의)")
     for code, label, words, sev, limit in [
-        ("D3", "산문 속 첫째/둘째", ["첫째", "둘째", "셋째"], "S2", 1),
-        ("D4", "자기참조", ["앞서 언급", "위에서 살펴본", "앞에서 설명한"], "S2", 2),
+        ("D3", "산문 속 첫째/둘째", lex_words("D3"), "S2", 1),
+        ("D4", "자기참조", lex_words("D4"), "S2", 2),
     ]:
         hits = [w for w in words for _ in re.finditer(re.escape(w), para_text)]
         if len(hits) >= limit:
@@ -617,7 +606,7 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
     # --- D6 과장 은유 (S2) ---------------------------------------------------
     over = []
     for p in paragraphs:
-        for w, rx in OVERWROUGHT_RE.items():
+        for w, rx in overwrought_re().items():
             m = rx.search(p)
             if m:
                 over.append(
@@ -720,18 +709,41 @@ def load_voice_context(voice_id: str) -> set[str]:
     authoring.py 를 import 하지 않고 파일을 직접 읽는다 — 이 스캐너는 레지스트리가
     없는 환경(단독 실행·CI)에서도 돌아야 하고, 그때는 면제 없이 재는 게 맞다.
     """
-    global PROTECTED
-    import os
-    home = os.environ.get("AUTHORING_KIT_HOME")
-    base = Path(home).expanduser() if home else Path.home() / ".claude" / "authoring"
-    f = base / "voices" / voice_id / "voice.json"
+    global PROTECTED, LEX
+    f = SR.registry_home() / "voices" / voice_id / "voice.json"
     if not f.exists():
         print(f"# voice '{voice_id}' 를 찾지 못했다 ({f}) — 면제 없이 잰다.", file=sys.stderr)
         return set()
     v = json.loads(f.read_text(encoding="utf-8"))
     lex = v.get("axes", {}).get("lexicon", "")
     PROTECTED = re.findall(r"[`\u2018\u2019']([^`\u2018\u2019']{2,20})[`\u2018\u2019']", lex)
+    # 문체 설정(전역 → voice)을 겹친 어휘 목록으로 갈아 끼운다. 양수로 올렸거나 끈 L0 항목은
+    # 여기서 빠진다 — 코드 전체를 면제하는 `waivers` 보다 좁은, 항목 단위 면제다.
+    # 검증을 통과하지 못한 설정은 **적용하지 않는다** — 사유 없는 항목 면제가 조용히 스며들 수 있다.
+    problems = SR.validate_all_for(voice_id)
+    if problems:
+        print(f"# voice '{voice_id}' 의 문체 설정이 검증에 실패해 항목 면제를 적용하지 않는다:", file=sys.stderr)
+        for p in problems[:5]:
+            print(f"#   {p}", file=sys.stderr)
+        LEX = SR.l0_lists()
+        return {w["code"] for w in v.get("waivers", []) if w.get("code")}
+    eff = SR.effective(voice_id)
+    LEX = SR.l0_lists(eff)
+    for x in eff["items"]:
+        if x["active"] and x["weight"] > 0:
+            PROTECTED.extend(f for f in x.get("forms", []) if f not in PROTECTED)
     return {w["code"] for w in v.get("waivers", []) if w.get("code")}
+
+
+def prose_units(raw: str) -> tuple[list[str], list[list[str]]]:
+    """가중치 어휘 스캔(`scan_lexicon.py`)이 쓰는 단위 — 산문 문단과 목록 줄, 문단별 문장.
+
+    L0 스캐너와 **같은 잣대로** 산문을 가른다. 둘이 따로 자르면 같은 글에서 문장 수가 달라져
+    허용량 계산이 어긋난다.
+    """
+    paragraphs, bullets = split_blocks(strip_non_prose(raw))
+    units = paragraphs + [re.sub(r"^([-*+]|\d+\.)\s+", "", b) for b in bullets]
+    return units, [split_sentences(u) or [u] for u in units]
 
 
 def main() -> int:

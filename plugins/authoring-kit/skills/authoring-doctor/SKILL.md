@@ -52,6 +52,17 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py validate --all
 - spec 의 `principles` 가 퍼소나 축을 침범했는가.
 - 면제(waiver)가 hard floor 를 겨냥했는가, 사유 없이 선언됐는가.
 
+### 3-1. 문체 설정 — 전역에 한 사람의 색이 들었는가
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py style validate
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py style show --json
+```
+
+- 검증 실패(hard floor 상향, 사유 없는 L0 어휘 면제, 없는 항목을 덮는 차분)가 있는가.
+- **전역**에 양수 가중치나 정성 지시가 특정 퍼소나의 색을 띠고 있는가 — 전역은 모든 voice 가 계승한다.
+  그런 항목은 그 voice 의 `style.json` 으로 옮기라고 보고한다.
+
 ### 4. 저자 문체 유출 — 공통 원칙에 특정 저자가 남았는가
 
 **이게 이 도구가 만들어진 이유다.** 한 저자의 문체가 공통 원칙에 섞이면 모든 퍼소나에 강제된다.

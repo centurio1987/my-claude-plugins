@@ -1,0 +1,1056 @@
+{
+ "$schema": "authoring-kit/qualitative-taxonomy@1",
+ "schema_version": 1,
+ "about": "정성 문체 요소 분류 체계. 지시문(directive)은 이 분류의 말단에 붙는다. 모든 말단은 L1 축 넷 중 하나에 묶인다. 근거: STYLE_RESEARCH.md",
+ "judging": {
+  "verdicts": [
+   "충족",
+   "미흡"
+  ],
+  "rules": [
+   "판정은 본문을 읽고 스스로 한다. 스크립트·정규식·카운터를 만들거나 돌리지 않는다.",
+   "지시마다 본문 인용(최대 3곳)을 근거로 댄다. 인용이 안 나오면 미흡이다.",
+   "스펙트럼형 요소는 '지시가 정한 위치 대비 실제 위치'를 한 줄로 적는다(예: 지시 우유체 / 실제 결말 2단락이 강건체로 기욺).",
+   "먼저 무엇을·누구에게·어떤 매체로 쓰는 글인지 확인한 뒤 판정한다(Halliday field·tenor·mode).",
+   "모든 스펙트럼 지시에 공통으로 묻는다 — 글 전체에서 흔들리지 않는가, 흔들림은 의도적인가."
+  ]
+ },
+ "categories": [
+  {
+   "id": "tenor",
+   "label": "격식·관계",
+   "gloss": "tenor",
+   "axis": "register",
+   "definition": "누구에게 어떤 관계로 말하는가. Halliday 의 tenor(참여자 관계)와 mode(구어·문어)를 문체 선택으로 옮긴 범주. field(주제)는 내용이라 뺐다.",
+   "basis": "Halliday field/tenor/mode · Joos, The Five Clocks(1962) · 한국어 상대높임법 · Kim & Biber(1994) 한국어 다차원 분석의 높임 차원[부분검증]"
+  },
+  {
+   "id": "tenor.formality",
+   "parent": "tenor",
+   "label": "격식도",
+   "gloss": "formality",
+   "axis": "register",
+   "definition": "글이 상정하는 사회적 상황의 공식성. 어휘·종결·문장 구성 전반에 드러나는 '차려입은 정도'.",
+   "poles": [
+    "의례적",
+    "격식",
+    "상담적",
+    "일상",
+    "친밀"
+   ],
+   "questions": [
+    "문서 유형과 독자에 비해 너무 딱딱하거나 너무 풀어졌는가?",
+    "격식 수준이 글 전체에서 흔들리지 않는가(갑작스러운 격하·격상)?",
+    "흔들림이 있다면 인용·강조 같은 의도된 효과인가?"
+   ],
+   "templates": [
+    "격식은 상담적 수준으로 유지하되 속어·유행어는 쓰지 않는다.",
+    "공문 수준의 의례적 표현은 피한다."
+   ],
+   "basis": "Joos 5단계(frozen·formal·consultative·casual·intimate) · Halliday tenor",
+   "boundary": "종결 등급 자체는 tenor.speech-level, 구어 어휘는 tenor.orality."
+  },
+  {
+   "id": "tenor.speech-level",
+   "parent": "tenor",
+   "label": "종결 문체(상대높임 등급)",
+   "gloss": "speech level",
+   "axis": "register",
+   "definition": "문장 종결에 쓰는 상대높임 등급의 선택과 그 적합성. 글에서 의미 있는 것은 합쇼체·해요체·해라체(-다)·하라체·해체.",
+   "poles": [
+    "합쇼체(-ㅂ니다)",
+    "해요체(-요)",
+    "해라체(-다)",
+    "해체(반말)"
+   ],
+   "questions": [
+    "고른 등급이 독자와 매체에 맞는가?",
+    "등급 전환이 있다면 인용·대화 같은 정당한 이유가 있는가?",
+    "등급과 어휘 격식이 어긋나지 않는가(해요체에 딱딱한 한자어가 몰리는 경우 등)?"
+   ],
+   "templates": [
+    "본문은 '-다' 평서체, 독자에게 직접 말을 거는 박스만 해요체로 쓴다.",
+    "합쇼체를 쓰되 '-하시기 바랍니다' 같은 공문투 종결은 줄인다."
+   ],
+   "basis": "상대높임법(격식체 4등급·비격식체 2등급) · Kim & Biber(1994) honorification 차원[부분검증]",
+   "boundary": "등급별 비율·혼용률 계산은 어휘 목록(종결어미 분류)이 센다. 여기서는 선택의 적합성과 전환의 정당성만 판정한다."
+  },
+  {
+   "id": "tenor.orality",
+   "parent": "tenor",
+   "label": "구어성",
+   "gloss": "orality (spoken ↔ written)",
+   "axis": "register",
+   "definition": "말하듯 쓰는가, 글답게 쓰는가. 축약('거'·'근데'), 담화표지('뭐'·'그러니까'), 감탄, 생략을 얼마나 허용하는가.",
+   "poles": [
+    "구어체",
+    "문어체"
+   ],
+   "questions": [
+    "구어 요소가 지시된 수준만큼 있거나 없는가?",
+    "구어체라면 문장이 실제로 말처럼 들리는가, 문어 문장에 구어 어미만 붙였는가?",
+    "문어체라면 대화체 표지가 새어 들지 않는가?"
+   ],
+   "templates": [
+    "강연 원고처럼 말하는 문체로 쓰되 '뭐', '약간' 같은 군말은 넣지 않는다.",
+    "'거'가 아니라 '것'을 쓴다."
+   ],
+   "basis": "Halliday mode · Biber Dimension 1(Involved ↔ Informational) · 국립국어원 구어/문어 구분 답변",
+   "boundary": "격식과 구어성은 독립이다 — 격식 있는 구어(연설)도, 비격식 문어(메모)도 있다."
+  },
+  {
+   "id": "tenor.distance",
+   "parent": "tenor",
+   "label": "독자와의 거리·위계",
+   "gloss": "social distance & authority",
+   "axis": "register",
+   "definition": "필자가 독자보다 위(가르침)·옆(동료)·아래(봉사) 중 어디에 서는가.",
+   "poles": [
+    "권위적·교시적",
+    "대등·동료적",
+    "겸양·봉사적"
+   ],
+   "questions": [
+    "'~해야 한다', '당연히', '명심하라' 같은 위계 표지가 독자를 낮추는가?",
+    "독자의 지식과 판단을 존중하는가, 가르치려 드는가?",
+    "지나친 겸양('부족하지만', '감히')이 신뢰를 깎지 않는가?"
+   ],
+   "templates": [
+    "독자를 같은 분야 동료로 대하고 훈계하는 투는 쓰지 않는다.",
+    "'~하도록 한다', '~할 것' 같은 지시형 공문투는 쓰지 않는다."
+   ],
+   "basis": "Halliday tenor(지위·권력) · 국립국어원 공공언어 진단 기준 '권위적·차별적 표현'",
+   "boundary": "명령·청유 장치의 빈도와 기능은 engage.directive. 여기서는 그것이 만드는 관계의 느낌만 본다."
+  },
+  {
+   "id": "tenor.key",
+   "parent": "tenor",
+   "label": "진지도",
+   "gloss": "key (gravity ↔ levity)",
+   "axis": "register",
+   "definition": "글의 전반적 기분 — 엄숙한가, 담담한가, 경쾌한가. 유머 허용 수준.",
+   "poles": [
+    "엄숙",
+    "담담",
+    "경쾌",
+    "유희"
+   ],
+   "questions": [
+    "주제의 무게에 비해 가볍거나 무겁지 않은가?",
+    "유머가 독자를 겨냥하지 않고 논지를 흐리지 않는가?",
+    "기분이 글 중간에 설명 없이 바뀌지 않는가?"
+   ],
+   "templates": [
+    "가벼운 위트는 허용하되 단락당 한 번을 넘기지 않는다.",
+    "사고·손실을 다루는 대목에서는 농담을 쓰지 않는다."
+   ],
+   "basis": "Hymes SPEAKING 의 Key[미검증] · Leech & Short Context 의 필자 태도(tone)",
+   "boundary": "'톤'이라는 말 하나로 stance.force 와 섞이기 쉽다 — 무게(진지↔경쾌)면 여기, 세기(강↔약)면 stance.force. 반어·풍자 기법은 figure.indirection."
+  },
+  {
+   "id": "stance",
+   "label": "입장·평가",
+   "gloss": "stance",
+   "axis": "register",
+   "definition": "명제와 대상에 어떤 확신·평가·목소리로 서는가. Hyland(2005) 상호작용 메타담화의 stance 쪽과 Martin & White(2005) Appraisal 을 합쳤다.",
+   "basis": "Hyland(2005) hedges·boosters·attitude markers·self-mention · Martin & White(2005) Attitude·Engagement·Graduation · 이태준 『문장강화』 강건체↔우유체"
+  },
+  {
+   "id": "stance.certainty",
+   "parent": "stance",
+   "label": "확신도 조율",
+   "gloss": "epistemic calibration",
+   "axis": "register",
+   "definition": "명제에 싣는 확신의 강도를 근거 수준에 맞추는 일.",
+   "poles": [
+    "유보(hedge)",
+    "단정(booster)"
+   ],
+   "questions": [
+    "글 안에 제시된 근거가 약한 주장에 단정 표현을 쓰지 않았는가?",
+    "확립된 사실에 불필요한 유보를 덧대 흐리지 않았는가?",
+    "한 문장에 유보를 겹겹이 쌓지 않았는가('~일 수도 있을 것으로 보인다')?"
+   ],
+   "templates": [
+    "확신도는 근거 수준에 맞춘다.",
+    "추정에는 '~로 보인다'를 쓰고 한 문장에 유보 표현은 하나만 쓴다."
+   ],
+   "basis": "Hyland(2005) hedges/boosters · Martin & White Engagement 의 entertain ↔ pronounce",
+   "boundary": "근거가 참인지는 evidence(L0)가 본다. 여기서는 글이 스스로 제시한 근거에 비춰 언어적 확신도가 맞는지만 본다."
+  },
+  {
+   "id": "stance.attitude",
+   "parent": "stance",
+   "label": "평가·감정 표출",
+   "gloss": "attitude",
+   "axis": "register",
+   "definition": "필자가 대상에 대해 감정·윤리 평가·가치 평가를 얼마나 드러내는가.",
+   "poles": [
+    "절제·중립",
+    "평가적·정서적"
+   ],
+   "questions": [
+    "'놀랍게도', '훌륭한' 같은 평가어가 지시된 수준을 넘거나 모자라지 않는가?",
+    "평가가 근거 뒤에 오는가, 근거를 대신하는가?",
+    "감정 표현이 독자의 판단을 대신 내려 주지 않는가?"
+   ],
+   "templates": [
+    "형용사로 평가하지 말고 사실을 보여 준 뒤 판단은 독자에게 맡긴다.",
+    "리뷰 글에서는 장단점 평가를 분명히 드러낸다."
+   ],
+   "basis": "Martin & White Attitude(affect·judgement·appreciation) · Hyland attitude markers",
+   "boundary": "수식어 밀도는 diction.ornament, 강도 조절은 stance.force."
+  },
+  {
+   "id": "stance.presence",
+   "parent": "stance",
+   "label": "저자 현존",
+   "gloss": "authorial presence",
+   "axis": "register",
+   "definition": "필자가 '나·저·필자·우리(배타적)'로 글에 등장하는 정도.",
+   "poles": [
+    "비인칭·익명",
+    "1인칭 전면화"
+   ],
+   "questions": [
+    "1인칭 사용이 지시에 맞는가?",
+    "1인칭이 경험과 판단의 책임 주체를 밝히는 데 쓰이는가, 자기 과시에 쓰이는가?",
+    "비인칭을 택했을 때 책임 소재가 흐려지지 않는가('~라고 여겨진다')?"
+   ],
+   "templates": [
+    "개인 경험은 1인칭으로 쓰되 주장 문장에서는 '나는 ~라고 생각한다'를 쓰지 않는다.",
+    "'필자는'이라는 표현은 쓰지 않는다."
+   ],
+   "basis": "Hyland(2005) self-mention",
+   "boundary": "독자를 끌어들이는 포괄적 '우리'는 engage.address."
+  },
+  {
+   "id": "stance.dialogism",
+   "parent": "stance",
+   "label": "이견 다루기",
+   "gloss": "dialogic positioning",
+   "axis": "register",
+   "definition": "다른 목소리와 반대 입장을 들여 인정·양보·반박하는가, 한 목소리로 단언하는가.",
+   "poles": [
+    "단성적(단언)",
+    "다성적(인정·양보·반박)"
+   ],
+   "questions": [
+    "논쟁적 주장에서 유력한 반론을 인정하는가?",
+    "인용한 타인의 견해와 필자 견해의 경계가 분명한가?",
+    "'물론 ~지만' 식 양보가 형식에 그치지 않는가(허수아비)?"
+   ],
+   "templates": [
+    "주요 주장마다 가장 강한 반론을 한 문장으로 인정한 뒤 답한다.",
+    "업계 통념을 인용할 때는 동의하지 않는다는 거리를 표시한다."
+   ],
+   "basis": "Martin & White Engagement: contract(disclaim·proclaim) ↔ expand(entertain·attribute)",
+   "boundary": "반론 섹션을 둘지는 structure(L2). 인용의 정확성은 evidence(L0)."
+  },
+  {
+   "id": "stance.force",
+   "parent": "stance",
+   "label": "어세",
+   "gloss": "force (강건체 ↔ 우유체)",
+   "axis": "register",
+   "definition": "표현의 힘과 부드러움. 강조어와 완화어의 전반적 기울기.",
+   "poles": [
+    "강건체",
+    "우유체"
+   ],
+   "questions": [
+    "전체 어세가 지시된 쪽으로 기울어 있는가?",
+    "강건체라면 공격적·선동적으로 넘어가지 않는가?",
+    "우유체라면 무르거나 모호해 요점이 흐려지지 않는가?"
+   ],
+   "templates": [
+    "결론 단락은 단호하게 쓰되 느낌표는 쓰지 않는다.",
+    "위로하는 글이므로 부드럽고 온화한 어세를 유지한다."
+   ],
+   "basis": "이태준 『문장강화』 강건체↔우유체 · Martin & White Graduation–Force",
+   "boundary": "확신(인식적)은 stance.certainty — '확실하지만 부드럽게'도 가능하다. '톤'이 무게(진지↔경쾌)를 뜻하면 tenor.key."
+  },
+  {
+   "id": "cadence",
+   "label": "문장 호흡",
+   "gloss": "cadence",
+   "axis": "rhythm",
+   "definition": "한 문장 안의 호흡·형상·강세. 이태준의 간결체↔만연체를 중심에 두고 영어권 end-focus 는 한국어 어순(SOV)에 맞게 다시 읽었다.",
+   "basis": "이태준 『문장강화』 제8강 · Provost 문장 길이 변주 · Leech & Short 문법 범주 · Quirk end-focus/end-weight · Williams, Style"
+  },
+  {
+   "id": "cadence.length",
+   "parent": "cadence",
+   "label": "문장 호흡 길이",
+   "gloss": "sentence breath (간결체 ↔ 만연체)",
+   "axis": "rhythm",
+   "definition": "한 문장에 담는 생각 단위의 수와 그로 인한 호흡의 길이.",
+   "poles": [
+    "간결체",
+    "만연체"
+   ],
+   "questions": [
+    "문장 호흡이 지시된 쪽에 있는가?",
+    "간결체라면 뚝뚝 끊겨 논리 연결이 사라지지 않았는가?",
+    "만연체라면 주어와 서술어가 멀어져 숨이 차지 않는가?"
+   ],
+   "templates": [
+    "한 문장에는 생각 하나만 담는다.",
+    "긴 호흡을 기본으로 하되 강조할 대목에서만 짧게 끊는다."
+   ],
+   "basis": "이태준 간결체↔만연체(구절의 길고 짧음) · Strunk & White 'vigorous writing is concise' · Clark 'Fear not the long sentence'",
+   "boundary": "평균·최대 길이 계산은 스캐너 몫(L0 R2). 여기서는 호흡이 내용에 맞는지를 판정한다."
+  },
+  {
+   "id": "cadence.variation",
+   "parent": "cadence",
+   "label": "길이·구조 변주",
+   "gloss": "variation",
+   "axis": "rhythm",
+   "definition": "문장 길이와 구문 유형을 섞어 단조로움을 피하는 정도.",
+   "poles": [
+    "균일(메트로놈)",
+    "변주(음악)"
+   ],
+   "questions": [
+    "같은 길이·같은 틀의 문장이 연달아 나와 단조롭지 않은가?",
+    "짧은 문장이 전환·결론 같은 강조 지점에 놓여 효과를 내는가?",
+    "변주가 기계적 교대(짧-길-짧-길)로 흐르지 않는가?"
+   ],
+   "templates": [
+    "긴 설명 문장 뒤에는 짧은 문장으로 요점을 박는다.",
+    "같은 구조의 문장을 세 번 넘게 잇지 않는다(의도적 대구는 예외)."
+   ],
+   "basis": "Provost, 100 Ways to Improve Your Writing · Clark 'Set the pace with sentence length' · 6+1 Trait Sentence Fluency",
+   "boundary": "의도적 대구·반복은 figure.scheme."
+  },
+  {
+   "id": "cadence.shape",
+   "parent": "cadence",
+   "label": "문장 형상",
+   "gloss": "sentence shape",
+   "axis": "rhythm",
+   "definition": "정보가 문장의 어느 쪽에 쌓이는가. 한국어에서는 긴 관형절·부사절이 주어 앞에 쌓이는 앞머리 적재형과, 연결어미로 주절 뒤를 계속 잇는 뒤로 잇기형이 대립한다.",
+   "poles": [
+    "앞머리 적재",
+    "균형",
+    "뒤로 잇기"
+   ],
+   "questions": [
+    "핵심 명사 앞 수식이 너무 길어 독자가 '누가 무엇을'을 기다리게 되지 않는가?",
+    "연결어미 사슬이 길어 문장이 논리 없이 늘어지지 않는가?",
+    "긴 문장이라도 읽기 쉬운 형태를 갖추었는가?"
+   ],
+   "templates": [
+    "주어 앞에 관형절을 두 겹 넘게 쌓지 않는다.",
+    "'-는데'로 문장을 잇지 말고 끊어서 관계를 드러낸다."
+   ],
+   "basis": "Leech & Short anticipatory ↔ trailing structure · periodic ↔ loose 문장 · Williams 'Shape'(sprawl)",
+   "boundary": "주술 호응 오류·비문은 grammar(L0)."
+  },
+  {
+   "id": "cadence.emphasis",
+   "parent": "cadence",
+   "label": "강조 위치",
+   "gloss": "emphatic placement",
+   "axis": "rhythm",
+   "definition": "문장과 단락에서 가장 무거운 정보를 어디에 두어 힘을 싣는가.",
+   "questions": [
+    "핵심어가 강세 자리에 오는가? 한국어는 서술어 직전·주제어 '-은/는' 자리·분열문('~한 것은 ~이다')을 본다.",
+    "단락의 마지막 문장이 힘 있는 문장인가, 사족으로 끝나는가?",
+    "강조 장치(도치·분열문)를 남발해 강조가 무뎌지지 않았는가?"
+   ],
+   "templates": [
+    "단락은 가장 중요한 문장으로 끝낸다. 부연으로 끝내지 않는다.",
+    "'~한 것은 ~이다' 강조 구문은 결정적 대목에만 쓴다."
+   ],
+   "basis": "Quirk end-focus·end-weight · Williams stress position · Clark 'Order words for emphasis'",
+   "boundary": "구정보→신정보 흐름과 주제 연쇄는 이해 가능성의 문제라 comprehension(L0). 여기서는 수사적 힘의 배치만 본다."
+  },
+  {
+   "id": "cadence.sound",
+   "parent": "cadence",
+   "label": "소리 흐름",
+   "gloss": "euphony",
+   "axis": "rhythm",
+   "definition": "소리 내어 읽을 때의 흐름. 같은 종결의 단조 반복, 같은 조사·어미의 중첩, 의도적 운율.",
+   "poles": [
+    "걸림·단조",
+    "매끄러움",
+    "(의도적) 운율"
+   ],
+   "questions": [
+    "낭독하면 혀가 걸리는 음절 중첩이나 조사 연쇄가 있는가?",
+    "문장 끝 소리가 단조롭게 반복되지 않는가?",
+    "의도한 운율이 있다면 과하지 않은가?"
+   ],
+   "templates": [
+    "소리 내어 읽었을 때 걸리는 문장은 고친다.",
+    "대구를 쓸 때는 음절 수를 맞춰 운율을 살린다."
+   ],
+   "basis": "Leech & Short phonological schemes · 6+1 Trait Sentence Fluency('plays to the ear')",
+   "boundary": "종결어미 연속 횟수처럼 셀 수 있는 것은 스캐너(L0 R1a·R1b)가 센다. 여기서는 청각적 인상만 본다."
+  },
+  {
+   "id": "pacing",
+   "label": "전개 완급",
+   "gloss": "pacing",
+   "axis": "rhythm",
+   "definition": "문장을 넘어 단락·구간 단위로 글이 얼마나 빠르게, 어떤 밀도로 나아가는가.",
+   "basis": "Biber 다차원 분석(Informational·Narrative) · Clark, Writing Tools · 6+1 Trait"
+  },
+  {
+   "id": "pacing.density",
+   "parent": "pacing",
+   "label": "정보 밀도",
+   "gloss": "information density",
+   "axis": "rhythm",
+   "definition": "문장·단락당 새 개념과 사실이 얼마나 빽빽한가.",
+   "poles": [
+    "압축",
+    "완만"
+   ],
+   "questions": [
+    "한 문장에 새 개념이 여럿 몰려 과부하가 걸리지 않는가?",
+    "이미 한 말을 되풀이해 늘어지지 않는가?",
+    "밀도가 지시가 정한 독자 수준에 맞는가?"
+   ],
+   "templates": [
+    "한 문장에 새 개념은 하나만 들인다.",
+    "전문가용 요약이므로 부연 없이 밀도 높게 쓴다."
+   ],
+   "basis": "Biber Dimension 1 informational 극 · 이태준 간결체의 압축·함축",
+   "boundary": "개념을 들이는 순서(점진적 공개)는 comprehension(L0). 여기서는 속도감으로서의 밀도만 본다."
+  },
+  {
+   "id": "pacing.paragraph",
+   "parent": "pacing",
+   "label": "단락 호흡",
+   "gloss": "paragraph pacing",
+   "axis": "rhythm",
+   "definition": "단락 길이와 그 변주가 만드는 쉼과 몰입.",
+   "poles": [
+    "짧은 단락",
+    "긴 단락"
+   ],
+   "questions": [
+    "단락 길이가 매체와 장르에 맞는가?",
+    "한 줄 단락이 강조 효과를 내는가, 남발되어 파편화되었는가?",
+    "긴 단락이 한 생각으로 묶여 있는가?"
+   ],
+   "templates": [
+    "한 줄 단락은 전환점에서만 쓴다.",
+    "단락은 3~6문장 호흡을 기본으로 한다."
+   ],
+   "basis": "6+1 Trait Organization·Sentence Fluency · Clark, Writing Tools[부분검증]",
+   "boundary": "단락 순서·구성은 structure(L2). 요지문 위치는 comprehension(L0)."
+  },
+  {
+   "id": "pacing.zoom",
+   "parent": "pacing",
+   "label": "상술↔개괄 비율",
+   "gloss": "detail zoom",
+   "axis": "rhythm",
+   "definition": "어떤 대목은 느리게 확대해 보여 주고 어떤 대목은 빠르게 요약하는 완급.",
+   "poles": [
+    "장면·세부(느림)",
+    "요약·개괄(빠름)"
+   ],
+   "questions": [
+    "중요한 대목에 충분한 해상도를 주었는가?",
+    "덜 중요한 대목에서 세부가 과해 늘어지지 않는가?",
+    "확대와 축소가 번갈아 나와 리듬이 있는가?"
+   ],
+   "templates": [
+    "핵심 사례 하나는 장면으로 느리게 보여 주고 나머지는 한 문장 요약으로 넘긴다.",
+    "배경 설명은 두 문장 안에서 개괄한다."
+   ],
+   "basis": "Clark 'Mix narrative modes'[부분검증] · Biber Dimension 2 · Genette 서사 속도[미검증]",
+   "boundary": "사례를 넣을지는 illus. 여기서는 넣은 사례를 어떤 속도로 펴는지만 본다."
+  },
+  {
+   "id": "pacing.momentum",
+   "parent": "pacing",
+   "label": "전진감·여담 허용",
+   "gloss": "momentum & digression",
+   "axis": "rhythm",
+   "definition": "글이 목표를 향해 곧장 나아가는가, 샛길과 여담을 허용하는가.",
+   "poles": [
+    "직진",
+    "우회·산책"
+   ],
+   "questions": [
+    "여담이 본론으로 돌아오며 보상을 주는가?",
+    "독자가 '그래서 요점이 뭔데?'라고 느낄 지연이 있는가?",
+    "긴 설명 구간 중간에 독자를 붙잡는 작은 보상이 놓였는가?"
+   ],
+   "templates": [
+    "여담은 괄호 한 문장으로 끝내고 본론으로 돌아온다.",
+    "긴 여담을 한 번 허용하되 결말에서 회수한다."
+   ],
+   "basis": "Clark 'Place gold coins along the path'[부분검증]",
+   "boundary": "여담의 목소리(저자 논평) 자체는 engage.aside."
+  },
+  {
+   "id": "figure",
+   "label": "수사 문채",
+   "gloss": "figures of speech",
+   "axis": "device",
+   "definition": "비유·배열·간접 표현으로 효과를 내는 기법. 고전 수사학의 trope(의미의 일탈)·scheme(배열의 일탈)에 국어교육의 비유법·강조법·변화법을 맞췄다.",
+   "basis": "Silva Rhetoricae(scheme·trope) · Leech & Short Figures of speech · 수사법 3분류(비유법·강조법·변화법)"
+  },
+  {
+   "id": "figure.imagery",
+   "parent": "figure",
+   "label": "비유",
+   "gloss": "figurative comparison",
+   "axis": "device",
+   "definition": "은유·직유·의인·환유 같은 닮음·인접 관계에 기댄 표현.",
+   "poles": [
+    "축자",
+    "절제된 비유",
+    "비유 중심"
+   ],
+   "questions": [
+    "비유가 이해나 정서 전달에 실제로 기여하는가(장식에 그치지 않는가)?",
+    "한 대목에서 서로 다른 비유가 섞여 충돌하지 않는가?",
+    "닳은 비유('빙산의 일각', '양날의 검')가 아닌가?"
+   ],
+   "templates": [
+    "비유는 섹션당 하나, 기술적 설명 뒤에 둔다.",
+    "은유를 쓰면 같은 은유를 단락 끝까지 일관되게 유지한다."
+   ],
+   "basis": "비유법(직유·은유·의인·환유) · Silva Rhetoricae trope · Leech & Short tropes",
+   "boundary": "설명 목적의 체계적 유추는 illus.analogy. 직역 비유('X라는 신화')는 grammar(L0 A1)."
+  },
+  {
+   "id": "figure.scheme",
+   "parent": "figure",
+   "label": "배열 문채",
+   "gloss": "schemes of arrangement",
+   "axis": "device",
+   "definition": "대구·대조·반복·점층·도치처럼 구조 배열로 효과를 내는 기법.",
+   "poles": [
+    "없음",
+    "결정적 대목에만",
+    "빈번"
+   ],
+   "questions": [
+    "대구·대조가 실제로 대립되는 생각을 선명하게 하는가?",
+    "셋잇기(삼항 나열)가 습관처럼 반복되지 않는가?",
+    "점층이 약한 것에서 강한 것으로 올라가는가?"
+   ],
+   "templates": [
+    "대조 구문은 핵심 논지에서 한 번만 쓴다.",
+    "나열은 셋으로 맞추지 말고 실제 항목 수대로 쓴다."
+   ],
+   "basis": "Silva Rhetoricae scheme · 강조법·변화법 · Clark 'Choose the number of elements with a purpose'[부분검증]",
+   "boundary": "우연한 구조 반복으로 생긴 단조로움은 cadence.variation."
+  },
+  {
+   "id": "figure.indirection",
+   "parent": "figure",
+   "label": "간접 표현",
+   "gloss": "tropes of indirection",
+   "axis": "device",
+   "definition": "말한 것과 뜻한 것을 어긋나게 만드는 기법 — 반어·역설·완서·과장.",
+   "poles": [
+    "직설",
+    "간접"
+   ],
+   "questions": [
+    "반어나 과장이 오해 없이 읽히는가?",
+    "과장이 사실 주장으로 오인될 수 있는 맥락(수치·기술 문서)에 쓰이지 않았는가?",
+    "완서('나쁘지 않다')가 필요 없는 모호함을 만들지 않는가?"
+   ],
+   "templates": [
+    "기술 설명에서는 과장과 반어를 쓰지 않는다.",
+    "칼럼에서는 절제된 반어 한 번을 허용한다."
+   ],
+   "basis": "Silva Rhetoricae(irony 등) · 변화법(반어·역설)·강조법(과장)",
+   "boundary": "과장이 사실 왜곡이 되면 evidence(L0). 물리·전투 어휘의 과장 은유 적발은 어휘 목록(D6~D11)이 센다."
+  },
+  {
+   "id": "engage",
+   "label": "독자 관여",
+   "gloss": "reader engagement",
+   "axis": "device",
+   "definition": "독자를 글 안으로 불러들이는 장치. Hyland(2005) engagement markers 다섯 갈래를 그대로 말단으로 썼다.",
+   "basis": "Hyland(2005) engagement markers — reader pronouns·directives·questions·shared knowledge·personal asides"
+  },
+  {
+   "id": "engage.address",
+   "parent": "engage",
+   "label": "독자 호명·포함",
+   "gloss": "reader address",
+   "axis": "device",
+   "definition": "'여러분', 독자를 포함하는 '우리'로 독자를 글 안에 불러들이는 정도.",
+   "poles": [
+    "호명 없음",
+    "간헐",
+    "대화형"
+   ],
+   "questions": [
+    "호명 빈도와 방식이 지시에 맞는가?",
+    "포함적 '우리'가 독자에게 없는 전제를 떠넘기지 않는가?",
+    "'당신'이 거슬리거나 공격적으로 읽히지 않는가?"
+   ],
+   "templates": [
+    "독자는 '여러분'으로만 부르고 '당신'은 쓰지 않는다.",
+    "설명은 3인칭으로 쓰고 실습 절에서만 독자를 부른다."
+   ],
+   "basis": "Hyland reader pronouns · Biber D1(2인칭 = involved)",
+   "boundary": "호명이 만드는 위계의 느낌은 tenor.distance."
+  },
+  {
+   "id": "engage.question",
+   "parent": "engage",
+   "label": "질문",
+   "gloss": "questions",
+   "axis": "device",
+   "definition": "수사의문, 답이 정해진 설의, 독자에게 생각을 요구하는 실질 질문.",
+   "poles": [
+    "없음",
+    "전략적 배치",
+    "빈번"
+   ],
+   "questions": [
+    "질문이 다음 내용을 여는가, 답이 빤한 빈 질문인가?",
+    "연속 질문(질문 폭격)이 없는가?",
+    "던진 질문에 글이 결국 답하는가?"
+   ],
+   "templates": [
+    "수사의문은 도입부에 하나만 쓰고 본문에서 반드시 답한다.",
+    "'~하지 않을까요?'로 주장을 흐리지 않는다."
+   ],
+   "basis": "Hyland questions · 변화법(설의·문답)",
+   "boundary": "도입 첫 문장으로 쓰인 질문의 위치 효과는 frame.opening 에서도 본다."
+  },
+  {
+   "id": "engage.directive",
+   "parent": "engage",
+   "label": "지시·권유",
+   "gloss": "directives",
+   "axis": "device",
+   "definition": "명령·청유·당위로 독자의 행동이나 사고를 이끄는 표현.",
+   "poles": [
+    "없음",
+    "청유 중심",
+    "명령 중심"
+   ],
+   "questions": [
+    "지시 형식(명령·청유·당위)이 지정된 방식과 맞는가?",
+    "사고 지시와 행동 지시가 맥락에 맞게 쓰였는가?",
+    "'~해야 한다'가 과해 설교가 되지 않았는가?"
+   ],
+   "templates": [
+    "절차 안내는 명령형 대신 '~합니다' 서술형으로 쓴다.",
+    "생각을 이끌 때는 '~해 보자' 청유형을 쓴다."
+   ],
+   "basis": "Hyland directives · Biber Dimension 4(overt persuasion)",
+   "boundary": "절차서의 단계 구성은 structure(L2)."
+  },
+  {
+   "id": "engage.shared-ground",
+   "parent": "engage",
+   "label": "공유 기반 호소",
+   "gloss": "appeals to shared knowledge",
+   "axis": "device",
+   "definition": "'누구나 한 번쯤', '알다시피'로 공통 경험·지식을 불러 공감대를 세우는 기법.",
+   "poles": [
+    "없음",
+    "절제",
+    "빈번"
+   ],
+   "questions": [
+    "공유를 가정한 지식이 대상 독자에게 실제로 공유되는가?",
+    "'알다시피'가 모르는 독자를 소외시키지 않는가?",
+    "공감 호소가 논증을 대신하지 않는가?"
+   ],
+   "templates": [
+    "'다들 알다시피', '당연히'는 쓰지 않는다.",
+    "도입에서 독자가 겪었을 법한 상황 하나로 공감대를 만든다."
+   ],
+   "basis": "Hyland appeals to shared knowledge",
+   "boundary": "전제 지식 수준을 맞추는 것 자체는 comprehension(L0)."
+  },
+  {
+   "id": "engage.aside",
+   "parent": "engage",
+   "label": "여담·괄호 논평",
+   "gloss": "personal asides",
+   "axis": "device",
+   "definition": "괄호·줄표·삽입절로 흐름을 잠깐 끊고 저자가 독자에게 건네는 논평.",
+   "poles": [
+    "없음",
+    "드물게",
+    "잦음"
+   ],
+   "questions": [
+    "여담이 친근함이나 뉘앙스를 더하는가, 흐름만 끊는가?",
+    "괄호 속에 본문에 있어야 할 핵심 정보가 숨지 않았는가?",
+    "빈도가 지시에 맞는가?"
+   ],
+   "templates": [
+    "괄호 속 농담은 섹션당 하나까지.",
+    "핵심 정보는 괄호에 넣지 않는다."
+   ],
+   "basis": "Hyland personal asides",
+   "boundary": "여담이 전개 속도에 주는 영향은 pacing.momentum. 줄표 남용 횟수는 스캐너(L0 P2)가 센다."
+  },
+  {
+   "id": "illus",
+   "label": "예시·사례",
+   "gloss": "illustration",
+   "axis": "device",
+   "definition": "추상을 구체로 내려 보여 주는 장치 — 예시·일화·설명적 유추.",
+   "basis": "Hayakawa 추상의 사다리 · Clark, Writing Tools · Strunk & White"
+  },
+  {
+   "id": "illus.example",
+   "parent": "illus",
+   "label": "예시 운용",
+   "gloss": "exemplification (ladder of abstraction)",
+   "axis": "device",
+   "definition": "추상적 주장을 구체적 예로 내려 보여 주고 다시 원리로 올라오는 운용.",
+   "poles": [
+    "원리 선행(연역)",
+    "예시 선행(귀납)"
+   ],
+   "questions": [
+    "추상 층위에만 오래 머무는 구간(예시 없는 주장 연쇄)이 있는가?",
+    "예시가 주장을 정확히 보여 주는가?",
+    "예시만 늘어놓고 원리로 올라오지 않는 구간이 있는가?"
+   ],
+   "templates": [
+    "추상적 주장 두 개가 이어지면 구체적 예를 하나 넣는다.",
+    "예시는 원리 설명 직후에 둔다."
+   ],
+   "basis": "Hayakawa 추상의 사다리 · Clark 'Climb up and down the ladder of abstraction'",
+   "boundary": "단어 수준의 구체성은 diction.concreteness. 예시가 사실인지는 evidence(L0)."
+  },
+  {
+   "id": "illus.anecdote",
+   "parent": "illus",
+   "label": "일화·사례 서사",
+   "gloss": "anecdote & case narrative",
+   "axis": "device",
+   "definition": "인물·시간·장소가 있는 작은 이야기를 설명이나 논증의 도구로 쓰는 것.",
+   "poles": [
+    "없음",
+    "보조적",
+    "서사 중심"
+   ],
+   "questions": [
+    "일화가 요점을 담고 있는가, 요점과 따로 노는가?",
+    "가상 사례를 실제 사례처럼 제시하지 않는가?",
+    "일화 길이가 논지 비중에 맞는가?"
+   ],
+   "templates": [
+    "가상 시나리오는 '가령'으로 시작해 가상임을 밝힌다.",
+    "각 장은 실무자 한 명의 짧은 사례로 연다."
+   ],
+   "basis": "Clark 'Get the name of the dog'[부분검증] · anecdotal hook",
+   "boundary": "실제 사례의 사실성은 evidence(L0). 도입 위치 효과는 frame.opening."
+  },
+  {
+   "id": "illus.analogy",
+   "parent": "illus",
+   "label": "설명적 유추",
+   "gloss": "explanatory analogy",
+   "axis": "device",
+   "definition": "낯선 체계를 익숙한 체계에 대응시켜 구조를 전달하는 유추.",
+   "poles": [
+    "없음",
+    "핵심 개념에만",
+    "빈번"
+   ],
+   "questions": [
+    "대응 관계가 핵심 구조에서 성립하는가, 어디서 깨지는지 밝혔는가?",
+    "유추의 출처 영역이 대상 독자에게 익숙한가?",
+    "유추 뒤에 정확한 설명이 오는가?"
+   ],
+   "templates": [
+    "유추를 쓸 때는 한계를 한 문장으로 밝힌다.",
+    "유추는 일상 사물에서만 가져온다."
+   ],
+   "basis": "비유법(풍유·비교) · 설명 기능이 강해 figure.imagery 에서 분리",
+   "boundary": "정서·미적 비유는 figure.imagery."
+  },
+  {
+   "id": "frame",
+   "label": "도입·마무리",
+   "gloss": "framing moves",
+   "axis": "device",
+   "definition": "글의 첫·끝 한두 문장이 독자를 붙잡고 놓아주는 움직임.",
+   "basis": "에세이 hook 유형론 · 결론 전략(UMGC Writing Center 등) · Clark 'Write toward an ending'[부분검증]"
+  },
+  {
+   "id": "frame.opening",
+   "parent": "frame",
+   "label": "도입 방식",
+   "gloss": "opening move",
+   "axis": "device",
+   "definition": "첫 한두 문장이 독자를 붙잡는 방식.",
+   "poles": [
+    "직입(요점부터)",
+    "후킹(일화·질문·장면·수치·인용·역설)"
+   ],
+   "questions": [
+    "도입 방식이 지시된 유형에 맞는가?",
+    "후킹이 본론과 이어지는가(낚시성 도입이 아닌가)?",
+    "'오늘날 ~는 매우 중요하다' 같은 상투적 도입이 아닌가?"
+   ],
+   "templates": [
+    "첫 문장은 구체적 장면이나 사실로 시작하고 '~에 대해 알아보자'로 시작하지 않는다.",
+    "첫 문장에 이 글이 푸는 문제를 쓴다."
+   ],
+   "basis": "hook 유형론(anecdotal·statistical·question·quotation·description)",
+   "boundary": "도입 섹션의 존재·구성은 structure(L2). 약속이 있어야 한다는 원칙은 L0 C4."
+  },
+  {
+   "id": "frame.closing",
+   "parent": "frame",
+   "label": "마무리 방식",
+   "gloss": "closing move",
+   "axis": "device",
+   "definition": "마지막 한두 문장이 글을 닫는 방식.",
+   "poles": [
+    "요약",
+    "수미상관",
+    "함의·전망",
+    "행동 촉구",
+    "여운",
+    "핵심 한 문장"
+   ],
+   "questions": [
+    "마무리 유형이 지시와 장르에 맞는가?",
+    "본문을 기계적으로 되풀이하는 요약이 아닌가?",
+    "도입에서 던진 질문·일화를 회수했는가?",
+    "새 주장을 결말에 처음 꺼내지 않았는가?"
+   ],
+   "templates": [
+    "결말에서 본문을 다시 요약하지 말고 독자가 내일 할 수 있는 행동 하나로 끝낸다.",
+    "도입의 일화로 돌아가 닫는다."
+   ],
+   "basis": "결론 전략(echo the introduction·call to action·implication)",
+   "boundary": "결론 섹션의 필수 여부는 structure(L2). 요약 반복 결론 적발은 L0 F1."
+  },
+  {
+   "id": "diction",
+   "label": "어휘 선택",
+   "gloss": "diction",
+   "axis": "lexicon",
+   "definition": "단어 단위의 선택 경향. 목록으로 셀 수 없는 '목록 밖의' 선택만 여기서 판정한다 — 셀 수 있는 것은 어휘 목록(정량)이 맡는다.",
+   "basis": "Leech & Short lexical categories · Strunk & White · Williams, Style · 박갑수 문체론[부분검증] · 국립국어원 쉬운 공공언어 · 이태준 건조체↔화려체"
+  },
+  {
+   "id": "diction.origin",
+   "parent": "diction",
+   "label": "어종",
+   "gloss": "lexical origin",
+   "axis": "lexicon",
+   "definition": "고유어·한자어·외래어의 비중과 선택.",
+   "poles": [
+    "고유어 중심",
+    "한자어 중심",
+    "외래어 허용"
+   ],
+   "questions": [
+    "쉬운 고유어가 있는데 어려운 한자어나 외래어를 쓰지 않았는가?",
+    "외래어를 쓸 때 독자층에 통용되는 말인가?",
+    "고유어로 바꾸다가 오히려 뜻이 흐려지지 않았는가?"
+   ],
+   "templates": [
+    "'활용하다'보다 '쓰다'처럼 쉬운 말을 먼저 고른다.",
+    "업계 통용 영어 용어는 그대로 쓰되 한글 표기를 따른다."
+   ],
+   "basis": "박갑수 문체론의 어휘 차원[부분검증] · 국립국어원 공공언어 진단 '어려운 외래어·한자어' · 국어기본법 제14조",
+   "boundary": "외래어 표기법 준수는 grammar. 한자어 비율 단독 지표는 근거가 약해(연구 노트 §6.2) 정량 목록에 넣지 않았다."
+  },
+  {
+   "id": "diction.concreteness",
+   "parent": "diction",
+   "label": "구체성",
+   "gloss": "concreteness",
+   "axis": "lexicon",
+   "definition": "감각할 수 있는 구체어를 쓰는가, 개념·범주어를 쓰는가.",
+   "poles": [
+    "추상",
+    "구체"
+   ],
+   "questions": [
+    "'다양한 문제', '여러 측면' 같은 범주어로 끝나고 무엇인지 말하지 않는 곳이 있는가?",
+    "구체어가 필요한 곳(사례·절차)에서 추상어로 흐리지 않았는가?",
+    "일반화가 필요한 곳에서 세부에 갇히지 않았는가?"
+   ],
+   "templates": [
+    "'다양한', '여러 가지' 뒤에는 항목을 실제로 나열한다.",
+    "성과는 형용사가 아니라 관찰 가능한 결과로 쓴다."
+   ],
+   "basis": "Hayakawa 추상의 사다리 · Leech & Short lexical – nouns(abstract/concrete)",
+   "boundary": "예시 삽입은 illus.example."
+  },
+  {
+   "id": "diction.precision",
+   "parent": "diction",
+   "label": "정밀성",
+   "gloss": "precision (le mot juste)",
+   "axis": "lexicon",
+   "definition": "뜻이 넓은 만능어로 뭉뚱그리지 않고 정확한 단어를 고르는 것.",
+   "poles": [
+    "뭉뚱그린 말",
+    "딱 맞는 말"
+   ],
+   "questions": [
+    "'~ 부분', '~ 관련', '~ 쪽' 같은 흐린 말이 구체적 단어를 대신하지 않는가?",
+    "비슷한 말(개선/향상/증진, 문제/오류/결함) 중 가장 정확한 것을 골랐는가?",
+    "정도 부사가 숫자나 비교로 바뀌어야 할 자리에 쓰이지 않았는가?"
+   ],
+   "templates": [
+    "'관련', '부분'은 무엇과 어떻게 관련되는지 밝힐 수 있으면 쓰지 않는다.",
+    "'문제'는 오류·결함·위험 가운데 정확한 말로 바꾼다."
+   ],
+   "basis": "Leech & Short lexical – general vs specific · Williams concision",
+   "boundary": "뜻이 틀린 단어(오용)는 grammar."
+  },
+  {
+   "id": "diction.technicality",
+   "parent": "diction",
+   "label": "전문성 수준",
+   "gloss": "technicality",
+   "axis": "lexicon",
+   "definition": "전문 용어와 업계 은어를 얼마나 쓰는가.",
+   "poles": [
+    "일상어",
+    "전문어"
+   ],
+   "questions": [
+    "대상 독자가 모르는 전문어를 필요 이상으로 쓰지 않는가?",
+    "전문가 독자에게 지나치게 풀어 쓰지 않는가?",
+    "같은 개념에 전문어와 일상어를 뒤섞지 않는가?"
+   ],
+   "templates": [
+    "입문 독자용이므로 전문어는 꼭 필요한 것만 쓴다.",
+    "사내 약어는 쓰지 않는다."
+   ],
+   "basis": "Federal Plain Language Guidelines · 국립국어원 쉬운 공공언어(소통성)",
+   "boundary": "전문어 첫 정의와 용어 일관성은 comprehension(L0 C2·C3)."
+  },
+  {
+   "id": "diction.ornament",
+   "parent": "diction",
+   "label": "수식 밀도",
+   "gloss": "ornamentation (건조체 ↔ 화려체)",
+   "axis": "lexicon",
+   "definition": "형용사·부사·강조어·미사여구의 양.",
+   "poles": [
+    "건조체",
+    "화려체"
+   ],
+   "questions": [
+    "수식어가 정보를 더하는가, 느낌만 부풀리는가?",
+    "강조 부사가 반복돼 강조가 닳지 않았는가?",
+    "건조체를 요구받았을 때 너무 메말라 무엇이 중요한지 구분되지 않는가?"
+   ],
+   "templates": [
+    "형용사는 명사 하나에 하나까지.",
+    "수식은 사실을 더할 때만 붙인다."
+   ],
+   "basis": "이태준 건조체↔화려체 · Williams concision('delete adjectives and adverbs')",
+   "boundary": "정도부사 개별 어휘의 가중치는 어휘 목록(정도부사)이 센다. 비유는 figure.imagery, 평가 태도는 stance.attitude."
+  },
+  {
+   "id": "diction.economy",
+   "parent": "diction",
+   "label": "어휘 경제",
+   "gloss": "concision",
+   "axis": "lexicon",
+   "definition": "뜻을 더하지 않는 말(겹말·빈 구·추론 가능한 말)을 덜어 내는 것.",
+   "poles": [
+    "군더더기",
+    "절약(과하면 전보체)"
+   ],
+   "questions": [
+    "겹말('미리 예약', '다시 재개'), 빈 구('~라는 점에서')가 있는가?",
+    "독자가 추론할 수 있는 말을 굳이 적었는가?",
+    "절약이 지나쳐 조사와 연결어가 빠진 전보체가 되지 않았는가?"
+   ],
+   "templates": [
+    "'~하는 것이 가능하다'는 '~할 수 있다'로 줄인다.",
+    "빼도 뜻이 그대로인 부사는 뺀다."
+   ],
+   "basis": "Strunk & White 'Omit needless words' · Williams concision 규칙",
+   "boundary": "번역투에서 온 군더더기('~에 있어서', '~을 가지다')는 grammar 가 우선한다. 문장 길이는 cadence.length."
+  },
+  {
+   "id": "diction.freshness",
+   "parent": "diction",
+   "label": "신선도",
+   "gloss": "freshness vs cliché",
+   "axis": "lexicon",
+   "definition": "상투어·닳은 관용구·기계적 상용구를 피하는 정도.",
+   "poles": [
+    "상투적",
+    "참신(과하면 기교적)"
+   ],
+   "questions": [
+    "주제를 바꿔 넣어도 성립하는 문장이 있는가?",
+    "상용 연결구와 결론구가 반복되는가?",
+    "참신함을 좇다 뜻이 어색해지지 않았는가?"
+   ],
+   "templates": [
+    "어디에나 붙는 문장은 이 글에만 맞는 문장으로 바꾼다.",
+    "관용구는 새로 쓸 수 있으면 새로 쓴다."
+   ],
+   "basis": "Clark 'Seek original images'[부분검증] · Orwell 'Politics and the English Language'[미검증] · Leech & Short idioms·collocations",
+   "boundary": "목록에 있는 상투구의 적발은 어휘 목록(상투구·빈 평가 서술)이 센다. 목록 밖의 상투성을 판정하는 것이 이 요소의 몫이다."
+  },
+  {
+   "id": "diction.action",
+   "parent": "diction",
+   "label": "행위 중심성",
+   "gloss": "characters as subjects, actions as verbs",
+   "axis": "lexicon",
+   "definition": "행위자를 주어로, 행위를 동사로 쓰는 경향. 명사화와 정태적 표현을 덜 쓰고 힘 있는 동사를 고른다.",
+   "poles": [
+    "명사화·정태적",
+    "동사·행위자 중심"
+   ],
+   "questions": [
+    "주요 행위가 명사 속에 묻혀 있지 않은가('~의 강화를 통한 ~의 제고')?",
+    "누가 하는지 밝혀야 할 곳에서 행위자가 사라지지 않았는가?",
+    "힘없는 동사 대신 구체 동사를 고를 수 있는가?"
+   ],
+   "templates": [
+    "행위는 동사로 쓴다. '분석을 수행한다'가 아니라 '분석한다'.",
+    "책임 주체가 있는 문장은 그 주체를 주어로 쓴다."
+   ],
+   "basis": "Williams, Style 핵심 원칙 · Strunk & White 'Use the active voice' · Biber D1 명사화",
+   "boundary": "비문·부자연(이중 피동·'~에 의해')은 grammar(L0), 자연스럽지만 밋밋하면 여기. 기능동사 개별 어휘는 어휘 목록이 센다."
+  },
+  {
+   "id": "diction.repetition",
+   "parent": "diction",
+   "label": "반복↔바꿔 쓰기",
+   "gloss": "repetition vs elegant variation",
+   "axis": "lexicon",
+   "definition": "같은 대상을 같은 말로 반복하는가, 동의어로 바꿔 가며 쓰는가.",
+   "poles": [
+    "동어 유지",
+    "변이"
+   ],
+   "questions": [
+    "같은 대상을 여러 이름으로 불러 다른 대상으로 오해할 위험이 있는가?",
+    "같은 단어가 가까이 반복돼 거슬리는가?",
+    "의도적 반복과 무심한 반복이 구별되는가?"
+   ],
+   "templates": [
+    "기술 개념은 처음 정한 이름을 끝까지 쓴다.",
+    "같은 서술어를 한 단락에서 두 번 넘게 쓰지 않는다."
+   ],
+   "basis": "Leech & Short cohesion – elegant variation",
+   "boundary": "이해를 위한 용어 일관성은 comprehension(L0)이 우선한다. 여기서는 미적 선택만 본다."
+  }
+ ]
+}
