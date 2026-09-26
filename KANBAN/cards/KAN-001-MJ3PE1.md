@@ -2,6 +2,7 @@
 card: KAN-001-MJ3PE1
 title: authoring-kit 0.4.0 — 문체 설정 체계화(전역→voice 계승·어휘 가중치·정성 지시·편집기)
 created: 2026-09-26
+scope: plugins/authoring-kit/**, .claude-plugin/marketplace.json
 ---
 
 # KAN-001-MJ3PE1 — authoring-kit 0.4.0 — 문체 설정 체계화(전역→voice 계승·어휘 가중치·정성 지시·편집기)

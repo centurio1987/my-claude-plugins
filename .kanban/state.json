@@ -20,7 +20,11 @@
       "goal": "전역→voice 계승 설정을 편집기로 고치면 resolve·스캐너·게이트가 그대로 따르고, 분류 체계는 조사 근거를 갖는다",
       "goal_hash": "469c482793231a64bb5623848b9287f93d2054b9",
       "memo": "소급 등록 — 작업은 claude/beautiful-mccarthy-kxg2nl 에서 먼저 수행(3e1ada8)",
-      "memo_hash": "847e48b2efcba1c1b5a2166983db8c6110d7da1d"
+      "memo_hash": "847e48b2efcba1c1b5a2166983db8c6110d7da1d",
+      "scope": [
+        "plugins/authoring-kit/**",
+        ".claude-plugin/marketplace.json"
+      ]
     }
   },
   "order": [
