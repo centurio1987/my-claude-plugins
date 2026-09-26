@@ -1,0 +1,21 @@
+{
+ "card": "KAN-002-0J9YP1",
+ "front": {
+  "base": "1eb87c3",
+  "branch": "KAN-002-0J9YP1",
+  "card": "KAN-002-0J9YP1",
+  "created": "2026-09-27",
+  "inherits": null,
+  "merged": null,
+  "status": "검토 대기",
+  "title": "authoring-kit 문체 설정 앱 — 정성 지시 범주를 사용자가 직접 만들고 항목에서 고른다",
+  "worktree": "/Users/centurio/orca/workspaces/my-claude-plugin/KAN-002-0J9YP1"
+ },
+ "inherited_md": "",
+ "md_fp": "1f2c43a6a26f82b646dc8e90606a422386bbf4d5",
+ "md_src_fp": "0ce1f8b58fd5ed14fffc8ae61b794545fe7c7426",
+ "schema": 1,
+ "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-002-0J9YP1` |\n| 워크트리 | `/Users/centurio/orca/workspaces/my-claude-plugin/KAN-002-0J9YP1` |\n| 베이스 | `1eb87c3` |\n| 변경 훑기 | `git diff 1eb87c3...HEAD` |\n\n**커밋 6건**\n\n```text\na7bc3c8 feat(authoring-kit) 0.4.1: 사용자 정성 범주 — 검사·문서 (KAN-002-0J9YP1 S4)\nd1b9906 feat(authoring-kit): 문체 설정 편집기에서 정성 범주를 직접 만들고 고른다 (KAN-002-0J9YP1 S3)\n8c01458 feat(authoring-kit): 전역 저장이 voice 가 쓰는 사용자 범주를 지우면 거부 (KAN-002-0J9YP1 S2)\n5cd697b feat(authoring-kit): 정성 지시에 사용자 범주 — 레지스트리 병합·검증·렌더 (KAN-002-0J9YP1 S1)\n665317f kanban: KAN-002-0J9YP1 전략·WBS·배치1 계획과 계획 리포트\n5419463 kanban: KAN-002-0J9YP1 진행 중으로 이동 · 실행 문서 생성\n```\n\n**변경 파일 17개 (+856 −39)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.claude-plugin/marketplace.json` | M | 1 | 1 |\n| `.kanban/log.md` | M | 1 | 0 |\n| `.kanban/state.json` | M | 17 | 3 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.md` | M | 4 | 2 |\n| `KANBAN/batches/.gitkeep` | M | 0 | 0 |\n| `KANBAN/batches/KAN-002-0J9YP1.batch1.md` | M | 54 | 0 |\n| `KANBAN/cards/KAN-002-0J9YP1.md` | M | 44 | 0 |\n| `KANBAN/reports/KAN-002-0J9YP1.report.html` | M | 492 | 0 |\n| `plugins/authoring-kit/.claude-plugin/plugin.json` | M | 1 | 1 |\n| `plugins/authoring-kit/README.md` | M | 1 | 1 |\n| `plugins/authoring-kit/fixtures/test_style.py` | M | 62 | 0 |\n| `plugins/authoring-kit/scripts/style_registry.py` | M | 66 | 7 |\n| `plugins/authoring-kit/scripts/style_server.py` | M | 24 | 2 |\n| `plugins/authoring-kit/skills/authoring-style/SKILL.md` | M | 3 | 2 |\n| `plugins/authoring-kit/skills/authoring-style/assets/STYLE_SCHEMA.md` | M | 21 | 2 |\n| `plugins/authoring-kit/ui/style-editor.html` | M | 61 | 14 |\n\n**롤백 태그 5개**\n\n```text\nkan/KAN-002-0J9YP1/S1\nkan/KAN-002-0J9YP1/S2\nkan/KAN-002-0J9YP1/S3\nkan/KAN-002-0J9YP1/S4\nkan/KAN-002-0J9YP1/batch1\n```",
+ "verdicts": [],
+ "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN/cards/KAN-002-0J9YP1.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n- `python3 plugins/authoring-kit/fixtures/test_style.py` — 실패 0 (사용자 범주 추가분 포함)\n- `test_scanner.py` · `test_linter.py` · `test_layer_separation.py` 통과\n- `authoring.py style validate` → 정상\n- 시험용 `AUTHORING_KIT_HOME` 에서 편집기로 범주 생성 → 항목에 선택 → 저장 → `authoring.py style show --voice <id>` 와 `resolve` 출력에 범주 이름·판정 질문이 실리는지 확인\n- 알려진 실패(이 카드와 무관): `test_plugin_shape.py` 의 `authoring-write: 142줄 ≤ 130`\n\n**실행 결과**\n\n```text\n$ test_style.py\n통과 110 · 실패 0\n$ test_scanner.py\n통과 9 · 실패 0\n$ test_linter.py\n통과 25 · 실패 0\n$ test_layer_separation.py\n통과 32 · 실패 0\n$ authoring.py style validate\n문체 설정 정상 — 카탈로그 · 전역 · voice 전부\n$ test_plugin_shape.py (기존 실패 — KAN-001 검토에서 확인한 authoring-write 142줄)\n통과 43 · 실패 1\n$ 돌연변이: 전역 저장 가드를 끄면 test_style 2건 실패(확인 후 되돌림)\n$ Playwright(1280px·390px): 전역 범주 생성→지시에 선택→저장→새로고침 유지, voice 에서 전역 범주 읽기 전용, voice 범주 저장, 가로 스크롤 0, 페이지 오류 0\n```"
+}

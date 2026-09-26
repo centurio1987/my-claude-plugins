@@ -1,6 +1,6 @@
 {
   "next_id": 3,
-  "next_seq": 7,
+  "next_seq": 8,
   "cards": {
     "KAN-001-MJ3PE1": {
       "col": "done",
@@ -27,7 +27,7 @@
       ]
     },
     "KAN-002-0J9YP1": {
-      "col": "doing",
+      "col": "review",
       "title": "authoring-kit 문체 설정 앱 — 정성 지시 범주를 사용자가 직접 만들고 항목에서 고른다",
       "verbatim": "문체 설정 앱에서 정성 지시는 직접 항목 추가만을 할 수 있다. 추가로, 각 항목에 직접 범주를 마련해서 선택할 수 있도록 해라.",
       "생성": "ai",
@@ -56,6 +56,16 @@
     "KAN-002-0J9YP1"
   ],
   "recent": [
+    {
+      "seq": 7,
+      "t": "2026-09-27T02:15",
+      "a": "ai",
+      "id": "KAN-002-0J9YP1",
+      "op": "move",
+      "w": "5C18AZ",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 6,
       "t": "2026-09-27T01:58",
