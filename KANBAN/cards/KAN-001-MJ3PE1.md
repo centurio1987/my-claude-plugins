@@ -19,7 +19,7 @@ created: 2026-09-26
 - [x] `S1` 조사 — 정량(한국어 어휘 분류·번역투 합의·메타담화)·정성(문체 요소 분류) 병렬 조사. 완료 기준: 확인 수준 표지가 붙은 노트 2편
 - [x] `S2` 레지스트리 — `style_registry.py` 3층 병합·출처 추적·검증·렌더·가중치 스캔. 완료 기준: hard floor·사유 없는 면제가 저장 전에 거부된다
 - [x] `S3` L0 스캐너 이관 — `scan_ai_style.py` 하드코딩 어휘(W·H·D) → 카탈로그. 완료 기준: 이관 전후 같은 입력에 같은 적발
-- [ ] `S4` 카탈로그 — `lexicon.json`(형식 45분류·기능 28태그·285항목), `qualitative.json`(9범주 41말단). 완료 기준: `style validate` 통과, 사람 문서 17편에서 적발 없음·과장 표본에서 적발
+- [x] `S4` 카탈로그 — `lexicon.json`(형식 45분류·기능 28태그·285항목), `qualitative.json`(9범주 41말단). 완료 기준: `style validate` 통과, 사람 문서 17편에서 적발 없음·과장 표본에서 적발
 - [ ] `S5` 통합 — `authoring.py` resolve·validate·lock·`style` 서브커맨드, `scan_lexicon.py`. 완료 기준: resolve 가 유효 설정을 L1 절에 싣고 lock 이 어긋남을 안다
 - [ ] `S6` 편집기 — `style_server.py` + `ui/style-editor.html`. 완료 기준: 브라우저로 편집·저장·거부·미리보기·시험 스캔, 폰 너비 가로 스크롤 0
 - [ ] `S7` 문서 — `authoring-style` 스킬·스키마·조사 종합, gate V5·V6, rubric·voice·method·doctor·README, 0.4.0. 완료 기준: 끊어진 assets 참조 없음
@@ -45,3 +45,5 @@ created: 2026-09-26
 - 2026-09-26T14:06 · s:c2291411 · S2 done — style_registry.py — 기본값→전역→voice 병합·출처 추적, hard floor 상향·사유 없는 L0 면제 거부, 렌더·가중치 스캔(겹침·밀도·문말 점유율)
 - 2026-09-26T14:06 · s:c2291411 · S3 doing — 착수
 - 2026-09-26T14:06 · s:c2291411 · S3 done — scan_ai_style.py 어휘 목록을 카탈로그 l0.scanner 로 이관, 코퍼스 대조 동등(D7 힌트의 끊긴 참조만 제거), voice 항목 면제 반영
+- 2026-09-26T14:06 · s:c2291411 · S4 doing — 착수
+- 2026-09-26T14:06 · s:c2291411 · S4 done — lexicon.json 45분류·28기능·285항목(기본 음수는 합의 확인분만), qualitative.json 9범주 41말단·판정 규칙 — 과장 표본 적발·레포 문서 17편 무적발
