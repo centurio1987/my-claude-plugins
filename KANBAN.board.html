@@ -1,0 +1,1545 @@
+<meta charset="utf-8">
+<!-- kanban-fp:6b4f662231481c19b1aea0e647851efe213c52e5 -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>my-claude-plugins 칸반 보드</title>
+<style>
+/* manage-kanban 계획 리포트 스타일 — Neobrutalism_Editorial_01 (editorial brutalism)
+ *
+ * 출처: bbangto-ui/packages/style-guide-catalog/src/neobrutalismEditorial.tsx
+ *   라이트 = foundations(semantic) · 다크 = midnightFoundations(makeColorway)
+ *
+ * **왜 사본인가.** @centurio1987/bbangto-ui-visualization 은 React 컴포넌트 + 빌드가
+ * 필요하고 사설 레지스트리(npm.pkg.github.com)에 있다. 리포트는 빌드 없이 열리는 단일
+ * HTML 이고 CSP 로 외부 로드가 막히므로, 패키지를 런타임에 쓸 수 없다. 그래서 토큰 값만
+ * 옮겼다.
+ *
+ * **drift 는 이 주석이 아니라 테스트가 막는다** — scripts/test_report.py 가 위 .tsx 를
+ * 파싱해 아래 값과 대조한다(원본이 없는 머신에서는 skip).
+ */
+
+:root {
+  --ink: #1C1B17;
+  --ink-hover: #2A2823;
+  --cream: #FAF2DD;
+  --paper: #FFFCF2;
+  --cream-sunken: #F3E8C9;
+  --gold: #E9C766;
+  --green: #C2D3B4;
+  --pink: #ECC3C8;
+  --muted: #4A463C;
+  --subtle: #6E6A5E;
+  --faint: #9A9483;
+  --border-width: 2px;
+
+  --bg: var(--cream);
+  --bg-elevated: var(--paper);
+  --bg-sunken: var(--cream-sunken);
+  --fg: var(--ink);
+  --fg-muted: var(--muted);
+  --fg-subtle: var(--subtle);
+  --border: var(--ink);
+  /* ─── 색의 역할 — 「자리」와 「상태」를 한 색이 겸하지 않는다 ─────────────────
+   * 장치가 둘이다. **왼쪽 5px 띠**는 「이 자리는 무엇인가」를 말하고, **칩(.tag·번호칩·
+   * 레일 칸)**은 「이것은 어떤 상태인가」를 말한다. 같은 값이 두 장치에 쓰이는 것은
+   * 괜찮지만, 한 장치 안에서 두 뜻을 겸하면 훑는 눈이 갈라내지 못한다.
+   *
+   *   --accent   (골드) 띠: 인용·주석 · 상세 밴드(「배경」·「정할 것」) · 선택지 표의
+   *                        추천 행 / 그 밖: 타이틀 블록 · 포커스 링
+   *   --accent-2 (그린) 띠: **조작 자리 전용**. 질감이 모드를 말한다 —
+   *                        단색=serve(누르면 정본에 씀) · 45° 해칭=정적(패치로 나감)
+   *   --accent-3 (핑크) 띠: **승계 전용**. 상태 칩 `tag-hold` 와 레일 칸 `st-noted` 가
+   *                        같은 값을 쓰지만 그쪽은 띠가 아니라 칩이라 안 겹친다
+   *   --bg-sunken       th · 미정 칩 · 승계 블록 바탕 · **접힌 조각 바탕**(「여기 더
+   *                        있다」의 단일 신호) · 결정 헤더 아래 모노 줄
+   *   --offset-lg       타이틀 · 트레이 · 모달 · **결정 헤더** · **레일의 현재 칸**
+   *                        (「지금 조작하는 자리」의 표시)
+   *   --danger/--ok/--warn  반려 / 승인 / 경고. 상태 전용이라 띠로 안 쓴다
+   *
+   * **신설 토큰 0.** 대기(아직 정본이 아님)는 색이 아니라 2px 점선 + `outline-offset`
+   * 으로 말한다 — 색을 쓰면 훑는 눈이 그것을 상태로 읽고, `--border` 를 쓰므로 다크에서
+   * 같이 뒤집힌다. 새 색을 만들면 다크 전환(토큰 재정의)이 그 자리만 안 뒤집는다. */
+  --accent: var(--gold);
+  --accent-2: var(--green);
+  --accent-3: var(--pink);
+  --danger: #C0392B;
+  --ok: #5C7A4A;
+  --warn: #B8860B;
+  --offset: 3px 3px 0 var(--gold);
+  --offset-lg: 5px 5px 0 var(--ink);
+
+  /* 결정 헤더의 높이. sticky 가 둘(결정 헤더 · 항목 헤더줄)이라 이 값이 세 자리에서
+   * 함께 움직인다 — 항목 헤더줄의 `top`, 앵커의 `scroll-margin-top`, 그리고 둘의 층 순서.
+   * 한 자리만 고치면 레일을 눌러 간 항목이 헤더 밑에 숨거나 헤더줄이 겹친다. */
+  --dh-h: 7rem;
+
+  --font-sans: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* 다크는 잉크/크림을 뒤집는다(midnight colorway). 시스템 기본은 media query 가,
+ * 명시적 선택은 [data-theme] 가 이긴다 — 둘 다 정의해야 토글이 양방향으로 먹는다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1B17;
+    --bg-elevated: #2A2823;
+    --bg-sunken: #141310;
+    --fg: #FAF2DD;
+    --fg-muted: #C9C2AE;
+    --fg-subtle: #9A9483;
+    --border: #FAF2DD;
+    --offset: 3px 3px 0 #FAF2DD;
+    --offset-lg: 5px 5px 0 #FAF2DD;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1B17;
+  --bg-elevated: #2A2823;
+  --bg-sunken: #141310;
+  --fg: #FAF2DD;
+  --fg-muted: #C9C2AE;
+  --fg-subtle: #9A9483;
+  --border: #FAF2DD;
+  --offset: 3px 3px 0 #FAF2DD;
+  --offset-lg: 5px 5px 0 #FAF2DD;
+}
+
+body {
+  margin: 0;
+  padding: 2.5rem 1.25rem 5rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.wrap { max-width: 62rem; margin: 0 auto; }
+
+/* 각진 모서리 · 2px 잉크선 · 하드 오프셋. 이 셋이 모티프의 전부다. */
+.card, .kpi, table, pre, .chart {
+  background: var(--bg-elevated);
+  border: var(--border-width) solid var(--border);
+  border-radius: 0;
+}
+.card { padding: 1.25rem 1.5rem; margin: 1.5rem 0; box-shadow: var(--offset); }
+
+h1, h2, h3 { font-weight: 700; margin: 2rem 0 .75rem; }
+h1 { font-size: 38px; line-height: 1.05; letter-spacing: -.01em; margin-top: 0; }
+h2 { font-size: 30px; line-height: 1.1; letter-spacing: -.01em;
+     border-bottom: var(--border-width) solid var(--border); padding-bottom: .35rem; }
+h3 { font-size: 20px; line-height: 1.3; }
+
+.meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em;
+        font-weight: 600; text-transform: uppercase; color: var(--fg-subtle); }
+
+.title-block { border: var(--border-width) solid var(--border); background: var(--accent);
+               color: var(--ink); padding: 1.5rem; box-shadow: var(--offset-lg); }
+.title-block h1, .title-block .meta { color: var(--ink); }
+/* 타이틀 머리줄 — 왼쪽은 문서가 무엇인가, 오른쪽은 이 화면이 무엇을 할 수 있는가(모드
+   지문). 두 모드에서 **같은 자리**에 서야 「지금 어느 쪽인가」를 자리로 알 수 있다. */
+.tb-row { display: flex; justify-content: space-between; gap: .5rem 1rem;
+          align-items: baseline; flex-wrap: wrap; margin-bottom: .5rem; }
+/* 줄 자체가 아래 간격을 지므로 안의 문단은 여백을 안 갖는다 — 안 그러면 좁은 화면에서
+   지문이 아래로 접힐 때 h1 과 맞붙는다(375px 실측). */
+.tb-row > .meta { margin: 0; }
+
+.kpis { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+.kpi { flex: 1 1 9rem; padding: .9rem 1rem; box-shadow: var(--offset); }
+.kpi b { display: block; font-size: 30px; line-height: 1.1; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left;
+         vertical-align: top; font-size: 15px; }
+th { background: var(--bg-sunken); font-weight: 700; }
+
+/* 넓은 것은 페이지가 아니라 자기 안에서 가로 스크롤한다. */
+.scroll { overflow-x: auto; }
+pre { padding: .8rem 1rem; font-family: var(--font-mono); font-size: 13px; overflow-x: auto; }
+code { font-family: var(--font-mono); font-size: .9em; }
+
+.chart { padding: 1rem; margin: 1rem 0; }
+.chart svg { display: block; width: 100%; height: auto; }
+
+.tag { display: inline-block; border: var(--border-width) solid var(--border);
+       padding: 0 .4rem; font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.tag-done { background: var(--ok); color: var(--cream); }
+.tag-doing { background: var(--accent); color: var(--ink); }
+.tag-todo { background: var(--bg-sunken); color: var(--fg-muted); }
+/* 「추가 의견」 상태. `--accent-3` 을 쓰지만 **칩이라 승계 띠와 안 겹친다** — 띠로서의
+   핑크는 승계 전용이고, 이 자리는 장치가 다르다(위 역할 주석). */
+.tag-hold { background: var(--accent-3); color: var(--ink); }
+.tag-warn { background: var(--warn); color: var(--ink); }
+.tag-danger { background: var(--danger); color: var(--cream); }
+/* 승계 칩은 판정 태그(승인·반려·미정)와 **다른 종류의 사실**이다 — 판정은 이 문서가
+ * 내린 상태이고 승계는 어디서 왔는가다. 위 여섯 중 하나를 빌려 쓰면 훑는 눈이 그것을
+ * 상태로 읽으므로, 어느 것과도 안 겹치게 잉크와 바탕을 뒤집는다. 토큰을 뒤집는 것이라
+ * 다크에서도 그대로 선다(리터럴을 박으면 그 자리만 안 뒤집힌다). */
+.tag-inh { background: var(--fg); color: var(--bg); }
+
+.note, blockquote { border-left: 5px solid var(--accent); padding-left: 1rem;
+                    color: var(--fg-muted); margin: 1rem 0; }
+ol, ul { padding-left: 1.4rem; }
+li { margin: .25rem 0; }
+
+/* ─── 승계 — 넘어온 의견임이 접기 밖에서 보여야 한다 ──────────────────────────
+ * 승계 사실은 `inherit` 값으로 이미 있었는데, 화면에는 상세(접기) 안의 텍스트 한 줄로만
+ * 있었다. 그래서 훑는 사람은 이 의견이 남의 검토서에서 넘어온 것인지 모른 채 판정한다 —
+ * 값을 가르는 것과 화면에서 드러나는 것은 다른 일이고, 이 블록이 뒤엣것이다.
+ *
+ * 왼쪽 띠는 이 스타일이 이미 쓰는 모티프다(.note·blockquote 가 accent, 검토 화면의 조작
+ * 자리가 accent-2). 승계는 남은 accent-3 을 쓴다 — 셋이 한 항목 안에 같이 서므로 자리마다
+ * 색이 달라야 "여기는 무엇을 하는 자리인가"가 색으로 읽힌다. **띠로서의 accent-3 은 승계
+ * 전용**이고, 항목이 거터 밴드로 바뀐 뒤로 이 띠는 `.jd-band-inh > .jd-body` 가 진다.
+ *
+ * 검토 화면 전용 CSS(report.py 의 REVIEW_CSS)가 아니라 여기 두는 이유: 그쪽은 **판정을
+ * 내릴 수 있는 문서**에만 실린다. 승계된 검토서(판정이 다른 문서로 넘어간 쪽)도 자기가
+ * 물려받은 의견을 그대로 들고 있어서, 거기 두면 그 화면에서만 띠가 통째로 빠진다. */
+.inh { border-left: 5px solid var(--accent-3); background: var(--bg-sunken);
+       padding: .5rem .75rem; margin: .5rem 0 .7rem; }
+/* 머리의 승계 알림은 문서 전체의 사실이라 절 사이 간격과 카드 여백을 그대로 쓴다. */
+.card.inh { padding: 1rem 1.25rem; margin: 1.5rem 0; }
+.inh-row { display: flex; flex-wrap: wrap; gap: .4rem; align-items: baseline;
+           margin: .2rem 0; }
+/* 라벨 폭을 맞춘다 — 줄이 여럿인데 값의 시작이 들쭉날쭉하면 무엇이 무엇의 값인지가
+   눈으로 안 붙는다. */
+.inh-row > .meta:first-child { margin: 0; min-width: 4.5rem; }
+.inh-val { flex: 1 1 16rem; color: var(--fg-muted); }
+/* 계보는 좁은 화면에서 페이지를 밀 수 있다. 가로 스크롤 대신 접어 내린다 — 홉이 낱개
+   조각이라 줄이 바뀌어도 읽는 순서가 안 깨진다. */
+.inh-chain { display: flex; flex-wrap: wrap; gap: .35rem; align-items: baseline; }
+.inh-arrow { color: var(--fg-subtle); }
+
+/* ─── 결정 헤더 — 판정에 필요한 것만 무게를 갖는다 ───────────────────────────
+ * KPI 6~7칸이 같은 무게로 한 줄에 서던 자리다. 변경 파일 수와 수렴이 동급으로 보이면
+ * 훑는 눈이 「지금 무엇을 정해야 하는가」를 못 찾는다(의뢰서 §6-1·§6-4). 헤더에 남는 것은
+ * 넷뿐이다 — 수렴 · 항목 레일 · 문서 판정 · 다음 미해결. 나머지 사실(변경 파일·추가/삭제·
+ * 커밋·태그·의견)은 아래 `.dh-meta` 모노 한 줄로 내려간다. 사실을 지우는 것이 아니라
+ * 무게를 가르는 것이다.
+ *
+ * **REVIEW_CSS(report.py)가 아니라 여기 두는 이유**: 그쪽은 판정을 내릴 수 있는 문서에만
+ * 실린다. 판정이 다른 문서로 넘어간 `승계됨` 검토서도 자기 항목과 수렴을 그대로 들고
+ * 있어서, 거기 두면 그 화면에서만 헤더와 레일이 통째로 빠진다(의뢰서 §5-10). */
+.dh { position: sticky; top: 0; z-index: 40;
+      display: grid; grid-template-columns: auto 2px minmax(0, 1fr) 2px auto;
+      gap: 1.1rem; align-items: center; margin: 1.25rem 0 0; padding: .85rem 1.1rem;
+      background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+      box-shadow: var(--offset-lg); }
+/* 세로 잉크선. 테두리 대신 칸을 하나 쓰는 것은 그리드가 접힐 때(40rem 이하) 이 칸만
+   빼면 되기 때문이다 — 테두리면 방향까지 함께 바꿔야 한다. */
+.dh-sep { background: var(--border); align-self: stretch; min-height: 2.5rem; }
+.dh-cv { display: grid; gap: .1rem; white-space: nowrap; }
+.dh-cv b { font-family: var(--font-mono); font-size: 34px; line-height: 1;
+           letter-spacing: -.02em; font-weight: 700; }
+/* 분모의 슬래시만 죽인다 — 「5 / 7」에서 눈이 잡아야 하는 것은 5 와 7 이다. */
+.dh-cv b i { font-style: normal; color: var(--fg-subtle); }
+.dh-sub { font-size: 13px; line-height: 1.4; color: var(--fg-muted);
+          text-transform: none; letter-spacing: 0; font-weight: 400; }
+.dh-rail { display: grid; gap: .4rem; min-width: 0; }
+.dh-rail-head { display: flex; justify-content: space-between; gap: .8rem;
+                align-items: baseline; }
+.dh-act { display: grid; gap: .45rem; justify-items: end; }
+/* 「다음 미해결」은 **앵커**다. 스크롤 위치 추적이나 목록 필터가 아니라 `#item-N` 으로
+   뛰는 링크라, 이 화면의 `fetch` 자리를 하나도 안 늘린다(의뢰서 §5-2). */
+.dh-next { border: var(--border-width) solid var(--border); background: var(--accent-2);
+           color: var(--ink); box-shadow: var(--offset); text-decoration: none;
+           padding: .4rem .85rem; font-weight: 700; font-size: 15px; line-height: 1.2;
+           white-space: nowrap; }
+.dh-meta { margin: .8rem 0 0; padding: .4rem .9rem; background: var(--bg-sunken);
+           border: var(--border-width) solid var(--border); overflow-x: auto;
+           white-space: nowrap; font-family: var(--font-mono); font-size: 12px;
+           font-weight: 600; letter-spacing: .04em; color: var(--fg-muted); }
+
+/* ─── 항목 레일 — 칸 하나가 항목 하나 ────────────────────────────────────────
+ * 수렴을 숫자로만 말하면 「아직 안 닫힌 항목으로 가는 길」이 화면에 없다(의뢰서 §6-1).
+ * 항목 8개에 판정 12건이 붙은 문서에서 실제로 그랬다.
+ *
+ * 색은 `review-data` 가 항목마다 실어 보낸 `state` 를 **칠하기만** 한다. 도출 규칙을
+ * 여기서 다시 쓰면 화면이 보드·validate 와 다른 말을 한다(SKILL.md 5.8 마지막 줄). */
+.rail { display: flex; flex-wrap: wrap; gap: .4rem; }
+.rail-c { width: 30px; height: 30px; display: grid; place-items: center;
+          border: var(--border-width) solid var(--border);
+          background: var(--bg-elevated); color: var(--fg); text-decoration: none;
+          font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+/* 상태 5색은 **레일 칸과 항목 번호칩이 같은 클래스를 쓴다.** 두 벌로 두면 언젠가 한쪽만
+   고쳐지고, 그때 레일과 항목이 같은 항목을 다른 색으로 말한다. 기하(30px·26px)는 각자
+   `.rail-c`·`.jd-num` 이 지고 색만 여기서 준다. */
+.st-approved { background: var(--ok); color: var(--cream); }
+.st-rejected { background: var(--danger); color: var(--cream); }
+.st-noted    { background: var(--accent-3); color: var(--ink); }
+.st-open     { background: var(--bg-sunken); color: var(--fg); }
+/* 철회는 분모에서 빠진다 — 빈 판 + 취소선이라 색 다섯 중 어느 것도 안 쓴다. */
+.st-retired  { background: var(--bg-elevated); color: var(--fg-subtle);
+               text-decoration: line-through; }
+/* 헤더의 「다음 미해결」이 가리키는 칸. **스크롤 위치를 좇지 않는다** — 그러려면 JS 가
+   필요한데 이 레일은 앵커 장치라 그 자리를 안 늘린다. 그래서 「지금」을 버튼과 같은
+   칸으로 두고, 둘이 늘 같은 항목을 가리키게 한다. */
+.rail-cur { box-shadow: var(--offset-lg); }
+
+/* ─── 접기 — 「여기 더 있다」의 단일 신호는 --bg-sunken 하나다 ───────────────
+ * 접힌 조각의 바탕을 하나로 고정하면 훑는 눈이 그 색만 배우면 된다. 여는 줄에 개수를
+ * 적는 것은 §4.5-2 의 「접기 안에만 있으면 없는 것과 같다」를 접힌 채로 지키기 위해서다.
+ * 0건이면 애초에 안 그린다(§4.5-1) — 그 판단은 렌더러가 한다. */
+details { margin: .7rem 0; }
+details > summary { cursor: pointer; list-style: none;
+                    background: var(--bg-sunken);
+                    border: var(--border-width) solid var(--border);
+                    padding: .4rem .8rem; font-family: var(--font-mono);
+                    font-size: 13px; font-weight: 600; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "\25B8\00a0"; }
+details[open] > summary::before { content: "\25BE\00a0"; }
+.fold-n { float: right; color: var(--fg-subtle); font-weight: 400; }
+
+/* h2 오른쪽에 집계를 다는 자리. 아래 잉크선은 h2 규칙이 그대로 준다. */
+.h2-row { display: flex; justify-content: space-between; align-items: baseline;
+          gap: 1rem; flex-wrap: wrap; }
+
+
+/* ─── 판단 항목 하나 — 다섯 조각에 이름을 달고 잉크선으로 가른다 ────────────────
+ * 옛 판은 승계 블록 · 상세 접기 · 판정 이력 · 의견 · 조작줄이 세로로 쌓이기만 했고,
+ * 위계는 들여쓰기와 왼쪽 띠 색으로만 있었다. 스크롤하면 지금 보는 것이 누구의 무엇인지가
+ * 흐려진다(의뢰서 §6-2). 왼쪽 84px 거터에 조각 이름을 달고 2px 잉크선으로 가르면 그
+ * 위계가 **읽히는 이름**을 갖는다.
+ *
+ * 거터는 본문 열 **밖**이다(grid 3열). 음수 마진으로 밀면 `pre`·표의 본문 폭이 그만큼
+ * 줄어 좁은 열에서 가로 스크롤이 하나 더 생긴다 — §5-7 과 싸우는 자리다.
+ *
+ * 색 규약은 그대로다 — 승계=핑크 · 근거=골드 · 조작=그린. **띠는 밴드가 진다**:
+ * 조각 안의 요소(`.inh`·`.rv-ops`)가 자기 띠를 또 그리면 5px 이 두 겹이 되므로
+ * 아래에서 그 둘의 띠를 끈다(선택자 특이도로 이기므로 파일 순서와 무관하다). */
+#rv-list { list-style: none; padding-left: 0; display: grid; gap: .9rem; }
+#rv-list > li { margin: 0; scroll-margin-top: var(--dh-h); }
+.jd { background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+      box-shadow: var(--offset); }
+/* 헤더줄은 항목 안에서 sticky — 긴 항목을 스크롤해도 「누구의 무엇」이 위에 남는다.
+   결정 헤더 바로 밑에 서고 그보다 낮은 층이라 겹칠 때 헤더가 이긴다. */
+.jd-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+           gap: .5rem; align-items: center; padding: .55rem .8rem;
+           background: var(--bg-elevated);
+           border-bottom: var(--border-width) solid var(--border);
+           position: sticky; top: var(--dh-h); z-index: 20; }
+.jd-num { width: 26px; height: 26px; display: grid; place-items: center;
+          border: var(--border-width) solid var(--border);
+          font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+.jd-title { font-size: 17px; font-weight: 700; line-height: 1.35; }
+.jd-head .meta { margin: 0; white-space: nowrap; }
+.jd-band { display: grid; grid-template-columns: 84px 2px minmax(0, 1fr);
+           column-gap: .7rem; padding: .7rem .8rem;
+           border-top: var(--border-width) solid var(--border); }
+/* 헤더줄(또는 접힘 줄)이 이미 아래 잉크선을 그렸다 — 첫 밴드가 또 그리면 4px 이 된다. */
+.jd-head + .jd-band, summary + .jd-band { border-top: 0; }
+.jd-g { font-family: var(--font-mono); font-size: 11.5px; line-height: 1.4;
+        font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+        color: var(--fg-subtle); padding-top: .25rem; }
+.jd-rule { background: var(--border); align-self: stretch; }
+.jd-body { min-width: 0; }
+.jd-body > :first-child { margin-top: 0; }
+.jd-body > :last-child { margin-bottom: 0; }
+.jd-band-inh > .jd-body { border-left: 5px solid var(--accent-3); padding-left: .75rem; }
+.jd-band-ctx > .jd-body { border-left: 5px solid var(--accent); padding-left: .75rem; }
+/* 조작 자리 띠만 테두리가 아니라 **바탕 조각**이다 — `border` 는 질감을 못 받는데, 이
+   자리는 단색(serve)과 45° 해칭(정적)으로 모드를 말해야 한다(REVIEW_CSS 의 `.is-static`).
+   자리·너비·색은 다른 두 띠와 똑같다. */
+.jd-band-ops > .jd-body { padding-left: .75rem;
+  background: linear-gradient(var(--accent-2), var(--accent-2)) left top / 5px 100% no-repeat; }
+.jd-band .inh, .jd-band .rv-ops { border-left: 0; padding-left: 0; }
+/* 「쓸 수 있다는 사실까지가 인터페이스」(§4.5-3) — 0건 자리는 비우지 않고 점선으로 낸다.
+   점선을 쓰는 것은 이 자리가 상태가 아니라 **빈 자리**이기 때문이다. */
+/* 「정할 것」 아래의 선택지 표. **여기(REPORT_STYLE)에 두는 이유**는 3항 본문이
+   `승계됨` 문서에도 보이기 때문이다 — REVIEW_CSS 는 판정을 내릴 수 있는 문서에만 실리므로
+   거기 두면 그 화면에서만 표가 통째로 무너진다(의뢰서 §5-10).
+   표 자체의 테두리·여백은 위의 공용 `table` 규칙이 이미 진다. 여기서 더하는 것은 밴드
+   안에서의 여백과 **추천 행의 표시**뿐이다. 추천은 새 색을 안 만들고 이미 「자리」를
+   가리키는 골드 띠를 왼쪽에 세운다 — 칩(`tag-done`)이 상태를 말하므로 겹치지 않는다. */
+.jd-tbl { margin: .6rem 0 .2rem; }
+.jd-tbl table { margin: 0; }
+.jd-rec > td:first-child { border-left: 3px solid var(--accent); }
+.jd-empty { border: 2px dashed var(--fg-subtle); color: var(--fg-subtle);
+            padding: .45rem .7rem; margin: 0; font-size: 14px; }
+.jd-vs, .jd-ns { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.jd-vs > li { display: grid; grid-template-columns: 3.6rem auto minmax(0, 1fr);
+              gap: .6rem; align-items: baseline; margin: 0;
+              border: var(--border-width) solid var(--border); padding: .35rem .55rem; }
+.jd-vs > li .meta, .jd-ns > li .meta { margin: 0; }
+.jd-ns > li { margin: 0; border-left: 5px solid var(--accent); padding: .2rem 0 .2rem .7rem; }
+
+/* ─── 닫힌 항목은 한 줄로 접힌다 ──────────────────────────────────────────────
+ * §4.5-1 의 「0건이면 안 그린다」를 「**닫혔으면 안 펼친다**」로 연장한 것이다. 판정이 난
+ * 항목은 다시 읽을 자리가 아니라 「이건 끝났다」만 확인하는 자리라, 번호·주제·상태·판정
+ * 수 한 줄이면 그 확인이 끝난다. 항목 8 · 판정 12 짜리 문서가 한 판에 들어오는 것이
+ * 이 규칙의 값이다(의뢰서 §6-1).
+ *
+ * **접되 지우지 않는다** — 펴면 열린 항목과 한 글자도 다르지 않은 내용이 나온다. */
+.jd-fold > summary { display: grid;
+                     grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+                     gap: .5rem; align-items: center; font-family: var(--font-sans);
+                     font-size: 15px; font-weight: 400; border: 0;
+                     border-bottom: var(--border-width) solid var(--border); }
+/* 전역 접기 표식(▸)을 여기서는 끈다 — grid 컨테이너 안의 `::before` 는 칸 하나를 차지해
+   네 칸짜리 줄을 통째로 밀어낸다. 대신 오른쪽 끝의 「펴기/접기」가 같은 말을 한다. */
+.jd-fold > summary::before { content: none; }
+.jd-tog::after { content: "펴기"; }
+.jd-fold[open] .jd-tog::after { content: "접기"; }
+.jd-fold[open] > summary { background: var(--bg-elevated); }
+
+@media (max-width: 40rem) {
+  h1 { font-size: 30px; } h2 { font-size: 24px; }
+  body { padding: 1.5rem .75rem 3rem; }
+
+  /* ─── 40rem 이하 — 375px 에서 실제로 판정할 수 있는가 ──────────────────────
+   * **sticky 를 끈다.** 결정 헤더는 이 폭에서 세로로 접혀 400px 을 넘고, 그 위에 항목
+   * 헤더줄이 또 붙으면 812px 뷰포트에 판정할 것이 안 남는다(실측 425px). `--dh-h` 를
+   * 0 으로 덮으면 `top` 과 `scroll-margin-top` 이 함께 따라온다 — 토큰 하나로 묶어 둔
+   * 값이 여기서 값을 한다. */
+  :root { --dh-h: 0rem; }
+  .dh { grid-template-columns: minmax(0, 1fr); gap: .7rem; position: static; }
+  /* 세로 잉크선은 방향이 안 맞는다 — 열이 사라졌으므로 함께 뺀다. */
+  .dh-sep { display: none; }
+  .dh-cv b { font-size: 30px; }
+  /* 판정 칩은 칩 크기 그대로 두고 「다음 미해결」만 손가락 폭으로 늘린다. */
+  .dh-act { justify-items: start; }
+  .dh-next { display: grid; place-items: center; min-height: 44px; text-align: center;
+             width: 100%; }
+  .jd-head { position: static; }
+
+  /* 레일은 26px 칸으로 줄고 줄바꿈한다(8칸이 두 줄까지). */
+  .rail-c { width: 26px; height: 26px; font-size: 12px; }
+
+  /* **거터가 사라지고 조각 이름이 머리글로 올라간다.** 84px 을 유지하면 본문 열이
+     213px 로 눌려(실측) `pre` 와 표가 저마다 가로 스크롤을 하나씩 더 만든다 — §5-7 이
+     막으려는 것이 바로 그 상태다. 이름은 위로 올라가므로 사라지지 않는다. */
+  .jd-band { grid-template-columns: minmax(0, 1fr); gap: .35rem; padding: .6rem .7rem; }
+  .jd-rule { display: none; }
+  .jd-g { padding-top: 0; }
+  .jd-band-inh > .jd-body, .jd-band-ctx > .jd-body, .jd-band-ops > .jd-body {
+    padding-left: .6rem; }
+  /* 3열 표는 이 폭에서 실제로 좁다. **열을 줄이거나 카드로 접지 않는다** — 레이아웃이
+     두 벌이 되면 검사할 자리도 두 배가 된다. 글자와 셀 여백만 줄이고 넘치는 것은
+     `.scroll` 이 자기 안에서 민다(body 는 안 밀린다). */
+  .jd-tbl table { font-size: 13px; }
+  .jd-tbl th, .jd-tbl td { padding: .35rem .45rem; }
+  /* 헤더줄·접힘 줄도 두 열로 접는다 — 번호|주제 / 상태|개수 / 펴기. */
+  .jd-head, .jd-fold > summary { grid-template-columns: auto minmax(0, 1fr);
+                                 row-gap: .3rem; }
+  .jd-vs > li { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
+}
+
+/* manage-kanban 보드 뷰 — REPORT_STYLE.css 위에 얹는다(토큰은 그쪽이 정의한다).
+ *
+ * 리포트는 읽는 문서라 62rem 한 단이면 되지만, 보드는 5칸을 나란히 놓고 그 위에
+ * 관계선을 긋는 화면이다. 그래서 여기서 하는 일은 셋뿐이다 — 폭을 풀고, 칸/카드
+ * 레이아웃을 얹고, 겹치는 층(관계선 오버레이 · 상세 서랍 · 대기 트레이)을 만든다.
+ * 색·테두리·그림자 모티프는 한 글자도 새로 정의하지 않는다.
+ */
+
+body { padding: 0; overflow-x: hidden; background: var(--bg); color: var(--fg); }
+* { box-sizing: border-box; }
+/* 이 화면은 읽는 문서가 아니라 조작하는 도구다 — 키보드로 짚은 자리가 보여야 한다. */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* 숫자가 세로로 줄 서는 자리(진행률·카드 수·대기 건수)는 폭이 흔들리면 안 된다. */
+.n, .chip, .bar, .meta, .tray ol { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+button { font-family: inherit; font-size: 14px; color: var(--fg); cursor: pointer;
+         background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+         border-radius: 0; padding: .3rem .7rem; }
+button:hover { background: var(--accent); color: var(--ink); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--ink);
+                              box-shadow: inset 0 0 0 2px var(--ink); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+input, select, textarea {
+  font-family: inherit; font-size: 14px; color: var(--fg); background: var(--bg-elevated);
+  border: var(--border-width) solid var(--border); border-radius: 0; padding: .3rem .5rem;
+  width: 100%; }
+textarea { font-size: 14px; line-height: 1.6; resize: vertical; }
+
+/* ─── 머리 ─────────────────────────────────────────────────────────────── */
+.head { position: sticky; top: 0; z-index: 40; background: var(--bg);
+        border-bottom: var(--border-width) solid var(--border);
+        padding: .8rem 1.1rem; display: flex; gap: 1rem; align-items: center;
+        flex-wrap: wrap; }
+.head h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+.head .meta { margin: 0; }
+.spacer { flex: 1 1 auto; }
+.tabs { display: flex; }
+.tabs button { border-right-width: 0; }
+.tabs button:last-child { border-right-width: var(--border-width); }
+.legend { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center;
+          padding: .5rem 1.1rem; border-bottom: 1px solid var(--border);
+          font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
+.legend i { display: inline-block; width: .8rem; height: .8rem; margin-right: .25rem;
+            border: 1px solid var(--border); vertical-align: -1px; }
+
+/* ─── 보드 ─────────────────────────────────────────────────────────────── */
+.stage { position: relative; padding: 1rem 1.1rem 8rem; }
+.cols { display: flex; gap: .9rem; align-items: flex-start; overflow-x: auto;
+        padding-bottom: .5rem; }
+.col { flex: 1 0 16rem; min-width: 16rem; border: var(--border-width) solid var(--border);
+       background: var(--bg-sunken); }
+/* 칸 머리 색은 라이트/다크 어느 쪽에서도 밝은 팔레트 값이라 글자는 항상 잉크다. */
+.col-head { display: flex; align-items: center; gap: .4rem; padding: .5rem .6rem;
+            border-bottom: var(--border-width) solid var(--border);
+            background: var(--col-tint, var(--cream-sunken)); color: var(--ink); }
+.col-head b { font-size: 15px; }
+.col-head .n { font-family: var(--font-mono); font-size: 12px; color: var(--ink); opacity: .7; }
+.col-body { padding: .6rem; display: flex; flex-direction: column; gap: .6rem;
+            min-height: 5rem; }
+.col.drop { outline: 3px dashed var(--accent); outline-offset: -3px; }
+
+/* 카드 표면은 **훑는 자리**다 — 무엇을(짧은 제목) 왜(목적 한 줄) 두 줄까지만 두고,
+   나머지는 전부 상세 서랍으로 내린다. 두 줄을 넘기려는 것은 서랍으로 갈 것이다. */
+.kcard { position: relative; background: var(--bg-elevated);
+         border: var(--border-width) solid var(--border); box-shadow: var(--offset);
+         padding: .55rem .65rem; cursor: pointer; }
+.kcard:hover { box-shadow: var(--offset-lg); }
+.kcard .what { font-size: 15px; line-height: 1.4; font-weight: 600;
+               display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+               overflow: hidden; }
+.kcard .why { font-size: 12.5px; line-height: 1.45; color: var(--fg-subtle);
+              margin-top: .25rem;
+              display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+              overflow: hidden; }
+.kcard .chips { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .4rem;
+                font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
+.chip { border: 1px solid var(--border); padding: 0 .3rem; white-space: nowrap; }
+.chip.id { background: var(--bg-sunken); }
+.chip.up { background: var(--accent-3); color: var(--ink); }
+.chip.down { background: var(--accent-2); color: var(--ink); }
+.chip.link { background: var(--accent); color: var(--ink); }
+.chip.warn { background: var(--warn); color: var(--ink); }
+.bar { height: 5px; background: var(--bg-sunken); border: 1px solid var(--border);
+       margin-top: .4rem; }
+.bar span { display: block; height: 100%; background: var(--ok); }
+.kcard.sel { background: var(--accent); }
+.kcard.sel .what { color: var(--ink); }
+.kcard.rel { outline: 3px solid var(--accent); outline-offset: 2px; }
+.kcard.dim { opacity: .3; }
+.kcard.dragging { opacity: .45; }
+.kcard.drop-parent { outline: 3px dashed var(--accent-2); outline-offset: 2px; }
+.kcard.kid { margin-left: .9rem; border-left-width: 6px; }
+.kcard.ghost { border-style: dashed; box-shadow: none; }
+
+/* 선택한 카드와 이어진 카드들을 잇는 층. 카드 위를 지나가되 클릭은 통과시킨다. */
+.links { position: absolute; inset: 0; pointer-events: none; z-index: 20;
+         overflow: visible; }
+.links path { fill: none; stroke-width: 2.5; }
+.links path.h { stroke: var(--danger); }
+.links path.r { stroke: var(--warn); stroke-dasharray: 6 4; }
+
+.addbtn { border-style: dashed; width: 100%; text-align: left; color: var(--fg-subtle); }
+
+/* ─── 차트 뷰 ──────────────────────────────────────────────────────────── */
+.pane { display: none; }
+.pane.on { display: block; }
+.frame { border: var(--border-width) solid var(--border); background: var(--bg-elevated);
+         padding: 1rem; overflow-x: auto; box-shadow: var(--offset); }
+.frame svg { display: block; }
+.frame text { font-family: var(--font-sans); fill: var(--fg); }
+.frame .n-box { stroke: var(--border); stroke-width: 2; cursor: pointer; }
+.frame .edge { fill: none; stroke: var(--fg-subtle); stroke-width: 2; }
+.frame .edge.ref { stroke: var(--warn); stroke-dasharray: 6 4; }
+.frame .edge.dep { stroke: var(--danger); stroke-width: 3; }
+.frame .edge.waived { stroke: var(--fg-subtle); stroke-dasharray: 3 3; }
+.frame .edge.hot { stroke: var(--danger); stroke-width: 4; }
+.frame .lbl { font-size: 12px; }
+.frame .lbl.mono { font-family: var(--font-mono); font-size: 11px; fill: var(--fg-subtle); }
+/* 칸 색(TINT) 위에 얹히는 글자는 **항상 잉크색이다.** `fill="var(--ink)"` 를 속성으로
+   줘도 `.frame text { fill: var(--fg) }` 라는 CSS 규칙이 표현 속성을 이겨서 무시된다 —
+   실측(다크): 노드 글자가 전부 #FAF2DD 로 계산돼 #FFFCF2 카드색 위에서 안 읽혔다.
+   그래서 규칙으로 못 박고, `.lbl.mono` 보다 뒤에 둬 동점을 이긴다. */
+.frame .lbl.on-tint { fill: var(--ink); }
+/* 상하위 선. 참조선(.ref)은 색 **과 파선**으로 이중 부호화한다 — --danger 와 --warn 은
+   적록·적황 색각 이상에서 서로 가깝다. 3열 배치와 △▽⇢⇠ 기호가 세 번째 부호다. */
+.frame .edge.hier { stroke: var(--danger); stroke-width: 2.5; }
+/* 미니 관계 그래프. **반드시 .frame 안에 둔다** — 위 규약이 전부 .frame 하위로
+   스코프돼 있어서, 감싸지 않으면 .edge 의 fill:none 이 안 붙어 곡선이 기본 검정으로
+   칠해진 덩어리가 된다. jsdom 은 스타일을 계산하지 않아 테스트로는 안 잡힌다. */
+.frame.mini { padding: .5rem; margin: .5rem 0; box-shadow: none; overflow-x: auto; }
+.frame.mini svg { max-width: 100%; height: auto; }
+.frame.mini .n-box.me { stroke-width: 3.5; cursor: default; }
+.frame.mini .lbl { font-size: 11.5px; font-weight: 600; }
+.frame.mini .lbl.sub { font-family: var(--font-mono); font-size: 10px; font-weight: 400; }
+
+/* ─── 상세 서랍 ────────────────────────────────────────────────────────── */
+.drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(42rem, 96vw);
+          background: var(--bg); border-left: var(--border-width) solid var(--border);
+          transform: translateX(101%); transition: transform .18s ease-out; z-index: 60;
+          display: flex; flex-direction: column; }
+.drawer.on { transform: none; box-shadow: -6px 0 0 var(--accent); }
+.drawer-head { padding: 1rem 1.2rem; border-bottom: var(--border-width) solid var(--border);
+               background: var(--accent); color: var(--ink); }
+.drawer-head h2 { border: 0; margin: .2rem 0 0; font-size: 22px; color: var(--ink); }
+.drawer-head .meta { color: var(--ink); }
+.drawer-body { flex: 1 1 auto; overflow-y: auto; padding: 0 1.2rem 4rem; }
+.drawer-body h3 { border-bottom: 1px solid var(--border); padding-bottom: .25rem; }
+.drawer-body table { font-size: 14px; }
+.drawer-body pre { white-space: pre-wrap; word-break: break-word; }
+/* 「지금까지」 — 스크립트가 조립한 한 문단. 카드에서 제일 먼저 읽히는 자리다. */
+.digest { background: var(--bg-sunken); border-left: 4px solid var(--accent);
+          padding: .6rem .8rem; margin: .6rem 0; line-height: 1.6; }
+.digest .recent { list-style: none; padding: 0; margin: .5rem 0 0;
+                  font-size: 12.5px; color: var(--fg-subtle); }
+.digest .recent li { display: flex; gap: .4rem; padding: .1rem 0; }
+.digest .recent time { font-family: var(--font-mono); flex: 0 0 auto; }
+/* 목적 → 이유 → 목표. 항목 이름이 값보다 먼저 눈에 들어와야 한다. */
+.brief { margin: .6rem 0; }
+.brief dt { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+            color: var(--fg-subtle); margin-top: .55rem; }
+.brief dd { margin: .15rem 0 0; line-height: 1.6; }
+.brief dd.empty { color: var(--fg-subtle); font-style: italic; }
+.drawer-body details { border: 1px solid var(--border); padding: .4rem .6rem;
+                       margin: .6rem 0; background: var(--bg-elevated); }
+/* 접힌 채로도 무엇이 들었는지 읽혀야 한다 — --fg-subtle 로 두면 메모가 화면에서
+   사라진 것처럼 보인다(실측). 접는 것은 자리를 아끼려는 것이지 숨기려는 게 아니다. */
+.drawer-body details > summary { cursor: pointer; font-family: var(--font-mono);
+                                 font-size: 12.5px; color: var(--fg); }
+.drawer-body details[open] > summary { margin-bottom: .4rem; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--ink);
+           opacity: .8; margin: 0; }
+.close { position: absolute; top: .8rem; right: 1rem; }
+.row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin: .6rem 0; }
+.row label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+             text-transform: uppercase; color: var(--fg-subtle); min-width: 4rem; }
+.works { list-style: none; padding: 0; }
+.works li { display: flex; gap: .5rem; align-items: baseline; padding: .2rem 0;
+            border-bottom: 1px dotted var(--border); }
+.works code { min-width: 2.4rem; }
+.empty { color: var(--fg-subtle); font-style: italic; }
+
+/* ─── 변경 대기 트레이 ─────────────────────────────────────────────────── */
+.tray { position: fixed; left: 1.1rem; bottom: 1.1rem; z-index: 70;
+        width: min(30rem, 94vw); background: var(--bg-elevated);
+        border: var(--border-width) solid var(--border); box-shadow: var(--offset-lg);
+        display: none; }
+.tray.on { display: block; }
+.tray-head { display: flex; gap: .5rem; align-items: center; padding: .5rem .7rem;
+             border-bottom: var(--border-width) solid var(--border); background: var(--accent);
+             color: var(--ink); }
+.tray-head b { font-size: 15px; }
+.tray ol { margin: 0; padding: .4rem .7rem; max-height: 12rem; overflow-y: auto;
+           font-family: var(--font-mono); font-size: 12px; }
+.tray li { display: flex; gap: .4rem; align-items: baseline; }
+.tray li span { flex: 1 1 auto; }
+.tray-foot { display: flex; gap: .5rem; padding: .5rem .7rem;
+             border-top: 1px solid var(--border); }
+
+.modal { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.55);
+         display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+.modal.on { display: flex; }
+.modal .box { background: var(--bg); border: var(--border-width) solid var(--border);
+              box-shadow: var(--offset-lg); max-width: 56rem; width: 100%;
+              max-height: 88vh; overflow-y: auto; padding: 1.2rem 1.4rem 1.6rem; }
+.modal pre { white-space: pre-wrap; word-break: break-all; max-height: 22rem;
+             overflow-y: auto; }
+
+.toast { position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%);
+         background: var(--ink); color: var(--cream); padding: .5rem 1rem; z-index: 95;
+         border: var(--border-width) solid var(--border); font-size: 14px; display: none; }
+.toast.on { display: block; }
+
+@media (max-width: 60rem) {
+  .cols { flex-wrap: nowrap; }
+  .head h1 { font-size: 18px; }
+}
+
+</style>
+<script type="application/json" id="board-data">{"project": "my-claude-plugins", "generated": "2026-09-26T14:05", "layout": 3, "fp": "6b4f662231481c19b1aea0e647851efe213c52e5", "columns": [{"key": "backlog", "display": "백로그"}, {"key": "todo", "display": "할 일"}, {"key": "doing", "display": "진행 중"}, {"key": "review", "display": "검토"}, {"key": "done", "display": "완료"}], "batch_size_works": [3, 4], "order": [], "roots": [], "cards": [], "dependencies": [], "unscoped_roots": [], "branch": "main", "serve": false, "requestTemplates": [{"name": "free", "label": "자유 형식"}, {"name": "기획서", "label": "기획서"}], "cli": {"py": "python3", "script": "/home/user/my-claude-env/skills/manage-kanban/scripts/kanban.py", "root": "/home/user/my-claude-plugins"}}</script>
+
+<header class="head">
+  <div>
+    <p class="meta">my-claude-plugins · 카드 0장 · 브랜치 main</p>
+    <h1>칸반 보드</h1>
+  </div>
+  <div class="spacer"></div>
+  <input id="q" placeholder="카드 검색 (짧은 제목·목적·메모·id)" style="width:14rem">
+  <div class="tabs">
+    <button id="t-board" aria-pressed="true">보드</button>
+    <button id="t-tree" aria-pressed="false">계층</button>
+    <button id="t-dep" aria-pressed="false">의존</button>
+  </div>
+  <button id="t-edit" aria-pressed="false" title="카드를 끌어 옮기고 제목을 고칠 수 있게 합니다">편집</button>
+  <button id="t-theme" title="라이트/다크 전환">◐</button>
+</header>
+<div class="legend">
+  <span><i style="background:var(--danger)"></i>상하위(분해)</span>
+  <span><i style="background:var(--warn)"></i>참조·선행(제목·목적·이유·목표·메모·원문의 카드 id)</span>
+  <span><i style="background:var(--cream-sunken)"></i>백로그</span>
+  <span><i style="background:var(--paper)"></i>할 일</span>
+  <span><i style="background:var(--gold)"></i>진행 중</span>
+  <span><i style="background:var(--pink)"></i>검토</span>
+  <span><i style="background:var(--green)"></i>완료</span>
+  <span id="hint">카드를 누르면 상세와 관계선이 열립니다.</span>
+</div>
+
+<div class="stage">
+  <section class="pane on" id="pane-board">
+    <svg class="links" id="links"></svg>
+    <div class="cols" id="cols"></div>
+  </section>
+  <section class="pane" id="pane-tree">
+    <h2>계층 — 무엇을 쪼개서 무엇이 나왔는가</h2>
+    <div class="frame"><svg id="svg-tree"></svg></div>
+  </section>
+  <section class="pane" id="pane-dep">
+    <h2>의존 — 무엇이 무엇을 기다리는가</h2>
+    <p class="note">위쪽 호는 <b>참조·선행</b>(카드의 제목·목적·이유·목표·메모·원문이
+      다른 카드 id 를 부른 것),
+      아래쪽 호는 <b>경로 겹침</b>(루트 카드 <code>scope</code> 글롭이 겹치는 것)입니다.
+      경로 겹침은 신호이지 판정이 아닙니다 — DB 스키마·환경변수·패키지 매니페스트·공유 API
+      의존은 경로로 드러나지 않습니다.</p>
+    <div class="frame"><svg id="svg-dep"></svg></div>
+  </section>
+</div>
+
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <button class="close" id="d-close">닫기 ✕</button>
+    <p class="meta" id="d-meta"></p>
+    <p class="eyebrow" id="d-eyebrow"></p>
+    <h2 id="d-title"></h2>
+  </div>
+  <div class="drawer-body" id="d-body"></div>
+</aside>
+
+<div class="tray" id="tray">
+  <div class="tray-head"><b>변경 대기</b><span id="tray-n" class="meta"></span>
+    <div class="spacer"></div><button id="tray-clear">전부 취소</button></div>
+  <ol id="tray-list"></ol>
+  <div class="tray-foot">
+    <button id="tray-save"></button>
+    <button id="tray-export">패치·명령 보기</button>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="modal-box"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+
+'use strict';
+const DATA = JSON.parse(document.getElementById('board-data').textContent);
+const TINT = {backlog:'var(--cream-sunken)', todo:'var(--paper)', doing:'var(--gold)',
+              review:'var(--pink)', done:'var(--green)'};
+const COL_KEYS = DATA.columns.map(c => c.key);
+const DISP = Object.fromEntries(DATA.columns.map(c => [c.key, c.display]));
+const $ = s => document.querySelector(s);
+
+let model = [];        // 화면이 보는 카드들(대기 중 편집이 이미 반영된 상태)
+let queue = [];        // 아직 파일에 안 쓰인 op 목록
+let sel = null, view = 'board', editMode = false, filter = '', newSeq = 0;
+
+function reset(cards) {
+  model = cards.map(c => Object.assign({}, c));
+  queue = []; newSeq = 0;
+}
+const byId = id => model.find(c => c.id === id);
+const kidsOf = id => model.filter(c => c.parent === id).map(c => c.id);
+const isNew = id => id.startsWith('신규/');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g,
+  m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+// 카드 제목에는 마크다운이 섞여 있다(`**유형 축**`). 원문 그대로 두면 별표가 그대로
+// 보이고, 지워버리면 유저가 강조한 자리가 사라진다 — 볼드와 코드만 최소로 옮긴다.
+const mdi = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>')
+                       .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+// 접힌 요약처럼 태그를 못 쓰는 자리용. 마크다운 기호만 벗긴다 — 안 벗기면 미리보기에
+// `**B13…` 처럼 별표가 글자로 보인다.
+const plain = s => String(s == null ? '' : s).replace(/[`*]/g, '');
+
+/* ─── op 큐 ────────────────────────────────────────────────────────────────
+   같은 대상에 대한 같은 종류의 편집은 겹쳐 쌓지 않고 마지막 것만 남긴다. 세 번 끌어
+   옮긴 카드를 move 세 개로 보내면 보드가 세 번 전진하고 로그도 세 줄이 된다 — 사람이
+   한 일은 한 번 옮긴 것이다. 신규 카드에 대한 편집은 아예 그 add op 안으로 접는다. */
+function enqueue(op) {
+  // 요청서 서식은 **아직 안 쓰인 카드에서만** 고칠 수 있다. 이미 쓰인 카드는 요청서
+  // 파일 frontmatter 가 정본이고 `apply --op edit` 의 --field 화이트리스트에도 없어서,
+  // 그대로 내보내면 board-apply 가 죽고 붙여 넣은 명령줄은 argparse 가 거부한다.
+  // 조용히 버리지 않고 말하는 이유는 유저가 고른 값이 사라지는 자리이기 때문이다.
+  if (op.op === 'edit' && op.field === 'request_template' && !(op.id && isNew(op.id))) {
+    toast('요청서 서식은 아직 안 쓰인 카드에서만 고를 수 있습니다.');
+    return;
+  }
+  if (op.id && isNew(op.id)) {
+    const add = queue.find(q => q.op === 'add' && q._tmp === op.id);
+    if (add) {
+      if (op.op === 'move') add.col = op.to;
+      if (op.op === 'edit') add[op.field] = op.value;
+      if (op.op === 'reparent') add.parent = op.to_parent || null;
+      if (op.op === 'archive') queue = queue.filter(q => q !== add);
+      return sync();
+    }
+  }
+  const same = q => q.id === op.id && q.op === op.op &&
+        (op.op !== 'edit' || q.field === op.field);
+  const at = queue.findIndex(same);
+  if (op.op === 'archive') queue = queue.filter(q => q.id !== op.id);
+  if (at >= 0) queue[at] = op; else queue.push(op);
+  sync();
+}
+// 파이썬의 CARD_LINE_FIELDS 와 짝이다. 한쪽만 늘리면 트레이는 영어 키를 보여주고
+// 내보낸 명령줄에서는 그 필드가 통째로 빠진다(무음 유실).
+const BRIEF = [['short', '짧은 제목'], ['purpose', '목적'], ['reason', '이유'],
+               ['goal', '목표']];
+const FIELD_KO = Object.assign({title: '제목', memo: '메모', verbatim: '원문',
+                                request_template: '요청서 서식'},
+                               Object.fromEntries(BRIEF));
+// 사람이 부르는 이름. 짧은 제목이 없으면 지금까지와 똑같이 제목이다(기계 축약 없음).
+const lab = c => (c && ((c.short || '').trim() || c.label || c.title)) || '';
+const labOf = id => { const c = byId(id); return c ? lab(c) : ''; };
+const idLab = id => { const t = labOf(id); return t ? `${id} · ${clip(t, 20)}` : id; };
+// 서식 이름 -> 라벨. 대기 줄이 `free` 대신 「자유 형식」을 보이게 하는 자리다.
+const tplLabel = n => ((DATA.requestTemplates || []).find(t => t.name === n) || {}).label || n;
+/* 요청서 절 머리 — 서식·저자는 정체, 첨부·미반영·승인 대기는 **남은 일**이다.
+   본문만 그리면 "이 글이 카드에 반영됐는가"를 화면 어디에서도 못 읽는다(그 판정은
+   지문 대조라 사람이 눈으로 못 낸다). 보드 파생 줄과 같은 값을 같은 순서로 낸다. */
+function reqMeta(c) {
+  const r = c.request; if (!r) return '';
+  const bits = [];
+  if (r.label) bits.push(`<span class="chip">${esc(r.label)}</span>`);
+  if (r.author) bits.push(`<span class="chip">${esc(r.author)}</span>`);
+  if ((r.attaches || []).length) bits.push(`<span class="chip">첨부 ${r.attaches.length}</span>`);
+  if (!r.acked) bits.push('<span class="chip warn">미반영</span>');
+  if (!r.approved) bits.push('<span class="chip warn">승인 대기</span>');
+  bits.push(`<code>${esc(r.path)}</code>`);
+  return `<div class="row">${bits.join('')}</div>`;
+}
+function opText(q) {
+  // 대기 줄은 "무엇을 되돌릴 것인가"를 고르는 자리다. 그래서 제목이 아니라 **id** 를
+  // 앞세운다 — 방금 제목을 고친 카드는 새 제목으로 보여 어느 카드인지 흐려진다.
+  if (q.op === 'add') return `추가 · ${DISP[q.col]} · ${clip(q.title, 24)}` +
+    (q.request_template ? ` · 요청서 ${tplLabel(q.request_template)}` : '');
+  if (q.op === 'move') return `이동 · ${idLab(q.id)} → ${DISP[q.to]}`;
+  if (q.op === 'edit') return `수정 · ${idLab(q.id)} · ${FIELD_KO[q.field] || q.field}`;
+  if (q.op === 'reparent') return `상위 · ${idLab(q.id)} → ${q.to_parent ? idLab(q.to_parent) : '루트'}`;
+  if (q.op === 'archive') return `보관 · ${idLab(q.id)}${q.cascade ? ' (자손까지)' : q.orphan ? ' (하위 분리)' : ''}`;
+  return q.op;
+}
+function patch() {
+  return queue.map(q => { const o = Object.assign({}, q); delete o._tmp; return o; });
+}
+
+/* ─── 화면 ──────────────────────────────────────────────────────────────── */
+function sync() { draw(); drawTray(); if (sel) openDrawer(sel, true); }
+
+function matches(c) {
+  if (!filter) return true;
+  // 표면에 보이는 글자(짧은 제목·목적)로 검색이 안 되면, 유저가 화면의 글자를 쳤을 때
+  // 정작 그 카드만 흐려진다.
+  const s = [c.id, c.title, c.short, c.purpose, c.reason, c.goal, c.memo]
+    .filter(Boolean).join(' ').toLowerCase();
+  return s.includes(filter);
+}
+function related(id) {
+  const c = byId(id); if (!c) return new Set();
+  const s = new Set([id]);
+  if (c.parent) s.add(c.parent);
+  kidsOf(id).forEach(k => s.add(k));
+  (c.refs || []).forEach(r => s.add(r));
+  model.forEach(o => { if ((o.refs || []).includes(id)) s.add(o.id); });
+  (DATA.dependencies || []).forEach(d => {
+    if (d.a === c.root) s.add(d.b); if (d.b === c.root) s.add(d.a);
+  });
+  return s;
+}
+
+// 카드 id → DOM 노드. 선택자로 되찾지 않는다 — id 에 `.` 가 들어가는 파생 카드
+// (`KAN-029.1-P8X2M9`)를 속성 선택자로 찾으려면 이스케이프가 필요한데, 그리는 자리에서
+// 참조를 들고 있으면 그 문제 자체가 없다.
+const nodeEls = new Map();
+
+function cardEl(c, nested) {
+  const el = document.createElement('div');
+  el.className = 'kcard' + (nested ? ' kid' : '') + (isNew(c.id) ? ' ghost' : '');
+  el.dataset.id = c.id;
+  el.draggable = editMode;
+  el.tabIndex = 0;
+  el.setAttribute('role', 'button');
+  // aria-label 은 자손 텍스트를 **통째로 대체한다.** 전체 제목만 넣으면 화면에 보이는
+  // 짧은 제목·목적이 스크린리더에 한 글자도 안 들리고, 보이는 이름과 접근 이름이
+  // 갈라져 음성 제어로도 못 부른다.
+  el.setAttribute('aria-label', `${c.id} ${lab(c)}${c.purpose ? ' — ' + c.purpose : ''}`);
+  el.title = c.title;
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(c.id); }
+  });
+  const kids = kidsOf(c.id), refs = (c.refs || []).filter(r => byId(r));
+  const chips = [`<span class="chip id">${esc(c.id)}</span>`];
+  if (c.parent) chips.push(`<span class="chip up" title="상위 ${esc(idLab(c.parent))}">△ 하위</span>`);
+  if (kids.length) chips.push(`<span class="chip down" title="${esc(kids.map(idLab).join('\n'))}">▽ ${kids.length}</span>`);
+  if (refs.length) chips.push(`<span class="chip link" title="${esc(refs.map(idLab).join('\n'))}">⇢ ${refs.length}</span>`);
+  const dep = (DATA.dependencies || []).filter(d => (d.a === c.root || d.b === c.root) && !d.waived);
+  if (dep.length && c.root === c.id) chips.push(`<span class="chip warn" title="경로 겹침">⚠ 겹침</span>`);
+  if (c.review) chips.push(`<span class="chip">검토 ${esc(c.review.status)}</span>`);
+  const p = c.progress;
+  const bar = (p && p.total) ? `<div class="bar"><span style="width:${Math.round(100 * p.done / p.total)}%"></span></div>` : '';
+  const prog = (p && p.total) ? `<span class="chip">work ${p.done}/${p.total}</span>` : '';
+  // 표면은 훑는 자리다 — 무엇을(짧은 제목) 왜(목적) 두 줄까지. 나머지는 서랍으로.
+  el.innerHTML = `<div class="what">${mdi(lab(c))}</div>
+    ${c.purpose ? `<div class="why">${mdi(c.purpose)}</div>` : ''}
+    <div class="chips">${chips.join('')}${prog}</div>${bar}`;
+  el.addEventListener('click', e => { e.stopPropagation(); select(c.id); });
+  return el;
+}
+
+function draw() {
+  const cols = $('#cols'); cols.innerHTML = ''; nodeEls.clear();
+  const rel = sel ? related(sel) : null;
+  for (const {key, display} of DATA.columns) {
+    const col = document.createElement('div');
+    col.className = 'col'; col.dataset.col = key;
+    col.style.setProperty('--col-tint', TINT[key]);
+    const mine = model.filter(c => c.col === key);
+    // 부모가 같은 칸에 있으면 바로 밑에 겹쳐 놓는다. 다른 칸이면 △ 칩으로만 알린다 —
+    // 자식의 컬럼은 부모와 독립이므로 들여쓰기로는 계층을 다 표현할 수 없다.
+    const inCol = new Set(mine.map(c => c.id)), placed = new Set(), ordered = [];
+    const put = (c, nested) => {
+      if (placed.has(c.id)) return;
+      placed.add(c.id); ordered.push([c, nested]);
+      mine.filter(k => k.parent === c.id).forEach(k => put(k, true));
+    };
+    mine.forEach(c => { if (!c.parent || !inCol.has(c.parent)) put(c, false); });
+    mine.forEach(c => put(c, !!c.parent));
+    col.innerHTML = `<div class="col-head"><b>${esc(display)}</b>
+      <span class="n">${mine.length}</span></div>`;
+    const body = document.createElement('div');
+    body.className = 'col-body';
+    ordered.forEach(([c, nested]) => {
+      const el = cardEl(c, nested);
+      if (filter && !matches(c)) el.classList.add('dim');
+      if (rel && !rel.has(c.id)) el.classList.add('dim');
+      if (rel && rel.has(c.id) && c.id !== sel) el.classList.add('rel');
+      if (c.id === sel) el.classList.add('sel');
+      nodeEls.set(c.id, el);
+      body.appendChild(el);
+    });
+    if (editMode) {
+      const b = document.createElement('button');
+      b.className = 'addbtn'; b.textContent = '+ 카드 추가';
+      b.addEventListener('click', e => { e.stopPropagation(); addCard(key); });
+      body.appendChild(b);
+    }
+    col.appendChild(body); cols.appendChild(col);
+  }
+  if (editMode) wireDnD();
+  requestAnimationFrame(drawLinks);
+}
+
+/* 선택한 카드와 이어진 카드를 보드 위에서 직접 잇는다. 관계가 칩 안의 숫자로만 있으면
+   "무엇과 이어졌는지"는 알아도 "어디 있는지"는 모른다. */
+function drawLinks() {
+  const svg = $('#links'); svg.innerHTML = '';
+  if (!sel || view !== 'board') return;
+  const stage = $('.stage').getBoundingClientRect();
+  svg.setAttribute('viewBox', `0 0 ${stage.width} ${stage.height}`);
+  svg.setAttribute('width', stage.width); svg.setAttribute('height', stage.height);
+  const box = id => {
+    const el = nodeEls.get(id);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height};
+  };
+  const a = box(sel); if (!a) return;
+  const c = byId(sel), edges = [];
+  if (c.parent) edges.push([c.parent, sel, 'h']);
+  kidsOf(sel).forEach(k => edges.push([sel, k, 'h']));
+  (c.refs || []).forEach(r => edges.push([sel, r, 'r']));
+  model.forEach(o => { if ((o.refs || []).includes(sel)) edges.push([o.id, sel, 'r']); });
+  const seen = new Set();
+  for (const [from, to, kind] of edges) {
+    const k = from + '>' + to; if (seen.has(k)) continue; seen.add(k);
+    const p = box(from), q = box(to); if (!p || !q) continue;
+    const x1 = p.x + p.w / 2, y1 = p.y + p.h / 2, x2 = q.x + q.w / 2, y2 = q.y + q.h / 2;
+    const mx = (x1 + x2) / 2;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('class', kind);
+    path.setAttribute('d', `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+    svg.appendChild(path);
+  }
+}
+
+/* ─── 계층 뷰 ──────────────────────────────────────────────────────────── */
+const NS = 'http://www.w3.org/2000/svg';
+const mk = (t, a) => { const e = document.createElementNS(NS, t);
+  for (const k in a) e.setAttribute(k, a[k]); return e; };
+function clip(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+function drawTree() {
+  const svg = $('#svg-tree'); svg.innerHTML = '';
+  const W = 230, H = 38, GX = 60, GY = 12;
+  let y = 0, maxD = 0;
+  const nodes = [], edges = [];
+  const walk = (c, d) => {
+    maxD = Math.max(maxD, d);
+    const me = {c, x: d * (W + GX), y: y};
+    nodes.push(me); y += H + GY;
+    kidsOf(c.id).forEach(k => { edges.push([me, walk(byId(k), d + 1)]); });
+    return me;
+  };
+  model.filter(c => !c.parent).forEach(c => { walk(c, 0); y += GY; });
+  const w = (maxD + 1) * (W + GX), h = Math.max(y, 40);
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('width', w); svg.setAttribute('height', h);
+  for (const [p, q] of edges) {
+    const x1 = p.x + W, y1 = p.y + H / 2, x2 = q.x, y2 = q.y + H / 2, mx = (x1 + x2) / 2;
+    svg.appendChild(mk('path', {class: 'edge', d: `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`}));
+  }
+  for (const n of nodes) {
+    const g = mk('g', {}); g.style.cursor = 'pointer';
+    g.appendChild(mk('rect', {class: 'n-box', x: n.x, y: n.y, width: W, height: H,
+                              fill: TINT[n.c.col]}));
+    // `on-tint` 가 없으면 `.frame text` 규칙이 이겨서 밝은 칸 색 위에 밝은 글자가 얹힌다
+    const t1 = mk('text', {class: 'lbl on-tint', x: n.x + 8, y: n.y + 16});
+    t1.textContent = clip(lab(n.c), 28);
+    const t2 = mk('text', {class: 'lbl mono on-tint', x: n.x + 8, y: n.y + 30});
+    t2.textContent = n.c.id + ' · ' + DISP[n.c.col];
+    g.appendChild(t1); g.appendChild(t2);
+    g.addEventListener('click', () => { setView('board'); select(n.c.id); });
+    svg.appendChild(g);
+  }
+  if (!nodes.length) svg.setAttribute('viewBox', '0 0 10 10');
+}
+
+/* ─── 의존 뷰 (호 다이어그램) ──────────────────────────────────────────── */
+function drawDep() {
+  const svg = $('#svg-dep'); svg.innerHTML = '';
+  const order = [];
+  COL_KEYS.forEach(k => model.filter(c => c.col === k).forEach(c => order.push(c)));
+  const GX = 26, TOP = 190, PAD = 60;
+  const pos = new Map(order.map((c, i) => [c.id, PAD + i * GX]));
+  const w = PAD * 2 + Math.max(order.length - 1, 0) * GX, h = TOP + 210;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('width', Math.max(w, 320)); svg.setAttribute('height', h);
+
+  const arc = (a, b, up, cls) => {
+    const x1 = pos.get(a), x2 = pos.get(b);
+    if (x1 == null || x2 == null) return;
+    // 2차 베지에는 제어점까지 절반만 간다 — 원하는 높이의 두 배를 제어점으로 준다.
+    const r = Math.abs(x2 - x1) / 2;
+    const cy = TOP + (up ? -1 : 1) * Math.min(r * 2, up ? 340 : 260);
+    svg.appendChild(mk('path', {class: 'edge ' + cls,
+      d: `M${x1},${TOP} Q${(x1 + x2) / 2},${cy} ${x2},${TOP}`}));
+  };
+  const hot = sel ? related(sel) : null;
+  model.forEach(c => (c.refs || []).forEach(r => {
+    if (!pos.has(r)) return;
+    arc(c.id, r, true, 'ref' + (hot && hot.has(c.id) && hot.has(r) ? ' hot' : ''));
+  }));
+  (DATA.dependencies || []).forEach(d =>
+    arc(d.a, d.b, false, 'dep' + (d.waived ? ' waived' : '')));
+
+  svg.appendChild(mk('line', {class: 'edge', x1: PAD - 20, y1: TOP, x2: w - PAD + 20, y2: TOP}));
+  order.forEach(c => {
+    const x = pos.get(c.id);
+    const g = mk('g', {}); g.style.cursor = 'pointer';
+    g.appendChild(mk('circle', {class: 'n-box', cx: x, cy: TOP, r: 8, fill: TINT[c.col]}));
+    const t = mk('text', {class: 'lbl mono', x: x, y: TOP + 22,
+                          transform: `rotate(58 ${x} ${TOP + 22})`});
+    t.textContent = clip(c.id.replace(/^KAN-/, '') + ' ' + lab(c), 26);
+    g.appendChild(t);
+    if (hot && !hot.has(c.id)) g.style.opacity = .25;
+    g.addEventListener('click', () => { setView('board'); select(c.id); });
+    svg.appendChild(g);
+  });
+  if (!order.length) svg.setAttribute('viewBox', '0 0 10 10');
+}
+
+/* ─── 미니 관계 그래프 — "무엇과 어떻게 이어졌는가" ──────────────────────────
+   버튼 줄로는 방향이 안 보인다. 3열로 들어옴(왼쪽)·나(가운데)·나감(오른쪽)을 나누고,
+   상하위는 실선(--danger) 참조는 파선(--warn)으로 **이중 부호화**한다 — 두 색은
+   적록·적황 색각 이상에서 가깝다. 3열 배치와 △▽⇢⇠ 기호가 세 번째 부호다.
+
+   **rAF 를 쓰지 않는다.** 좌표를 산술로 만들어 측정이 필요 없고(drawTree 규약),
+   rAF 에 넣으면 서랍의 scrollTop 복원 시점에 SVG 가 아직 없어 화면이 튄다. */
+const MINI = {W: 168, H: 42, GX: 52, GY: 10};
+function drawMini(c) {
+  const host = $('#d-mini');
+  if (!host) return;
+  host.innerHTML = '';
+  const kids = kidsOf(c.id).map(byId).filter(Boolean);
+  const outs = (c.refs || []).map(byId).filter(Boolean);
+  const incs = model.filter(o => (o.refs || []).includes(c.id));
+  const left = (c.parent && byId(c.parent) ? [[byId(c.parent), 'hier', '△ 상위']] : [])
+    .concat(incs.map(o => [o, 'ref', '⇠ 부름']));
+  const right = kids.map(k => [k, 'hier', '▽ 하위'])
+    .concat(outs.map(o => [o, 'ref', '⇢ 참조']));
+  if (!left.length && !right.length) {
+    host.parentNode.removeChild(host);
+    return;
+  }
+  const {W, H, GX, GY} = MINI;
+  const rows = Math.max(left.length, right.length, 1);
+  const h = rows * (H + GY) - GY, w = W * 3 + GX * 2;
+  const svg = mk('svg', {viewBox: `0 0 ${w} ${h}`, width: w, height: h,
+                         role: 'img', 'aria-label': '이 카드와 이어진 카드들'});
+  const yOf = (n, i) => (h - (n * (H + GY) - GY)) / 2 + i * (H + GY);
+  const me = {x: W + GX, y: yOf(1, 0)};
+
+  const node = (o, x, y, kind, tag) => {
+    const g = mk('g', {});
+    const isMe = kind === 'me';
+    const box = mk('rect', {class: 'n-box' + (isMe ? ' me' : ''), x, y, width: W,
+                            height: H, fill: TINT[o.col]});
+    g.appendChild(box);
+    // 칸 색 위에 얹히므로 `on-tint` 가 필수다. 속성 fill 로는 `.frame text` 규칙을
+    // 못 이긴다(실측: 다크에서 밝은 카드색 위 밝은 글자 → 안 읽힘).
+    const t1 = mk('text', {class: 'lbl on-tint', x: x + 8, y: y + 17});
+    t1.textContent = clip(lab(o), 22);
+    const t2 = mk('text', {class: 'lbl sub on-tint', x: x + 8, y: y + 32});
+    // 노드 폭이 고정이라 넘치면 옆 선까지 침범한다(실측). 여기서 자른다.
+    t2.textContent = clip((tag ? tag + ' · ' : '') + o.id, 24);
+    g.appendChild(t1); g.appendChild(t2);
+    if (isMe) {
+      // 자기 자신을 누르면 select() 가 토글로 **서랍을 닫는다.** 그래프를 눌렀더니
+      // 화면이 사라지는 일이 없게 아예 클릭 대상에서 뺀다.
+      g.style.pointerEvents = 'none';
+    } else {
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', () => select(o.id));
+    }
+    svg.appendChild(g);
+  };
+  const edge = (x1, y1, x2, y2, kind) => {
+    const mx = (x1 + x2) / 2;
+    svg.appendChild(mk('path', {class: 'edge ' + kind,
+      d: `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`}));
+  };
+  left.forEach(([o, kind], i) => edge(MINI.W, yOf(left.length, i) + H / 2,
+                                      me.x, me.y + H / 2, kind));
+  right.forEach(([o, kind], i) => edge(me.x + W, me.y + H / 2,
+                                       me.x + W + GX, yOf(right.length, i) + H / 2, kind));
+  left.forEach(([o, kind, tag], i) => node(o, 0, yOf(left.length, i), kind, tag));
+  right.forEach(([o, kind, tag], i) =>
+    node(o, me.x + W + GX, yOf(right.length, i), kind, tag));
+  node(c, me.x, me.y, 'me', '● 이 카드');
+  host.appendChild(svg);
+}
+
+/* ─── 상세 서랍 — 카드의 '속'. 짧은 제목·지금까지·브리프가 맨 위에 온다. ──── */
+// 서랍은 sync() 마다 통째로 다시 그려진다(드로어 밖의 드래그에서도 불린다).
+// 입력칸이 아홉이라 그때 타이핑 중이던 값이 통째로 날아가므로 되살린다.
+const EDIT_INPUTS = ['e-title', 'e-memo', 'e-verbatim', 'e-col', 'e-parent', 'e-reqtpl']
+  .concat(BRIEF.map(([k]) => 'e-' + k));
+function grabForm() {
+  const v = {};
+  EDIT_INPUTS.forEach(id => { const el = $('#' + id); if (el) v[id] = el.value; });
+  v._open = [...document.querySelectorAll('#d-body details')].map(d => d.open);
+  return v;
+}
+function restoreForm(v) {
+  if (!v) return;
+  EDIT_INPUTS.forEach(id => { const el = $('#' + id); if (el && id in v) el.value = v[id]; });
+  const ds = document.querySelectorAll('#d-body details');
+  (v._open || []).forEach((open, i) => { if (ds[i]) ds[i].open = open; });
+}
+
+function openDrawer(id, keepScroll) {
+  const c = byId(id); if (!c) return;
+  const top = keepScroll ? $('#d-body').scrollTop : 0;
+  const form = keepScroll ? grabForm() : null;
+  sel = id;
+  $('#d-meta').textContent = `${c.id} · ${DISP[c.col]} · 생성:${c.created_by} · 최종:${c.last_by} · 갱신:${c.updated}`;
+  $('#d-eyebrow').textContent = (c.short || '').trim() || '짧은 제목 없음';
+  $('#d-eyebrow').classList.toggle('empty', !(c.short || '').trim());
+  $('#d-title').innerHTML = mdi(c.title);
+  const kids = kidsOf(id), p = c.progress;
+  const sec = (h, body) => `<h3>${h}</h3>${body || '<p class="empty">아직 비어 있습니다.</p>'}`;
+  const chip = (t, cls) => `<span class="chip ${cls || ''}">${esc(t)}</span>`;
+  let rel = '<div class="row">';
+  rel += c.parent ? `<button data-goto="${esc(c.parent)}">△ 상위 ${esc(idLab(c.parent))}</button>` : '';
+  kids.forEach(k => rel += `<button data-goto="${esc(k)}">▽ ${esc(idLab(k))}</button>`);
+  (c.refs || []).filter(r => byId(r)).forEach(r => rel += `<button data-goto="${esc(r)}">⇢ ${esc(idLab(r))}</button>`);
+  model.filter(o => (o.refs || []).includes(id)).forEach(o =>
+    rel += `<button data-goto="${esc(o.id)}">⇠ ${esc(idLab(o.id))}</button>`);
+  rel += '</div>';
+  const lonely = rel === '<div class="row"></div>';
+  if (lonely) rel = '<p class="empty">이어진 카드가 없습니다.</p>';
+
+  // 「지금까지」는 스크립트가 조립한 값이다(AI 작문이 아니라 파생값이라 안 낡는다).
+  const dg = c.digest || {};
+  const recent = (dg.recent || []).map(r =>
+    `<li><time>${esc(r.date)}</time><span>${
+      r.tags && r.tags.length ? '<code>' + esc(r.tags.join(' ')) + '</code> ' : ''
+    }${mdi(r.note)}</span></li>`).join('');
+  const digest = dg.text
+    ? `<div class="digest"><p>${esc(dg.text)}</p>${
+        recent ? `<ul class="recent">${recent}</ul>` : ''}</div>`
+    : '';
+
+  // 목적 → 이유 → 목표 순. 짧은 제목은 위 eyebrow 가 이미 보여주므로 뺀다.
+  const briefRows = BRIEF.slice(1).map(([k, ko]) =>
+    `<dt>${ko}</dt><dd${c[k] ? '' : ' class="empty"'}>${
+      c[k] ? mdi(c[k]) : '아직 안 적혔습니다' + (editMode ? ' — 아래 「편집」에서 채웁니다.'
+        : ' (「편집」을 켜면 채울 수 있습니다).')}</dd>`).join('');
+
+  const works = (c.works || []).length
+    ? '<ul class="works">' + c.works.map(w =>
+        `<li><code>${esc(w.id)}</code><span class="tag tag-${w.state}">${
+          {todo:'미착수',doing:'진행 중',done:'완료',hold:'보류'}[w.state] || w.state
+        }</span><span>${esc(w.text)}</span></li>`).join('') + '</ul>'
+    : '';
+  const batches = (c.batches || []).length
+    ? '<table><tr><th>배치</th><th>work</th><th>진행</th><th>배정 출처</th></tr>' +
+      c.batches.map(b => `<tr><td>배치${b.n}</td><td><code>${esc(b.steps.join(', '))}</code></td>
+        <td>${b.done}/${b.total}</td><td>${esc(b.source)}</td></tr>`).join('') + '</table>'
+    : '';
+  const deps = (DATA.dependencies || []).filter(d => d.a === c.root || d.b === c.root);
+  const depHtml = deps.length
+    ? '<table><tr><th>상대 루트</th><th>겹치는 경로</th><th>승인</th></tr>' + deps.map(d => {
+        const o = d.a === c.root ? d.b : d.a;
+        return `<tr><td>${esc(labOf(o) || o)} <code>${esc(o)}</code></td><td><code>${esc(d.paths.join(', '))}</code></td>
+          <td><span class="tag ${d.waived ? 'tag-done' : 'tag-danger'}">${d.waived ? '용인됨' : '미승인'}</span></td></tr>`;
+      }).join('') + '</table>'
+    : '<p class="note">이 카드가 속한 루트는 다른 루트와 경로가 겹치지 않습니다.</p>';
+
+  let edit = '';
+  if (editMode) {
+    const opts = ['<option value="">(루트)</option>'].concat(
+      model.filter(o => o.id !== id && !isNew(o.id) && !descendantOf(o.id, id))
+           .map(o => `<option value="${esc(o.id)}"${c.parent === o.id ? ' selected' : ''}>${esc(o.id)} ${esc(clip(lab(o), 30))}</option>`)).join('');
+    edit = `<h3>편집</h3>
+      <div class="row"><label>제목</label><input id="e-title" value="${esc(c.title)}"></div>
+      ${BRIEF.map(([k, ko]) =>
+        `<div class="row"><label>${ko}</label><input id="e-${k}" value="${esc(c[k] || '')}"></div>`).join('')}
+      <div class="row"><label>메모</label><input id="e-memo" value="${esc(c.memo || '')}"></div>
+      <div class="row"><label>컬럼</label><select id="e-col">${
+        DATA.columns.map(x => `<option value="${x.key}"${x.key === c.col ? ' selected' : ''}>${esc(x.display)}</option>`).join('')}</select></div>
+      <div class="row"><label>상위</label><select id="e-parent">${opts}</select></div>
+      ${isNew(id) ? `<div class="row"><label>요청서 서식</label><select id="e-reqtpl">
+        <option value="">(안 씀)</option>${(DATA.requestTemplates || []).map(t =>
+          `<option value="${esc(t.name)}"${c.request_template === t.name ? ' selected' : ''}>${
+            esc(t.label)}</option>`).join('')}</select></div>` : ''}
+      <div class="row"><label>원문</label><textarea id="e-verbatim" rows="4">${esc(c.verbatim || '')}</textarea></div>
+      <div class="row"><button id="e-save">이 카드 변경을 대기에 넣기</button>
+        <button id="e-archive">보관</button></div>
+      <p class="note">짧은 제목·목적·이유·목표는 <b>한 줄</b>입니다 — 넘치는 서술은 카드
+        실행 문서의 「전략」 절로 내립니다. 여기서 누른 것은 아직 파일에 쓰이지 않고
+        왼쪽 아래 <b>변경 대기</b>에 쌓였다가
+        ${DATA.serve ? '<b>저장</b>을 눌러야' : '<b>패치·명령</b>을 실행해야'} 보드에 반영됩니다.</p>`;
+  }
+
+  const links = [];
+  if (c.doc) links.push(`<code>${esc(c.doc)}</code>`);
+  if (c.report_html) links.push(`<a href="${esc(c.report_html)}">계획 리포트 HTML</a>`);
+  if (c.review_html) links.push(`<a href="${esc(c.review_html)}">검토 리포트 HTML</a>`);
+  if (c.review_md) links.push(`<code>${esc(c.review_md)}</code>`);
+
+  $('#d-body').innerHTML = `
+    <div class="row">${chip(c.id, 'id')}${c.root === c.id ? '' : chip('루트 ' + idLab(c.root))}${chip('브랜치 ' + c.branch)}
+      ${p && p.total ? chip(`work ${p.done}/${p.total}`) : ''}
+      ${c.review ? chip('검토 ' + c.review.status) : ''}
+      ${(c.scope || []).length ? chip('scope ' + c.scope.join(', ')) : chip('scope 미기재', 'warn')}</div>
+    <h3>목적 · 이유 · 목표</h3>
+    <dl class="brief">${briefRows}</dl>
+    <h3>지금까지</h3>${digest || '<p class="empty">아직 기록이 없습니다.</p>'}
+    <h3>이어진 카드</h3>${lonely ? '' : '<div class="frame mini" id="d-mini"></div>'}${rel}
+    ${c.memo ? `<details><summary>메모 — ${esc(clip(plain(c.memo), 40))}</summary><p>${mdi(c.memo)}</p></details>` : ''}
+    ${edit}
+    ${c.verbatim ? `<h3>원문 (유저 지시 그대로)</h3><pre>${esc(c.verbatim)}</pre>` : ''}
+    ${c.htmlRequest ? sec('요청서', reqMeta(c) + c.htmlRequest) : ''}
+    ${sec('전략', c.htmlStrategy)}
+    ${sec('실행 계획 (WBS)', works
+      ? works + (c.htmlPlan ? `<details><summary>계획 절 원문</summary>${c.htmlPlan}</details>` : '')
+      : (c.htmlPlan || ''))}
+    ${batches ? '<h3>배치</h3>' + batches : ''}
+    ${sec('검증', c.htmlVerify)}
+    <h3>루트 독립성</h3>${depHtml}
+    ${links.length ? '<h3>산출물</h3><p>' + links.join(' · ') + '</p>' : ''}`;
+  if (!lonely) drawMini(c);
+  restoreForm(form);
+  $('#d-body').scrollTop = top;
+  $('#drawer').classList.add('on');
+
+  $('#d-body').querySelectorAll('[data-goto]').forEach(b =>
+    b.addEventListener('click', () => select(b.dataset.goto)));
+  if (editMode) {
+    $('#e-save').addEventListener('click', () => {
+      const t = $('#e-title').value.trim();
+      if (t && t !== c.title) { c.title = t; enqueue({op:'edit', id, field:'title', value:t}); }
+      // 한 줄 필드는 여기서도 접는다 — 파이썬의 norm_line 이 최종 방어이지만, 화면
+      // 모형이 정규화 전 값을 들고 있으면 저장 뒤 카드가 눈에 띄게 달라 보인다.
+      BRIEF.concat([['memo', '메모']]).forEach(([k]) => {
+        const el = $('#e-' + k); if (!el) return;
+        const v = el.value.replace(/\s+/g, ' ').trim();
+        if (v !== (c[k] || '')) { c[k] = v; enqueue({op:'edit', id, field:k, value:v}); }
+      });
+      // 표면이 짧은 제목을 보여주므로 라벨도 함께 낙관 갱신한다. 안 하면 제목을
+      // 고쳐도 카드가 그대로라 유저에게는 "안 먹은 것"으로 보인다.
+      c.label = (c.short || '').trim() || c.title;
+      const v = $('#e-verbatim').value;
+      if (v !== (c.verbatim || '')) { c.verbatim = v; enqueue({op:'edit', id, field:'verbatim', value:v}); }
+      const rt = $('#e-reqtpl');
+      if (rt && (rt.value || null) !== (c.request_template || null)) {
+        c.request_template = rt.value || null;
+        enqueue({op:'edit', id, field:'request_template', value: rt.value || null});
+      }
+      const col = $('#e-col').value, par = $('#e-parent').value;
+      if (col !== c.col) { c.col = col; enqueue({op:'move', id, to:col}); }
+      if ((par || null) !== (c.parent || null)) { c.parent = par || null; enqueue({op:'reparent', id, to_parent: par}); }
+      toast('변경 대기에 넣었습니다.'); sync();
+    });
+    $('#e-archive').addEventListener('click', () => {
+      const k = kidsOf(id);
+      let extra = {};
+      if (k.length) {
+        const yes = confirm(`살아있는 하위 카드 ${k.length}장이 있습니다.\n확인=자손까지 함께 보관 · 취소=하위를 루트로 떼어냄`);
+        extra = yes ? {cascade: true} : {orphan: true};
+        if (!yes) k.forEach(x => { const kc = byId(x); if (kc) kc.parent = null; });
+        else k.forEach(x => { model = model.filter(c2 => c2.id !== x); });
+      }
+      model = model.filter(c2 => c2.id !== id);
+      enqueue(Object.assign({op:'archive', id}, extra));
+      closeDrawer(); toast('보관을 변경 대기에 넣었습니다.');
+    });
+  }
+}
+function closeDrawer() { sel = null; $('#drawer').classList.remove('on'); draw(); }
+function select(id) { if (sel === id) { closeDrawer(); return; } sel = id; draw(); openDrawer(id); if (view !== 'board') redraw(); }
+
+/* ─── 편집 — 끌어 옮기기 · 추가 ────────────────────────────────────────── */
+let dragId = null;
+function wireDnD() {
+  document.querySelectorAll('.kcard').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragId = el.dataset.id; el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', dragId);
+    });
+    el.addEventListener('dragend', () => { el.classList.remove('dragging'); dragId = null; });
+    // 카드 위에 떨어뜨리면 이동이 아니라 '그 카드의 하위로'다. 칸 위에 떨어뜨리면 이동.
+    el.addEventListener('dragover', e => {
+      if (!dragId || dragId === el.dataset.id) return;
+      e.preventDefault(); e.stopPropagation(); el.classList.add('drop-parent');
+    });
+    el.addEventListener('dragleave', () => el.classList.remove('drop-parent'));
+    el.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation(); el.classList.remove('drop-parent');
+      const id = dragId, to = el.dataset.id;
+      if (!id || id === to) return;
+      const c = byId(id);
+      if (descendantOf(to, id)) return toast('자손을 상위로 지정할 수 없습니다(순환).');
+      c.parent = to; enqueue({op:'reparent', id, to_parent: to});
+    });
+  });
+  document.querySelectorAll('.col').forEach(col => {
+    col.addEventListener('dragover', e => { if (dragId) { e.preventDefault(); col.classList.add('drop'); } });
+    col.addEventListener('dragleave', () => col.classList.remove('drop'));
+    col.addEventListener('drop', e => {
+      e.preventDefault(); col.classList.remove('drop');
+      const id = dragId, to = col.dataset.col;
+      if (!id) return;
+      const c = byId(id); if (!c || c.col === to) return;
+      c.col = to; enqueue({op:'move', id, to});
+    });
+  });
+}
+function descendantOf(maybeKid, ancestor) {
+  let cur = byId(maybeKid);
+  while (cur && cur.parent) { if (cur.parent === ancestor) return true; cur = byId(cur.parent); }
+  return false;
+}
+/* 신규(아직 안 쓰인) 카드의 화면 모형. **board_card_view 가 주는 키를 다 갖춰야
+   한다** — 렌더가 label 을 쓰는데 키가 없으면 esc(undefined) 가 '' 를 돌려주어
+   에러 없이 **빈 카드**가 그려진다. 만드는 자리가 둘(addCard·reapply)이라 함수로 뺀다. */
+function newCardModel(tmp, title, col, parent) {
+  const m = {id: tmp, title, label: title, memo: '', verbatim: '', col,
+             parent: parent || null, children: [], root: tmp, branch: tmp, depth: 1,
+             created_by: '유저', last_by: '유저', updated: '', scope: [], refs: [],
+             progress: null, review: null, works: [], batches: [], digest: null,
+             request: null, request_template: null, htmlRequest: '',
+             htmlStrategy: '', htmlPlan: '', htmlVerify: ''};
+  BRIEF.forEach(([k]) => m[k] = '');
+  return m;
+}
+/* 카드 추가는 이제 **폼**이다. `prompt()` 한 줄로는 요청서 서식을 고를 자리가 없는데,
+   서식은 카드가 태어나는 그 순간에만 물어볼 수 있는 것이다(뒤에 물으면 유저는 이미
+   카드를 던지고 떠났다). 고른 값은 **설정만** 되고 파일은 정형화 때 선다. */
+function addCard(col) {
+  const tpls = DATA.requestTemplates || [];
+  $('#modal-box').innerHTML = `
+    <h2>카드 추가 — ${esc(DISP[col])}</h2>
+    <div class="row"><label>제목</label>
+      <input id="a-title" placeholder="무엇을 할 것인지 한 줄로 적으세요"></div>
+    <div class="row"><label>요청서 서식</label><select id="a-template">
+      <option value="">(안 씀)</option>${tpls.map(t =>
+        `<option value="${esc(t.name)}">${esc(t.label)}</option>`).join('')}</select></div>
+    <p class="note">서식을 고르면 <b>설정만</b> 됩니다 — 요청서 파일은 이 카드를 정형화할 때
+      (<code>brief-set</code> · <code>--op brief</code>) 빈 폼으로 섭니다. 이미 요청서가 있으면
+      건드리지 않습니다.</p>
+    <div class="row"><button id="a-ok">추가 대기에 넣기</button>
+      <button id="a-cancel">취소</button></div>`;
+  $('#modal').classList.add('on');
+  const close = () => $('#modal').classList.remove('on');
+  $('#a-cancel').addEventListener('click', close);
+  $('#a-title').addEventListener('keydown', e => { if (e.key === 'Enter') $('#a-ok').click(); });
+  $('#a-ok').addEventListener('click', () => {
+    const title = ($('#a-title').value || '').trim();
+    if (!title) { toast('제목을 적으세요.'); return; }
+    const tpl = $('#a-template').value || null;
+    const tmp = '신규/' + (++newSeq);
+    model.push(Object.assign(newCardModel(tmp, title, col, null), {request_template: tpl}));
+    queue.push({op:'add', col, title, memo: '', verbatim: '', parent: null,
+                short: '', purpose: '', reason: '', goal: '',
+                request_template: tpl, _tmp: tmp});
+    close(); sync();
+  });
+  $('#a-title').focus();
+}
+
+/* ─── 변경 대기 트레이 ─────────────────────────────────────────────────── */
+function drawTray() {
+  $('#tray').classList.toggle('on', queue.length > 0);
+  $('#tray-n').textContent = queue.length + '건';
+  $('#tray-save').textContent = DATA.serve ? '저장 (파일에 반영)' : '저장 (서버 모드에서만)';
+  $('#tray-save').disabled = !DATA.serve;
+  $('#tray-list').innerHTML = queue.map((q, i) =>
+    `<li><span>${esc(opText(q))}</span><button data-drop="${i}">취소</button></li>`).join('');
+  $('#tray-list').querySelectorAll('[data-drop]').forEach(b =>
+    b.addEventListener('click', () => {
+      const q = queue[+b.dataset.drop];
+      if (q.op === 'add') model = model.filter(c => c.id !== q._tmp);
+      queue.splice(+b.dataset.drop, 1);
+      // 되돌린 편집이 화면 모형에 남지 않게 서버가 준 사실로 다시 맞춘다.
+      reapply(); sync();
+    }));
+}
+/* 취소는 op 하나를 빼는 일이라 화면 모형을 되감아야 한다. 원본에서 다시 재생하는 쪽이
+   역연산을 op 마다 따로 쓰는 것보다 짧고, 어긋날 자리가 없다. */
+function reapply() {
+  const keep = queue.slice();
+  model = DATA.cards.map(c => Object.assign({}, c));
+  for (const q of keep) {
+    if (q.op === 'add') {
+      model.push(Object.assign(newCardModel(q._tmp, q.title, q.col, q.parent || null),
+                               {memo: q.memo || '', verbatim: q.verbatim || '',
+                                request_template: q.request_template || null},
+                               Object.fromEntries(BRIEF.map(([k]) => [k, q[k] || '']))));
+      continue;
+    }
+    const c = byId(q.id); if (!c) continue;
+    if (q.op === 'move') c.col = q.to;
+    if (q.op === 'edit') c[q.field] = q.value;
+    if (q.op === 'reparent') c.parent = q.to_parent || null;
+    if (q.op === 'archive') model = model.filter(x => x.id !== q.id);
+  }
+}
+
+function cliLines() {
+  const {py, script, root} = DATA.cli;
+  const q = s => "'" + String(s == null ? '' : s).replace(/'/g, `'"'"'`) + "'";
+  return patch().map(o => {
+    const b = [py, q(script), '', q(root), '--actor', '유저'];
+    if (o.op === 'add') { b[2] = 'add';
+      b.push('--col', o.col, '--title', q(o.title));
+      if (o.memo) b.push('--memo', q(o.memo));
+      BRIEF.forEach(([k]) => { if (o[k]) b.push('--' + k, q(o[k])); });
+      if (o.verbatim) b.push('--verbatim', q(o.verbatim));
+      // 여기 빠지면 board-apply 로는 서식이 설정되는데 붙여 넣은 명령줄로는 안 된다 —
+      // 두 경로가 같은 결과를 내야 한다는 것이 이 화면의 계약이다.
+      if (o.request_template) b.push('--request-template', q(o.request_template));
+      if (o.parent) b.push('--parent', o.parent);
+    } else { b[2] = 'apply'; b.push('--op', o.op, '--id', o.id);
+      if (o.op === 'move') b.push('--to', o.to);
+      if (o.op === 'edit') b.push('--field', o.field, '--value', q(o.value));
+      if (o.op === 'reparent') b.push('--to-parent', q(o.to_parent || ''));
+      if (o.cascade) b.push('--cascade');
+      if (o.orphan) b.push('--orphan');
+    }
+    return b.join(' ');
+  });
+}
+function showExport() {
+  const {py, script, root} = DATA.cli;
+  const js = JSON.stringify(patch(), null, 2);
+  const one = `cat <<'PATCH' | ${py} '${script}' board-apply '${root}' --patch -\n${js}\nPATCH`;
+  $('#modal-box').innerHTML = `
+    <h2>변경을 보드에 반영하기</h2>
+    <p class="note">브라우저는 파일을 못 씁니다. 아래 둘 중 하나를 터미널에 붙여 넣으면
+      <code>KANBAN.md</code>·로그·라벨이 한 번에 갱신됩니다. 서버 모드
+      (<code>board.py &lt;root&gt; --serve</code>)로 열면 이 단계 없이 <b>저장</b>이 바로 씁니다.</p>
+    <h3>1) 한 번에 — board-apply</h3>
+    <pre id="x1">${esc(one)}</pre><button data-copy="x1">복사</button>
+    <h3>2) 낱개로 — kanban.py 명령 ${patch().length}줄</h3>
+    <pre id="x2">${esc(cliLines().join('\n'))}</pre><button data-copy="x2">복사</button>
+    <h3>patch JSON</h3>
+    <pre id="x3">${esc(js)}</pre><button data-copy="x3">복사</button>
+    <div class="row"><button id="x-close">닫기</button></div>`;
+  $('#modal').classList.add('on');
+  $('#modal-box').querySelectorAll('[data-copy]').forEach(b =>
+    b.addEventListener('click', () => {
+      const t = document.getElementById(b.dataset.copy).textContent;
+      navigator.clipboard ? navigator.clipboard.writeText(t).then(() => toast('복사했습니다.'),
+        () => toast('복사가 막혔습니다 — 직접 선택해 복사하세요.'))
+        : toast('이 브라우저에서는 복사가 막힙니다 — 직접 선택하세요.');
+    }));
+  $('#x-close').addEventListener('click', () => $('#modal').classList.remove('on'));
+}
+
+async function save() {
+  if (!DATA.serve || !queue.length) return;
+  $('#tray-save').disabled = true;
+  try {
+    const r = await fetch('/apply', {method: 'POST',
+      headers: {'Content-Type': 'application/json'}, body: JSON.stringify(patch())});
+    const out = await r.json();
+    if (out.data) { Object.assign(DATA, out.data); reset(DATA.cards); }
+    if (!out.ok) {
+      const f = out.failed || {};
+      alert('일부만 반영됐습니다.\n\n' + (f.detail || '') +
+            '\n\n반영 ' + (out.applied || []).length + '건 / 남은 ' + (out.pending || 0) + '건');
+    } else { toast('보드에 반영했습니다.'); }
+  } catch (e) { alert('저장 실패: ' + e); }
+  $('#tray-save').disabled = false;
+  sel = null; $('#drawer').classList.remove('on');
+  sync(); redraw();
+}
+
+/* ─── 뷰 전환 · 잡동사니 ───────────────────────────────────────────────── */
+function setView(v) {
+  view = v;
+  ['board', 'tree', 'dep'].forEach(k => {
+    $('#pane-' + k).classList.toggle('on', k === v);
+    $('#t-' + k).setAttribute('aria-pressed', String(k === v));
+  });
+  redraw();
+}
+function redraw() { if (view === 'tree') drawTree(); else if (view === 'dep') drawDep(); else drawLinks(); }
+let toastT = null;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+$('#t-board').addEventListener('click', () => setView('board'));
+$('#t-tree').addEventListener('click', () => setView('tree'));
+$('#t-dep').addEventListener('click', () => setView('dep'));
+$('#t-edit').addEventListener('click', e => {
+  editMode = !editMode;
+  e.currentTarget.setAttribute('aria-pressed', String(editMode));
+  $('#hint').textContent = editMode
+    ? '카드를 칸으로 끌면 이동, 다른 카드 위로 끌면 그 카드의 하위가 됩니다.'
+    : '카드를 누르면 상세와 관계선이 열립니다.';
+  sync();
+});
+$('#t-theme').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : cur === 'light' ? 'dark'
+    : (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', next);
+});
+$('#d-close').addEventListener('click', closeDrawer);
+$('#tray-clear').addEventListener('click', () => { queue = []; reapply(); sync(); });
+$('#tray-save').addEventListener('click', save);
+$('#tray-export').addEventListener('click', showExport);
+$('#q').addEventListener('input', e => { filter = e.target.value.trim().toLowerCase(); draw(); });
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') $('#modal').classList.remove('on'); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if ($('#modal').classList.contains('on')) $('#modal').classList.remove('on');
+  else if (sel) closeDrawer();
+});
+addEventListener('resize', () => requestAnimationFrame(drawLinks));
+
+reset(DATA.cards);
+sync();
+
+</script>

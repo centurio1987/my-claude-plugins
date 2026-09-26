@@ -1,0 +1,7 @@
+
+# manage-kanban 병합 정책 — 자세한 복구 절차는 SKILL.md 「보드 병합 · 워크트리」
+.kanban/archive.jsonl merge=union
+.kanban/state.json -merge
+.kanban/log.md -merge
+.kanban/reviews/*.events.jsonl merge=union
+.kanban/reviews/*.review.json -merge
