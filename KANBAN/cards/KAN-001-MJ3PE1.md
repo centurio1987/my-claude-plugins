@@ -17,7 +17,7 @@ created: 2026-09-26
 
 ## 실행 계획
 - [x] `S1` 조사 — 정량(한국어 어휘 분류·번역투 합의·메타담화)·정성(문체 요소 분류) 병렬 조사. 완료 기준: 확인 수준 표지가 붙은 노트 2편
-- [ ] `S2` 레지스트리 — `style_registry.py` 3층 병합·출처 추적·검증·렌더·가중치 스캔. 완료 기준: hard floor·사유 없는 면제가 저장 전에 거부된다
+- [x] `S2` 레지스트리 — `style_registry.py` 3층 병합·출처 추적·검증·렌더·가중치 스캔. 완료 기준: hard floor·사유 없는 면제가 저장 전에 거부된다
 - [ ] `S3` L0 스캐너 이관 — `scan_ai_style.py` 하드코딩 어휘(W·H·D) → 카탈로그. 완료 기준: 이관 전후 같은 입력에 같은 적발
 - [ ] `S4` 카탈로그 — `lexicon.json`(형식 45분류·기능 28태그·285항목), `qualitative.json`(9범주 41말단). 완료 기준: `style validate` 통과, 사람 문서 17편에서 적발 없음·과장 표본에서 적발
 - [ ] `S5` 통합 — `authoring.py` resolve·validate·lock·`style` 서브커맨드, `scan_lexicon.py`. 완료 기준: resolve 가 유효 설정을 L1 절에 싣고 lock 이 어긋남을 안다
@@ -41,3 +41,5 @@ created: 2026-09-26
 - 2026-09-26T14:06 · s:c2291411 — 소급 기록 — 아래 S1~S8 은 2026-09-24 claude/beautiful-mccarthy-kxg2nl 에서 먼저 수행한 것(3e1ada8). 배치 문서·계획 리포트·work 태그는 당시 만들지 않았다
 - 2026-09-26T14:06 · s:c2291411 · S1 doing — 착수
 - 2026-09-26T14:06 · s:c2291411 · S1 done — 정량·정성 조사 에이전트 병렬 — 노트 2편(lexicon-notes 588줄·qualitative-notes 550줄), 원문 열람 차단으로 스니펫 검증·확인 수준 표지
+- 2026-09-26T14:06 · s:c2291411 · S2 doing — 착수
+- 2026-09-26T14:06 · s:c2291411 · S2 done — style_registry.py — 기본값→전역→voice 병합·출처 추적, hard floor 상향·사유 없는 L0 면제 거부, 렌더·가중치 스캔(겹침·밀도·문말 점유율)
