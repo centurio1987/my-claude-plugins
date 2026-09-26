@@ -99,7 +99,12 @@ tr.off td:not(.ctl) { opacity: .5; }
 details summary { cursor: pointer; }
 .def { font-size: 13px; margin: 6px 0; }
 .qs { margin: 4px 0 6px; padding-left: 18px; font-size: 12px; color: var(--muted); }
-.tmpl { display: block; width: 100%; text-align: left; font-size: 12px; margin-top: 4px; }
+.opts { margin: 8px 0 4px; }
+.opts .grp { font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+.opt { display: flex; gap: 8px; align-items: flex-start; padding: 5px 6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.opt:hover { background: var(--chip); }
+.opt input { margin-top: 3px; flex: none; }
+.opt.on { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 pre.md { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; max-height: 70vh; overflow: auto; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
@@ -179,7 +184,7 @@ label.inline { display: inline-flex; gap: 5px; align-items: center; }
     <div class="layout">
       <aside class="panel sticky">
         <strong>정성 분류</strong>
-        <p class="small muted" style="margin:4px 0 8px">분류를 누르면 정의·판정 질문·지시 예시가 보인다. 예시를 누르면 지시로 추가된다.</p>
+        <p class="small muted" style="margin:4px 0 8px">분류를 누르면 정의·판정 질문과 고를 수 있는 선택지가 보인다. 체크하면 모델 지시로 들어간다.</p>
         <div id="taxTree"></div>
       </aside>
       <div>
@@ -286,7 +291,7 @@ function renderAll() {
 
 // ── 레이어 편집 도우미 ──
 const lex = () => (S.layer.lexicon ??= { overrides: {}, categories: {}, add: [] });
-const dirL = () => (S.layer.directives ??= { overrides: {}, add: [] });
+const dirL = () => (S.layer.directives ??= { overrides: {}, add: [], choices: {} });
 function ownAdded(item) { return item.source === scopeKind(); }
 function setItemField(item, field, value) {
   if (ownAdded(item)) {
@@ -490,15 +495,56 @@ function buildTaxTree() {
 }
 function renderTaxInfo() {
   $$("#taxTree [data-tax]").forEach(n => n.classList.toggle("sel", n.dataset.tax === S.tax));
-  if (!S.tax) { $("#taxInfo").innerHTML = `<span class="muted">분류를 고르면 정의와 판정 질문이 보인다.</span>`; return; }
+  if (!S.tax) { $("#taxInfo").innerHTML = `<span class="muted">분류를 고르면 정의·판정 질문·선택지가 보인다.</span>`; return; }
   const c = taxIndex()[S.tax], parent = taxIndex()[c.parent] || {};
   $("#taxInfo").innerHTML = `<div><strong>${esc(parent.label || "")} › ${esc(c.label)}</strong> <span class="muted">${esc(c.gloss || "")}</span> <span class="badge default">축 ${esc(c.axis)}</span></div>
     <div class="def">${esc(c.definition || "")}</div>
     ${c.poles ? `<div class="small"><span class="badge default">스펙트럼</span> ${esc(c.poles.join(" ↔ "))}</div>` : ""}
     ${c.questions?.length ? `<div class="small" style="margin-top:6px"><strong>판정 질문</strong> — 채점자가 읽으며 묻는 것</div><ul class="qs">${c.questions.map(q => `<li>${esc(q)}</li>`).join("")}</ul>` : ""}
-    ${c.templates?.length ? `<div class="small"><strong>지시 예시</strong> — 누르면 추가된다</div>${c.templates.map((t, i) => `<button class="tmpl" data-tpl="${i}">＋ ${esc(t)}</button>`).join("")}` : ""}
+    ${optionsBlock(c)}
     ${c.basis ? `<div class="small muted" style="margin-top:6px">근거: ${esc(c.basis)}</div>` : ""}`;
-  $$("#taxInfo [data-tpl]").forEach(b => b.onclick = () => addDirective(S.tax, c.templates[Number(b.dataset.tpl)]));
+  bindOptions(c);
+}
+// ── 분류별 선택지 ──
+// 분류마다 고를 수 있는 선택지. 스펙트럼(이 분류를 어느 쪽으로)은 하나만, 규칙은 여러 개.
+// 층에는 분류 단위로 저장한다 — voice 가 한 분류를 고르면 그 분류의 전역 선택을 통째로 대신한다.
+function choiceState(cid) {
+  const eff = (S.eff.choices || {})[cid];
+  const mine = Object.prototype.hasOwnProperty.call(dirL().choices || {}, cid);
+  return { ids: eff ? eff.ids : [], source: eff ? eff.source : null, mine, inheritsFrom: mine ? eff?.overrides : eff?.source };
+}
+function optionsBlock(c) {
+  const opts = c.options || [];
+  if (!opts.length) return "";
+  const st = choiceState(c.id), k = scopeKind();
+  const note = st.mine
+    ? (k === "voice" && st.inheritsFrom === "global" ? `<span class="badge voice">이 voice 가 전역 선택을 대신함</span>` : `<span class="badge ${k}">이 층에서 고름</span>`)
+      + ` <button class="link small" data-optreset>이 층 선택 해제</button>`
+    : (st.source === "global" && k === "voice" ? `<span class="badge global">전역에서 계승</span>` : "");
+  const row = o => `<label class="opt ${st.ids.includes(o.id) ? "on" : ""}"><input type="checkbox" data-opt="${esc(o.id)}" ${st.ids.includes(o.id) ? "checked" : ""}><span>${esc(o.text)}</span></label>`;
+  const spec = opts.filter(o => o.group === "spectrum"), rule = opts.filter(o => o.group !== "spectrum");
+  return `<div class="opts"><div class="small"><strong>선택지</strong> — 체크하면 모델 지시로 들어간다 ${note}</div>
+    ${spec.length ? `<div class="grp">방향 — 하나만</div>${spec.map(row).join("")}` : ""}
+    ${rule.length ? `<div class="grp">규칙 — 여러 개</div>${rule.map(row).join("")}` : ""}</div>`;
+}
+function bindOptions(c) {
+  const opts = Object.fromEntries((c.options || []).map(o => [o.id, o]));
+  $$("#taxInfo [data-opt]").forEach(box => box.onchange = () => {
+    let ids = choiceState(c.id).ids.slice();
+    const oid = box.dataset.opt;
+    if (box.checked) {
+      if (opts[oid]?.group === "spectrum") ids = ids.filter(x => opts[x]?.group !== "spectrum");
+      ids.push(oid);
+    } else ids = ids.filter(x => x !== oid);
+    const order = Object.keys(opts);
+    ids.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    const ch = (dirL().choices ??= {});
+    // 전역에서 다 끄면 키를 지운다. voice 에서는 빈 목록이 "이 voice 는 고르지 않음"이라 남긴다.
+    if (!ids.length && scopeKind() === "global") delete ch[c.id]; else ch[c.id] = ids;
+    schedule();
+  });
+  const r = $("#taxInfo [data-optreset]");
+  if (r) r.onclick = () => { delete dirL().choices[c.id]; schedule(); };
 }
 function addDirective(cat, text = "") {
   const cats = (S.state.taxonomy.categories || []).filter(c => c.parent);
@@ -526,10 +572,11 @@ function renderDirs() {
   const counts = {}; S.eff.directives.forEach(d => counts[d.category] = (counts[d.category] || 0) + 1);
   $$("#taxTree [data-tc]").forEach(s => s.textContent = counts[s.dataset.tc] || "");
   renderTaxInfo();
-  const list = S.eff.directives.filter(d => (!S.tax || d.category === S.tax)
+  // 고른 선택지는 분류 패널의 체크 상자로 다룬다 — 여기는 직접 쓴 지시만.
+  const list = S.eff.directives.filter(d => !d.choice && (!S.tax || d.category === S.tax)
     && (!$("#dAxis").value || d.axis === $("#dAxis").value)
     && (!$("#dGate").value || (($("#dGate").value === "on") === !!d.gate?.enabled)));
-  if (!list.length) { $("#dirs").innerHTML = `<div class="panel empty">지시가 없다. 왼쪽 분류에서 예시를 고르거나 ‘+ 지시 추가’를 누른다.</div>`; return; }
+  if (!list.length) { $("#dirs").innerHTML = `<div class="panel empty">직접 쓴 지시가 없다. 왼쪽 분류에서 선택지를 고르거나 ‘+ 지시 추가’로 직접 쓴다.</div>`; return; }
   const catOpts = sel => (S.state.taxonomy.categories || []).filter(c => c.parent).map(c =>
     `<option value="${esc(c.id)}" ${c.id === sel ? "selected" : ""}>${esc((tix[c.parent]?.label || "") + " › " + c.label)}</option>`).join("");
   $("#dirs").innerHTML = list.map(d => {
