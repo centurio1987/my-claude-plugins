@@ -165,6 +165,9 @@ def prune_layer(layer: dict) -> dict:
     ch = {k: list(v) for k, v in (d.get("choices") or {}).items() if isinstance(v, list)}
     if ch:
         out["directives"]["choices"] = dict(sorted(ch.items()))
+    cg = {k: v for k, v in (d.get("choice_gates") or {}).items() if isinstance(v, dict) and v}
+    if cg:
+        out["directives"]["choice_gates"] = dict(sorted(cg.items()))
     return out
 
 
@@ -341,6 +344,13 @@ def effective(voice_id: str | None = None, *, layers: dict | None = None) -> dic
                                "gate": {"enabled": False, "level": "SHOULD"}, "source": ch["source"],
                                "overridden_by": None, "axis": cat.get("axis"),
                                "choice": {"option": oid, "group": o.get("group")}}
+    # 선택지 게이트 — 고른 선택지에만 걸린다. 층마다 덮고, 어느 층이 켰는지 남긴다.
+    for source, layer in stack:
+        for did, g in ((layer.get("directives", {}) or {}).get("choice_gates") or {}).items():
+            x = directives.get(did)
+            if x is not None and x.get("choice") and isinstance(g, dict):
+                x["gate"] = {**x["gate"], **{k: v for k, v in g.items() if k in ("enabled", "level")}}
+                x["gate_from"] = source
 
     out_cats = []
     for c in catalog.get("categories", []):
@@ -502,6 +512,19 @@ def validate_layer(scope: str, layer: dict, *, base_layers: dict | None = None) 
         if len(spec) > 1:
             problems.append(f"{w}: 스펙트럼 선택지는 하나만 고른다 — {spec} "
                             f"(한 분류를 두 방향으로 동시에 맞출 수 없다)")
+    # 선택지 게이트 — 이 층까지 고른 선택지에만 건다.
+    cg = d.get("choice_gates") or {}
+    if not isinstance(cg, dict):
+        problems.append(f"{where}/directives.choice_gates: {{\"<분류>#<선택지>\": {{enabled, level}}}} 객체다")
+        cg = {}
+    if cg:
+        eff_here = _effective_with(below, scope, layer)
+        chosen = {x["id"] for x in eff_here["directives"] if x.get("choice")}
+        for did, g in cg.items():
+            w = f"{where}/directives.choice_gates[{did}]"
+            if did not in chosen:
+                problems.append(f"{w}: 고른 선택지가 아니다 — 게이트는 고른 선택지에만 건다(형식 '<분류>#<선택지>')")
+            _check_gate(g, w, problems)
     for did, ov in (d.get("overrides") or {}).items():
         w = f"{where}/directives.overrides[{did}]"
         if did not in base_dirs:
@@ -512,6 +535,13 @@ def validate_layer(scope: str, layer: dict, *, base_layers: dict | None = None) 
         if "gate" in ov:
             _check_gate({**base_dirs[did].get("gate", {}), **(ov["gate"] or {})}, w, problems)
     return problems
+
+
+def _effective_with(below: dict, scope: str, layer: dict) -> dict:
+    """이 층을 얹은 유효값 — 검증이 '이 층까지' 고른 선택지를 알아야 할 때."""
+    if scope == "global":
+        return effective(None, layers={"global": layer})
+    return effective(scope.split(":", 1)[1], layers={**below, scope: layer})
 
 
 def _check_weight(wt, where: str, problems: list[str]) -> None:

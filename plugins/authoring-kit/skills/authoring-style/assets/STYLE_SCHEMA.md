@@ -25,7 +25,8 @@ skills/authoring-method/assets/style/qualitative.json  ① 정성 분류 체계 
     "overrides":  { "<지시 id>": { "enabled": false, "text": "…", "gate": { "enabled": true, "level": "MUST" } } },
     "add":        [ { "id": "…", "category": "stance.certainty", "text": "…", "example": { "good": "…", "bad": "…" },
                       "enabled": true, "gate": { "enabled": false, "level": "SHOULD" } } ],
-    "choices":    { "tenor.formality": ["s3", "t1"], "tenor.speech-level": [] }
+    "choices":    { "tenor.formality": ["s3", "t1"], "tenor.speech-level": [] },
+    "choice_gates": { "tenor.formality#t1": { "enabled": true, "level": "MUST" } }
   }
 }
 ```
@@ -103,7 +104,7 @@ L0 스캐너(`scan_ai_style.py --voice`)는 면제된 항목을 목록에서 빼
 
 - 층에는 `{분류 id: [선택지 id…]}` 로 적는다. id 는 고정이라 플러그인이 문구를 다듬어도 사용자 선택이 끊기지 않는다.
 - **계승은 분류 단위다.** voice 가 한 분류를 적으면 그 분류의 전역 선택을 통째로 대신한다. 빈 목록은 "이 voice 에서는 이 분류를 고르지 않음"이다. 적지 않은 분류는 전역을 물려받는다.
-- 고른 선택지는 해석 결과에서 지시 한 줄(`Q:<분류>#<선택지>`, 표지 "고른 선택지")이 되어 직접 쓴 지시와 같은 자리에 실린다. **게이트에는 붙지 않는다** — 채점 항목이 필요하면 직접 쓴 지시로 옮겨 게이트를 켠다.
+- 고른 선택지는 해석 결과에서 지시 한 줄(`Q:<분류>#<선택지>`, 표지 "고른 선택지")이 되어 직접 쓴 지시와 같은 자리에 실린다. - 고른 선택지마다 **게이트**를 켤 수 있다 — `choice_gates` 에 `{"<분류>#<선택지>": {enabled, level}}`. 켜면 채점 항목이 되고 그 분류의 판정 질문이 함께 실린다. 층마다 덮으므로 voice 가 전역이 켠 게이트를 끄거나 등급을 바꿀 수 있다. **고르지 않은 선택지에는 걸 수 없다**(저장 전에 거부).
 
 **게이트에 붙은 지시는 채점자가 읽고만 판정한다.** 스크립트·정규식·카운터를 만들지 않는다.
 판정 규칙은 `qualitative.json` 의 `judging.rules` 에 있다.
@@ -118,7 +119,7 @@ L0 스캐너(`scan_ai_style.py --voice`)는 면제된 항목을 목록에서 빼
 - hard floor 항목을 올리거나 끄지 않았는가, `machine-rhythm` 항목 면제에 `reason` 이 있는가
 - 정규식이 컴파일되는가, 분류·기능 태그·정성 분류가 실재하는가
 - 정성 분류의 축이 L1 소유인가, 지시문이 비지 않았는가, 게이트 등급이 `MUST`·`SHOULD` 인가
-- 고른 선택지의 분류·선택지가 실재하는가, 같은 선택지를 두 번 고르지 않았는가, 스펙트럼을 하나만 골랐는가
+- 고른 선택지의 분류·선택지가 실재하는가, 같은 선택지를 두 번 고르지 않았는가, 스펙트럼을 하나만 골랐는가, 게이트를 고른 선택지에만 걸었는가
 
 ## 재현성
 

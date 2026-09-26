@@ -104,6 +104,9 @@ details summary { cursor: pointer; }
 .opt { display: flex; gap: 8px; align-items: flex-start; padding: 5px 6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
 .opt:hover { background: var(--chip); }
 .opt input { margin-top: 3px; flex: none; }
+.opt { flex-wrap: wrap; cursor: default; }
+.optmain { display: flex; gap: 8px; align-items: flex-start; flex: 1 1 260px; min-width: 0; cursor: pointer; }
+.optgate { display: inline-flex; gap: 6px; align-items: center; margin-left: auto; }
 .opt.on { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 fieldset.spec { border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px 8px; margin: 6px 0 4px; min-width: 0; }
 fieldset.spec legend { padding: 0 4px; margin: 0; }
@@ -533,14 +536,21 @@ function optionsBlock(c) {
     : (st.source === "global" && k === "voice" ? `<span class="badge global">전역에서 계승</span>` : "");
   // 하나만 고르는 방향은 라디오 묶음, 여러 개 고르는 규칙은 체크 상자 — 모양으로 규칙이 보이게.
   const on = id => st.ids.includes(id);
-  const row = o => `<label class="opt ${on(o.id) ? "on" : ""}"><input type="checkbox" data-opt="${esc(o.id)}" ${on(o.id) ? "checked" : ""}><span>${esc(o.text)}</span></label>`;
+  // 고른 선택지에만 게이트 스위치가 붙는다 — 켜면 채점자가 이 문장을 읽고 판정한다.
+  const gateCtl = oid => {
+    const d = S.eff.directives.find(x => x.id === `${c.id}#${oid}`); if (!d) return "";
+    const g = d.gate || {};
+    return `<span class="optgate"><label class="inline small"><input type="checkbox" class="toggle" data-ogate="${esc(oid)}" ${g.enabled ? "checked" : ""}> 게이트</label>
+      <select class="small" data-olevel="${esc(oid)}" ${g.enabled ? "" : "disabled"}>${S.state.gate_levels.map(l => `<option ${g.level === l ? "selected" : ""}>${l}</option>`).join("")}</select></span>`;
+  };
+  const row = o => `<div class="opt ${on(o.id) ? "on" : ""}"><label class="optmain"><input type="checkbox" data-opt="${esc(o.id)}" ${on(o.id) ? "checked" : ""}><span>${esc(o.text)}</span></label>${on(o.id) ? gateCtl(o.id) : ""}</div>`;
   const spec = opts.filter(o => o.group === "spectrum"), rule = opts.filter(o => o.group !== "spectrum");
   const name = `spec-${c.id}`, specOn = spec.some(o => on(o.id));
   const radio = (val, label, checked) => `<label class="seg ${checked ? "on" : ""}"><input type="radio" name="${esc(name)}" data-spec="${esc(val)}" ${checked ? "checked" : ""}><span>${esc(label)}</span></label>`;
   return `<div class="opts"><div class="small"><strong>선택지</strong> — 고르면 모델 지시로 들어간다 ${note}</div>
     ${spec.length ? `<fieldset class="spec"><legend class="grp">방향 — 하나만 고른다</legend>
       <div class="segs">${spec.map(o => radio(o.id, (c.poles || [])[Number(o.id.slice(1)) - 1] || o.text, on(o.id))).join("")}${radio("", "지정 안 함", !specOn)}</div>
-      ${specOn ? `<div class="small muted">→ ${esc(spec.find(o => on(o.id)).text)}</div>` : ""}</fieldset>` : ""}
+      ${specOn ? `<div class="opt on"><span class="optmain small">→ ${esc(spec.find(o => on(o.id)).text)}</span>${gateCtl(spec.find(o => on(o.id)).id)}</div>` : ""}</fieldset>` : ""}
     ${rule.length ? `<div class="grp">규칙 — 여러 개 고를 수 있다</div>${rule.map(row).join("")}` : ""}</div>`;
 }
 function bindOptions(c) {
@@ -553,14 +563,23 @@ function bindOptions(c) {
     if (!ids.length && scopeKind() === "global") delete ch[c.id]; else ch[c.id] = ids;
     schedule();
   };
+  // 선택을 풀면 이 층에 건 그 선택지의 게이트도 걷는다 — 남기면 "고른 선택지가 아니다"로 저장이 막힌다.
+  const dropGates = oids => { const cg = dirL().choice_gates || {}; oids.forEach(o => delete cg[`${c.id}#${o}`]); };
   $$("#taxInfo [data-opt]").forEach(box => box.onchange = () => {
     const ids = choiceState(c.id).ids.filter(x => x !== box.dataset.opt);
+    if (!box.checked) dropGates([box.dataset.opt]);
     write(box.checked ? [...ids, box.dataset.opt] : ids);
   });
   $$("#taxInfo [data-spec]").forEach(r => r.onchange = () => {
+    const prev = choiceState(c.id).ids.filter(x => opts[x]?.group === "spectrum");
     const ids = choiceState(c.id).ids.filter(x => opts[x]?.group !== "spectrum");
+    dropGates(prev.filter(x => x !== r.dataset.spec));
     write(r.dataset.spec ? [...ids, r.dataset.spec] : ids);
   });
+  const setGate = (oid, g) => { (dirL().choice_gates ??= {})[`${c.id}#${oid}`] = g; schedule(); };
+  $$("#taxInfo [data-ogate]").forEach(t => t.onchange = () => setGate(t.dataset.ogate,
+    { enabled: t.checked, level: $(`#taxInfo [data-olevel="${CSS.escape(t.dataset.ogate)}"]`).value }));
+  $$("#taxInfo [data-olevel]").forEach(sel => sel.onchange = () => setGate(sel.dataset.olevel, { enabled: true, level: sel.value }));
   const r = $("#taxInfo [data-optreset]");
   if (r) r.onclick = () => { delete dirL().choices[c.id]; schedule(); };
 }

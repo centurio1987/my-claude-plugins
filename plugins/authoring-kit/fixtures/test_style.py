@@ -354,6 +354,24 @@ def main() -> int:
     check("서버가 스펙트럼 둘을 고른 저장을 422 로 거부", st == 422 and any("하나만" in p for p in body["problems"]))
     st, body = call("POST", "/api/effective", {"scope": "global", "layer": cg})
     check("유효값 API 가 고른 선택지를 준다", st == 200 and body["effective"]["choices"]["tenor.formality"]["ids"] == ["s3", "t1"])
+    gg = SR.empty_layer()
+    gg["directives"]["choices"] = {"tenor.formality": ["s3", "t1"]}
+    gg["directives"]["choice_gates"] = {"tenor.formality#t1": {"enabled": True, "level": "MUST"}}
+    check("고른 선택지에 게이트를 걸 수 있다", SR.validate_layer("global", gg) == [], str(SR.validate_layer("global", gg)))
+    gmd = SR.render(SR.effective(None, layers={"global": gg}))
+    check("게이트를 켠 선택지가 채점 항목과 판정 질문으로 실린다",
+          "[MUST] Q:tenor.formality#t1" in gmd and "판정 질문: 문서 유형과 독자에 비해" in gmd)
+    gv = SR.empty_layer()
+    gv["directives"]["choice_gates"] = {"tenor.formality#t1": {"enabled": False}}
+    gve = SR.effective("beta", layers={"global": gg, "voice:beta": gv})
+    check("voice 가 전역 선택지 게이트를 끌 수 있다",
+          SR.validate_layer("voice:beta", gv, base_layers={"global": gg}) == []
+          and next(x for x in gve["directives"] if x["id"] == "tenor.formality#t1")["gate"]["enabled"] is False)
+    gb = SR.empty_layer()
+    gb["directives"]["choices"] = {"tenor.formality": ["s3"]}
+    gb["directives"]["choice_gates"] = {"tenor.formality#t2": {"enabled": True}, "tenor.formality#s3": {"level": "X"}}
+    gbp = " | ".join(SR.validate_layer("global", gb))
+    check("고르지 않은 선택지에 건 게이트·잘못된 등급은 거부", "t2]: 고른 선택지가 아니다" in gbp and "gate.level" in gbp, gbp)
     # 하나만 고르는 방향은 라디오 묶음이어야 한다 — 체크 상자로 그리면 여러 개 고를 수 있어 보인다(유저 지적, 2026-09-27).
     ui = (SR.PLUGIN_ROOT / "ui" / "style-editor.html").read_text(encoding="utf-8")
     check("편집기: 방향 선택지는 라디오, 규칙 선택지만 체크 상자",
