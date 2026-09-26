@@ -1,0 +1,1250 @@
+<meta charset="utf-8">
+<!-- kanban-fp:fe24aee327b00999363f1b88a0035690031b8e9b -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAN-001-MJ3PE1 검토 요청</title>
+<style>
+/* manage-kanban 계획 리포트 스타일 — Neobrutalism_Editorial_01 (editorial brutalism)
+ *
+ * 출처: bbangto-ui/packages/style-guide-catalog/src/neobrutalismEditorial.tsx
+ *   라이트 = foundations(semantic) · 다크 = midnightFoundations(makeColorway)
+ *
+ * **왜 사본인가.** @centurio1987/bbangto-ui-visualization 은 React 컴포넌트 + 빌드가
+ * 필요하고 사설 레지스트리(npm.pkg.github.com)에 있다. 리포트는 빌드 없이 열리는 단일
+ * HTML 이고 CSP 로 외부 로드가 막히므로, 패키지를 런타임에 쓸 수 없다. 그래서 토큰 값만
+ * 옮겼다.
+ *
+ * **drift 는 이 주석이 아니라 테스트가 막는다** — scripts/test_report.py 가 위 .tsx 를
+ * 파싱해 아래 값과 대조한다(원본이 없는 머신에서는 skip).
+ */
+
+:root {
+  --ink: #1C1B17;
+  --ink-hover: #2A2823;
+  --cream: #FAF2DD;
+  --paper: #FFFCF2;
+  --cream-sunken: #F3E8C9;
+  --gold: #E9C766;
+  --green: #C2D3B4;
+  --pink: #ECC3C8;
+  --muted: #4A463C;
+  --subtle: #6E6A5E;
+  --faint: #9A9483;
+  --border-width: 2px;
+
+  --bg: var(--cream);
+  --bg-elevated: var(--paper);
+  --bg-sunken: var(--cream-sunken);
+  --fg: var(--ink);
+  --fg-muted: var(--muted);
+  --fg-subtle: var(--subtle);
+  --border: var(--ink);
+  /* ─── 색의 역할 — 「자리」와 「상태」를 한 색이 겸하지 않는다 ─────────────────
+   * 장치가 둘이다. **왼쪽 5px 띠**는 「이 자리는 무엇인가」를 말하고, **칩(.tag·번호칩·
+   * 레일 칸)**은 「이것은 어떤 상태인가」를 말한다. 같은 값이 두 장치에 쓰이는 것은
+   * 괜찮지만, 한 장치 안에서 두 뜻을 겸하면 훑는 눈이 갈라내지 못한다.
+   *
+   *   --accent   (골드) 띠: 인용·주석 · 상세 밴드(「배경」·「정할 것」) · 선택지 표의
+   *                        추천 행 / 그 밖: 타이틀 블록 · 포커스 링
+   *   --accent-2 (그린) 띠: **조작 자리 전용**. 질감이 모드를 말한다 —
+   *                        단색=serve(누르면 정본에 씀) · 45° 해칭=정적(패치로 나감)
+   *   --accent-3 (핑크) 띠: **승계 전용**. 상태 칩 `tag-hold` 와 레일 칸 `st-noted` 가
+   *                        같은 값을 쓰지만 그쪽은 띠가 아니라 칩이라 안 겹친다
+   *   --bg-sunken       th · 미정 칩 · 승계 블록 바탕 · **접힌 조각 바탕**(「여기 더
+   *                        있다」의 단일 신호) · 결정 헤더 아래 모노 줄
+   *   --offset-lg       타이틀 · 트레이 · 모달 · **결정 헤더** · **레일의 현재 칸**
+   *                        (「지금 조작하는 자리」의 표시)
+   *   --danger/--ok/--warn  반려 / 승인 / 경고. 상태 전용이라 띠로 안 쓴다
+   *
+   * **신설 토큰 0.** 대기(아직 정본이 아님)는 색이 아니라 2px 점선 + `outline-offset`
+   * 으로 말한다 — 색을 쓰면 훑는 눈이 그것을 상태로 읽고, `--border` 를 쓰므로 다크에서
+   * 같이 뒤집힌다. 새 색을 만들면 다크 전환(토큰 재정의)이 그 자리만 안 뒤집는다. */
+  --accent: var(--gold);
+  --accent-2: var(--green);
+  --accent-3: var(--pink);
+  --danger: #C0392B;
+  --ok: #5C7A4A;
+  --warn: #B8860B;
+  --offset: 3px 3px 0 var(--gold);
+  --offset-lg: 5px 5px 0 var(--ink);
+
+  /* 결정 헤더의 높이. sticky 가 둘(결정 헤더 · 항목 헤더줄)이라 이 값이 세 자리에서
+   * 함께 움직인다 — 항목 헤더줄의 `top`, 앵커의 `scroll-margin-top`, 그리고 둘의 층 순서.
+   * 한 자리만 고치면 레일을 눌러 간 항목이 헤더 밑에 숨거나 헤더줄이 겹친다. */
+  --dh-h: 7rem;
+
+  --font-sans: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* 다크는 잉크/크림을 뒤집는다(midnight colorway). 시스템 기본은 media query 가,
+ * 명시적 선택은 [data-theme] 가 이긴다 — 둘 다 정의해야 토글이 양방향으로 먹는다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1B17;
+    --bg-elevated: #2A2823;
+    --bg-sunken: #141310;
+    --fg: #FAF2DD;
+    --fg-muted: #C9C2AE;
+    --fg-subtle: #9A9483;
+    --border: #FAF2DD;
+    --offset: 3px 3px 0 #FAF2DD;
+    --offset-lg: 5px 5px 0 #FAF2DD;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1B17;
+  --bg-elevated: #2A2823;
+  --bg-sunken: #141310;
+  --fg: #FAF2DD;
+  --fg-muted: #C9C2AE;
+  --fg-subtle: #9A9483;
+  --border: #FAF2DD;
+  --offset: 3px 3px 0 #FAF2DD;
+  --offset-lg: 5px 5px 0 #FAF2DD;
+}
+
+body {
+  margin: 0;
+  padding: 2.5rem 1.25rem 5rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.wrap { max-width: 62rem; margin: 0 auto; }
+
+/* 각진 모서리 · 2px 잉크선 · 하드 오프셋. 이 셋이 모티프의 전부다. */
+.card, .kpi, table, pre, .chart {
+  background: var(--bg-elevated);
+  border: var(--border-width) solid var(--border);
+  border-radius: 0;
+}
+.card { padding: 1.25rem 1.5rem; margin: 1.5rem 0; box-shadow: var(--offset); }
+
+h1, h2, h3 { font-weight: 700; margin: 2rem 0 .75rem; }
+h1 { font-size: 38px; line-height: 1.05; letter-spacing: -.01em; margin-top: 0; }
+h2 { font-size: 30px; line-height: 1.1; letter-spacing: -.01em;
+     border-bottom: var(--border-width) solid var(--border); padding-bottom: .35rem; }
+h3 { font-size: 20px; line-height: 1.3; }
+
+.meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em;
+        font-weight: 600; text-transform: uppercase; color: var(--fg-subtle); }
+
+.title-block { border: var(--border-width) solid var(--border); background: var(--accent);
+               color: var(--ink); padding: 1.5rem; box-shadow: var(--offset-lg); }
+.title-block h1, .title-block .meta { color: var(--ink); }
+/* 타이틀 머리줄 — 왼쪽은 문서가 무엇인가, 오른쪽은 이 화면이 무엇을 할 수 있는가(모드
+   지문). 두 모드에서 **같은 자리**에 서야 「지금 어느 쪽인가」를 자리로 알 수 있다. */
+.tb-row { display: flex; justify-content: space-between; gap: .5rem 1rem;
+          align-items: baseline; flex-wrap: wrap; margin-bottom: .5rem; }
+/* 줄 자체가 아래 간격을 지므로 안의 문단은 여백을 안 갖는다 — 안 그러면 좁은 화면에서
+   지문이 아래로 접힐 때 h1 과 맞붙는다(375px 실측). */
+.tb-row > .meta { margin: 0; }
+
+.kpis { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+.kpi { flex: 1 1 9rem; padding: .9rem 1rem; box-shadow: var(--offset); }
+.kpi b { display: block; font-size: 30px; line-height: 1.1; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left;
+         vertical-align: top; font-size: 15px; }
+th { background: var(--bg-sunken); font-weight: 700; }
+
+/* 넓은 것은 페이지가 아니라 자기 안에서 가로 스크롤한다. */
+.scroll { overflow-x: auto; }
+pre { padding: .8rem 1rem; font-family: var(--font-mono); font-size: 13px; overflow-x: auto; }
+code { font-family: var(--font-mono); font-size: .9em; }
+
+.chart { padding: 1rem; margin: 1rem 0; }
+.chart svg { display: block; width: 100%; height: auto; }
+
+.tag { display: inline-block; border: var(--border-width) solid var(--border);
+       padding: 0 .4rem; font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.tag-done { background: var(--ok); color: var(--cream); }
+.tag-doing { background: var(--accent); color: var(--ink); }
+.tag-todo { background: var(--bg-sunken); color: var(--fg-muted); }
+/* 「추가 의견」 상태. `--accent-3` 을 쓰지만 **칩이라 승계 띠와 안 겹친다** — 띠로서의
+   핑크는 승계 전용이고, 이 자리는 장치가 다르다(위 역할 주석). */
+.tag-hold { background: var(--accent-3); color: var(--ink); }
+.tag-warn { background: var(--warn); color: var(--ink); }
+.tag-danger { background: var(--danger); color: var(--cream); }
+/* 승계 칩은 판정 태그(승인·반려·미정)와 **다른 종류의 사실**이다 — 판정은 이 문서가
+ * 내린 상태이고 승계는 어디서 왔는가다. 위 여섯 중 하나를 빌려 쓰면 훑는 눈이 그것을
+ * 상태로 읽으므로, 어느 것과도 안 겹치게 잉크와 바탕을 뒤집는다. 토큰을 뒤집는 것이라
+ * 다크에서도 그대로 선다(리터럴을 박으면 그 자리만 안 뒤집힌다). */
+.tag-inh { background: var(--fg); color: var(--bg); }
+
+.note, blockquote { border-left: 5px solid var(--accent); padding-left: 1rem;
+                    color: var(--fg-muted); margin: 1rem 0; }
+ol, ul { padding-left: 1.4rem; }
+li { margin: .25rem 0; }
+
+/* ─── 승계 — 넘어온 의견임이 접기 밖에서 보여야 한다 ──────────────────────────
+ * 승계 사실은 `inherit` 값으로 이미 있었는데, 화면에는 상세(접기) 안의 텍스트 한 줄로만
+ * 있었다. 그래서 훑는 사람은 이 의견이 남의 검토서에서 넘어온 것인지 모른 채 판정한다 —
+ * 값을 가르는 것과 화면에서 드러나는 것은 다른 일이고, 이 블록이 뒤엣것이다.
+ *
+ * 왼쪽 띠는 이 스타일이 이미 쓰는 모티프다(.note·blockquote 가 accent, 검토 화면의 조작
+ * 자리가 accent-2). 승계는 남은 accent-3 을 쓴다 — 셋이 한 항목 안에 같이 서므로 자리마다
+ * 색이 달라야 "여기는 무엇을 하는 자리인가"가 색으로 읽힌다. **띠로서의 accent-3 은 승계
+ * 전용**이고, 항목이 거터 밴드로 바뀐 뒤로 이 띠는 `.jd-band-inh > .jd-body` 가 진다.
+ *
+ * 검토 화면 전용 CSS(report.py 의 REVIEW_CSS)가 아니라 여기 두는 이유: 그쪽은 **판정을
+ * 내릴 수 있는 문서**에만 실린다. 승계된 검토서(판정이 다른 문서로 넘어간 쪽)도 자기가
+ * 물려받은 의견을 그대로 들고 있어서, 거기 두면 그 화면에서만 띠가 통째로 빠진다. */
+.inh { border-left: 5px solid var(--accent-3); background: var(--bg-sunken);
+       padding: .5rem .75rem; margin: .5rem 0 .7rem; }
+/* 머리의 승계 알림은 문서 전체의 사실이라 절 사이 간격과 카드 여백을 그대로 쓴다. */
+.card.inh { padding: 1rem 1.25rem; margin: 1.5rem 0; }
+.inh-row { display: flex; flex-wrap: wrap; gap: .4rem; align-items: baseline;
+           margin: .2rem 0; }
+/* 라벨 폭을 맞춘다 — 줄이 여럿인데 값의 시작이 들쭉날쭉하면 무엇이 무엇의 값인지가
+   눈으로 안 붙는다. */
+.inh-row > .meta:first-child { margin: 0; min-width: 4.5rem; }
+.inh-val { flex: 1 1 16rem; color: var(--fg-muted); }
+/* 계보는 좁은 화면에서 페이지를 밀 수 있다. 가로 스크롤 대신 접어 내린다 — 홉이 낱개
+   조각이라 줄이 바뀌어도 읽는 순서가 안 깨진다. */
+.inh-chain { display: flex; flex-wrap: wrap; gap: .35rem; align-items: baseline; }
+.inh-arrow { color: var(--fg-subtle); }
+
+/* ─── 결정 헤더 — 판정에 필요한 것만 무게를 갖는다 ───────────────────────────
+ * KPI 6~7칸이 같은 무게로 한 줄에 서던 자리다. 변경 파일 수와 수렴이 동급으로 보이면
+ * 훑는 눈이 「지금 무엇을 정해야 하는가」를 못 찾는다(의뢰서 §6-1·§6-4). 헤더에 남는 것은
+ * 넷뿐이다 — 수렴 · 항목 레일 · 문서 판정 · 다음 미해결. 나머지 사실(변경 파일·추가/삭제·
+ * 커밋·태그·의견)은 아래 `.dh-meta` 모노 한 줄로 내려간다. 사실을 지우는 것이 아니라
+ * 무게를 가르는 것이다.
+ *
+ * **REVIEW_CSS(report.py)가 아니라 여기 두는 이유**: 그쪽은 판정을 내릴 수 있는 문서에만
+ * 실린다. 판정이 다른 문서로 넘어간 `승계됨` 검토서도 자기 항목과 수렴을 그대로 들고
+ * 있어서, 거기 두면 그 화면에서만 헤더와 레일이 통째로 빠진다(의뢰서 §5-10). */
+.dh { position: sticky; top: 0; z-index: 40;
+      display: grid; grid-template-columns: auto 2px minmax(0, 1fr) 2px auto;
+      gap: 1.1rem; align-items: center; margin: 1.25rem 0 0; padding: .85rem 1.1rem;
+      background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+      box-shadow: var(--offset-lg); }
+/* 세로 잉크선. 테두리 대신 칸을 하나 쓰는 것은 그리드가 접힐 때(40rem 이하) 이 칸만
+   빼면 되기 때문이다 — 테두리면 방향까지 함께 바꿔야 한다. */
+.dh-sep { background: var(--border); align-self: stretch; min-height: 2.5rem; }
+.dh-cv { display: grid; gap: .1rem; white-space: nowrap; }
+.dh-cv b { font-family: var(--font-mono); font-size: 34px; line-height: 1;
+           letter-spacing: -.02em; font-weight: 700; }
+/* 분모의 슬래시만 죽인다 — 「5 / 7」에서 눈이 잡아야 하는 것은 5 와 7 이다. */
+.dh-cv b i { font-style: normal; color: var(--fg-subtle); }
+.dh-sub { font-size: 13px; line-height: 1.4; color: var(--fg-muted);
+          text-transform: none; letter-spacing: 0; font-weight: 400; }
+.dh-rail { display: grid; gap: .4rem; min-width: 0; }
+.dh-rail-head { display: flex; justify-content: space-between; gap: .8rem;
+                align-items: baseline; }
+.dh-act { display: grid; gap: .45rem; justify-items: end; }
+/* 「다음 미해결」은 **앵커**다. 스크롤 위치 추적이나 목록 필터가 아니라 `#item-N` 으로
+   뛰는 링크라, 이 화면의 `fetch` 자리를 하나도 안 늘린다(의뢰서 §5-2). */
+.dh-next { border: var(--border-width) solid var(--border); background: var(--accent-2);
+           color: var(--ink); box-shadow: var(--offset); text-decoration: none;
+           padding: .4rem .85rem; font-weight: 700; font-size: 15px; line-height: 1.2;
+           white-space: nowrap; }
+.dh-meta { margin: .8rem 0 0; padding: .4rem .9rem; background: var(--bg-sunken);
+           border: var(--border-width) solid var(--border); overflow-x: auto;
+           white-space: nowrap; font-family: var(--font-mono); font-size: 12px;
+           font-weight: 600; letter-spacing: .04em; color: var(--fg-muted); }
+
+/* ─── 항목 레일 — 칸 하나가 항목 하나 ────────────────────────────────────────
+ * 수렴을 숫자로만 말하면 「아직 안 닫힌 항목으로 가는 길」이 화면에 없다(의뢰서 §6-1).
+ * 항목 8개에 판정 12건이 붙은 문서에서 실제로 그랬다.
+ *
+ * 색은 `review-data` 가 항목마다 실어 보낸 `state` 를 **칠하기만** 한다. 도출 규칙을
+ * 여기서 다시 쓰면 화면이 보드·validate 와 다른 말을 한다(SKILL.md 5.8 마지막 줄). */
+.rail { display: flex; flex-wrap: wrap; gap: .4rem; }
+.rail-c { width: 30px; height: 30px; display: grid; place-items: center;
+          border: var(--border-width) solid var(--border);
+          background: var(--bg-elevated); color: var(--fg); text-decoration: none;
+          font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+/* 상태 5색은 **레일 칸과 항목 번호칩이 같은 클래스를 쓴다.** 두 벌로 두면 언젠가 한쪽만
+   고쳐지고, 그때 레일과 항목이 같은 항목을 다른 색으로 말한다. 기하(30px·26px)는 각자
+   `.rail-c`·`.jd-num` 이 지고 색만 여기서 준다. */
+.st-approved { background: var(--ok); color: var(--cream); }
+.st-rejected { background: var(--danger); color: var(--cream); }
+.st-noted    { background: var(--accent-3); color: var(--ink); }
+.st-open     { background: var(--bg-sunken); color: var(--fg); }
+/* 철회는 분모에서 빠진다 — 빈 판 + 취소선이라 색 다섯 중 어느 것도 안 쓴다. */
+.st-retired  { background: var(--bg-elevated); color: var(--fg-subtle);
+               text-decoration: line-through; }
+/* 헤더의 「다음 미해결」이 가리키는 칸. **스크롤 위치를 좇지 않는다** — 그러려면 JS 가
+   필요한데 이 레일은 앵커 장치라 그 자리를 안 늘린다. 그래서 「지금」을 버튼과 같은
+   칸으로 두고, 둘이 늘 같은 항목을 가리키게 한다. */
+.rail-cur { box-shadow: var(--offset-lg); }
+
+/* ─── 접기 — 「여기 더 있다」의 단일 신호는 --bg-sunken 하나다 ───────────────
+ * 접힌 조각의 바탕을 하나로 고정하면 훑는 눈이 그 색만 배우면 된다. 여는 줄에 개수를
+ * 적는 것은 §4.5-2 의 「접기 안에만 있으면 없는 것과 같다」를 접힌 채로 지키기 위해서다.
+ * 0건이면 애초에 안 그린다(§4.5-1) — 그 판단은 렌더러가 한다. */
+details { margin: .7rem 0; }
+details > summary { cursor: pointer; list-style: none;
+                    background: var(--bg-sunken);
+                    border: var(--border-width) solid var(--border);
+                    padding: .4rem .8rem; font-family: var(--font-mono);
+                    font-size: 13px; font-weight: 600; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "\25B8\00a0"; }
+details[open] > summary::before { content: "\25BE\00a0"; }
+.fold-n { float: right; color: var(--fg-subtle); font-weight: 400; }
+
+/* h2 오른쪽에 집계를 다는 자리. 아래 잉크선은 h2 규칙이 그대로 준다. */
+.h2-row { display: flex; justify-content: space-between; align-items: baseline;
+          gap: 1rem; flex-wrap: wrap; }
+
+
+/* ─── 판단 항목 하나 — 다섯 조각에 이름을 달고 잉크선으로 가른다 ────────────────
+ * 옛 판은 승계 블록 · 상세 접기 · 판정 이력 · 의견 · 조작줄이 세로로 쌓이기만 했고,
+ * 위계는 들여쓰기와 왼쪽 띠 색으로만 있었다. 스크롤하면 지금 보는 것이 누구의 무엇인지가
+ * 흐려진다(의뢰서 §6-2). 왼쪽 84px 거터에 조각 이름을 달고 2px 잉크선으로 가르면 그
+ * 위계가 **읽히는 이름**을 갖는다.
+ *
+ * 거터는 본문 열 **밖**이다(grid 3열). 음수 마진으로 밀면 `pre`·표의 본문 폭이 그만큼
+ * 줄어 좁은 열에서 가로 스크롤이 하나 더 생긴다 — §5-7 과 싸우는 자리다.
+ *
+ * 색 규약은 그대로다 — 승계=핑크 · 근거=골드 · 조작=그린. **띠는 밴드가 진다**:
+ * 조각 안의 요소(`.inh`·`.rv-ops`)가 자기 띠를 또 그리면 5px 이 두 겹이 되므로
+ * 아래에서 그 둘의 띠를 끈다(선택자 특이도로 이기므로 파일 순서와 무관하다). */
+#rv-list { list-style: none; padding-left: 0; display: grid; gap: .9rem; }
+#rv-list > li { margin: 0; scroll-margin-top: var(--dh-h); }
+.jd { background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+      box-shadow: var(--offset); }
+/* 헤더줄은 항목 안에서 sticky — 긴 항목을 스크롤해도 「누구의 무엇」이 위에 남는다.
+   결정 헤더 바로 밑에 서고 그보다 낮은 층이라 겹칠 때 헤더가 이긴다. */
+.jd-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+           gap: .5rem; align-items: center; padding: .55rem .8rem;
+           background: var(--bg-elevated);
+           border-bottom: var(--border-width) solid var(--border);
+           position: sticky; top: var(--dh-h); z-index: 20; }
+.jd-num { width: 26px; height: 26px; display: grid; place-items: center;
+          border: var(--border-width) solid var(--border);
+          font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+.jd-title { font-size: 17px; font-weight: 700; line-height: 1.35; }
+.jd-head .meta { margin: 0; white-space: nowrap; }
+.jd-band { display: grid; grid-template-columns: 84px 2px minmax(0, 1fr);
+           column-gap: .7rem; padding: .7rem .8rem;
+           border-top: var(--border-width) solid var(--border); }
+/* 헤더줄(또는 접힘 줄)이 이미 아래 잉크선을 그렸다 — 첫 밴드가 또 그리면 4px 이 된다. */
+.jd-head + .jd-band, summary + .jd-band { border-top: 0; }
+.jd-g { font-family: var(--font-mono); font-size: 11.5px; line-height: 1.4;
+        font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+        color: var(--fg-subtle); padding-top: .25rem; }
+.jd-rule { background: var(--border); align-self: stretch; }
+.jd-body { min-width: 0; }
+.jd-body > :first-child { margin-top: 0; }
+.jd-body > :last-child { margin-bottom: 0; }
+.jd-band-inh > .jd-body { border-left: 5px solid var(--accent-3); padding-left: .75rem; }
+.jd-band-ctx > .jd-body { border-left: 5px solid var(--accent); padding-left: .75rem; }
+/* 「배경」의 사실 목록 — 사실 하나가 한 칸이고, 그 근거(원문)는 칸 안에서 제 줄로 선다.
+   칸 사이 가는 선은 사실의 경계를 눈으로 가르는 자리다(줄글에서 사라지던 것). */
+.jd-facts { list-style: none; margin: 0; padding: 0; }
+.jd-facts > li { padding: .45rem 0; border-top: 1px solid var(--bg-sunken); }
+.jd-facts > li:first-child { border-top: 0; padding-top: 0; }
+.jd-facts > li::before { content: "·"; font-weight: 700; margin-right: .45rem; color: var(--fg-subtle); }
+.jd-src { display: block; margin-top: .15rem; padding-left: .9rem; font-family: var(--font-mono);
+          font-size: 12px; color: var(--fg-subtle); overflow-wrap: anywhere; }
+/* 조작 자리 띠만 테두리가 아니라 **바탕 조각**이다 — `border` 는 질감을 못 받는데, 이
+   자리는 단색(serve)과 45° 해칭(정적)으로 모드를 말해야 한다(REVIEW_CSS 의 `.is-static`).
+   자리·너비·색은 다른 두 띠와 똑같다. */
+.jd-band-ops > .jd-body { padding-left: .75rem;
+  background: linear-gradient(var(--accent-2), var(--accent-2)) left top / 5px 100% no-repeat; }
+.jd-band .inh, .jd-band .rv-ops { border-left: 0; padding-left: 0; }
+/* 「쓸 수 있다는 사실까지가 인터페이스」(§4.5-3) — 0건 자리는 비우지 않고 점선으로 낸다.
+   점선을 쓰는 것은 이 자리가 상태가 아니라 **빈 자리**이기 때문이다. */
+/* 「정할 것」 아래의 선택지 표. **여기(REPORT_STYLE)에 두는 이유**는 3항 본문이
+   `승계됨` 문서에도 보이기 때문이다 — REVIEW_CSS 는 판정을 내릴 수 있는 문서에만 실리므로
+   거기 두면 그 화면에서만 표가 통째로 무너진다(의뢰서 §5-10).
+   표 자체의 테두리·여백은 위의 공용 `table` 규칙이 이미 진다. 여기서 더하는 것은 밴드
+   안에서의 여백과 **추천 행의 표시**뿐이다. 추천은 새 색을 안 만들고 이미 「자리」를
+   가리키는 골드 띠를 왼쪽에 세운다 — 칩(`tag-done`)이 상태를 말하므로 겹치지 않는다. */
+.jd-tbl { margin: .6rem 0 .2rem; }
+.jd-tbl table { margin: 0; }
+.jd-rec > td:first-child { border-left: 3px solid var(--accent); }
+.jd-empty { border: 2px dashed var(--fg-subtle); color: var(--fg-subtle);
+            padding: .45rem .7rem; margin: 0; font-size: 14px; }
+.jd-vs, .jd-ns { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.jd-vs > li { display: grid; grid-template-columns: 3.6rem auto minmax(0, 1fr);
+              gap: .6rem; align-items: baseline; margin: 0;
+              border: var(--border-width) solid var(--border); padding: .35rem .55rem; }
+.jd-vs > li .meta, .jd-ns > li .meta { margin: 0; }
+.jd-ns > li { margin: 0; border-left: 5px solid var(--accent); padding: .2rem 0 .2rem .7rem; }
+
+/* ─── 닫힌 항목은 한 줄로 접힌다 ──────────────────────────────────────────────
+ * §4.5-1 의 「0건이면 안 그린다」를 「**닫혔으면 안 펼친다**」로 연장한 것이다. 판정이 난
+ * 항목은 다시 읽을 자리가 아니라 「이건 끝났다」만 확인하는 자리라, 번호·주제·상태·판정
+ * 수 한 줄이면 그 확인이 끝난다. 항목 8 · 판정 12 짜리 문서가 한 판에 들어오는 것이
+ * 이 규칙의 값이다(의뢰서 §6-1).
+ *
+ * **접되 지우지 않는다** — 펴면 열린 항목과 한 글자도 다르지 않은 내용이 나온다. */
+.jd-fold > summary { display: grid;
+                     grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+                     gap: .5rem; align-items: center; font-family: var(--font-sans);
+                     font-size: 15px; font-weight: 400; border: 0;
+                     border-bottom: var(--border-width) solid var(--border); }
+/* 전역 접기 표식(▸)을 여기서는 끈다 — grid 컨테이너 안의 `::before` 는 칸 하나를 차지해
+   네 칸짜리 줄을 통째로 밀어낸다. 대신 오른쪽 끝의 「펴기/접기」가 같은 말을 한다. */
+.jd-fold > summary::before { content: none; }
+.jd-tog::after { content: "펴기"; }
+.jd-fold[open] .jd-tog::after { content: "접기"; }
+.jd-fold[open] > summary { background: var(--bg-elevated); }
+
+@media (max-width: 40rem) {
+  h1 { font-size: 30px; } h2 { font-size: 24px; }
+  body { padding: 1.5rem .75rem 3rem; }
+
+  /* ─── 40rem 이하 — 375px 에서 실제로 판정할 수 있는가 ──────────────────────
+   * **sticky 를 끈다.** 결정 헤더는 이 폭에서 세로로 접혀 400px 을 넘고, 그 위에 항목
+   * 헤더줄이 또 붙으면 812px 뷰포트에 판정할 것이 안 남는다(실측 425px). `--dh-h` 를
+   * 0 으로 덮으면 `top` 과 `scroll-margin-top` 이 함께 따라온다 — 토큰 하나로 묶어 둔
+   * 값이 여기서 값을 한다. */
+  :root { --dh-h: 0rem; }
+  .dh { grid-template-columns: minmax(0, 1fr); gap: .7rem; position: static; }
+  /* 세로 잉크선은 방향이 안 맞는다 — 열이 사라졌으므로 함께 뺀다. */
+  .dh-sep { display: none; }
+  .dh-cv b { font-size: 30px; }
+  /* 판정 칩은 칩 크기 그대로 두고 「다음 미해결」만 손가락 폭으로 늘린다. */
+  .dh-act { justify-items: start; }
+  .dh-next { display: grid; place-items: center; min-height: 44px; text-align: center;
+             width: 100%; }
+  .jd-head { position: static; }
+
+  /* 레일은 26px 칸으로 줄고 줄바꿈한다(8칸이 두 줄까지). */
+  .rail-c { width: 26px; height: 26px; font-size: 12px; }
+
+  /* **거터가 사라지고 조각 이름이 머리글로 올라간다.** 84px 을 유지하면 본문 열이
+     213px 로 눌려(실측) `pre` 와 표가 저마다 가로 스크롤을 하나씩 더 만든다 — §5-7 이
+     막으려는 것이 바로 그 상태다. 이름은 위로 올라가므로 사라지지 않는다. */
+  .jd-band { grid-template-columns: minmax(0, 1fr); gap: .35rem; padding: .6rem .7rem; }
+  .jd-rule { display: none; }
+  .jd-g { padding-top: 0; }
+  .jd-band-inh > .jd-body, .jd-band-ctx > .jd-body, .jd-band-ops > .jd-body {
+    padding-left: .6rem; }
+  /* 3열 표는 이 폭에서 실제로 좁다. **열을 줄이거나 카드로 접지 않는다** — 레이아웃이
+     두 벌이 되면 검사할 자리도 두 배가 된다. 글자와 셀 여백만 줄이고 넘치는 것은
+     `.scroll` 이 자기 안에서 민다(body 는 안 밀린다). */
+  .jd-tbl table { font-size: 13px; }
+  .jd-tbl th, .jd-tbl td { padding: .35rem .45rem; }
+  /* 헤더줄·접힘 줄도 두 열로 접는다 — 번호|주제 / 상태|개수 / 펴기. */
+  .jd-head, .jd-fold > summary { grid-template-columns: auto minmax(0, 1fr);
+                                 row-gap: .3rem; }
+  .jd-vs > li { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
+}
+
+
+/* width:100% 인 폼 요소가 테두리까지 안고 있어야 .row 안에서 줄이 안 터진다.
+   전역에 걸지 않는 것은 기존 .kpi/.card 의 폭 계산을 건드리지 않기 위해서다. */
+input, select, textarea, button { box-sizing: border-box; }
+/* 이 화면은 읽는 문서가 아니라 조작하는 도구다 — 키보드로 짚은 자리가 보여야 한다. */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* .tag 가 display:inline-block 이라 hidden 속성만으로는 안 숨는다. 이 한 줄이 없으면
+   대기 배지가 빈 네모로 항상 떠 있다(속성은 걸려 있는데 화면은 그대로인 부류의 버그). */
+[hidden] { display: none !important; }
+button { font-family: inherit; font-size: 14px; color: var(--fg); cursor: pointer;
+         background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+         border-radius: 0; padding: .25rem .7rem; }
+button:hover { background: var(--accent); color: var(--ink); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+input, select, textarea { font-family: inherit; font-size: 14px; color: var(--fg);
+  background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+  border-radius: 0; padding: .25rem .5rem; width: 100%; }
+textarea { line-height: 1.6; resize: vertical; }
+.row { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; margin: .45rem 0; }
+.row > input, .row > textarea { flex: 1 1 14rem; width: auto; }
+.row label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+             text-transform: uppercase; color: var(--fg-subtle); min-width: 3rem; }
+/* 조작 자리는 의견 본문·판정 이력과 눈으로 갈라져야 한다. 안 갈라 두면 지난 판정과
+   지금 누를 버튼이 한 덩어리로 읽혀서, 읽는 자리인지 쓰는 자리인지가 흐려진다.
+   왼쪽 선 색만 다르게 준다 — 이미 .note/blockquote 가 쓰는 모티프다. */
+/* 의견 추가 폼의 선택지 행. **조작 자리라 REVIEW_CSS 가 진다** — 판정을 못 내리는
+   문서(`승계됨`·정적 발행본)에는 이 폼 자체가 없으므로 규칙도 갈 자리가 없다.
+   세 칸은 표의 세 열과 같은 순서다(선택지 · 대가 · 그러면) — 입력 순서와 결과 순서가
+   어긋나면 적는 쪽이 매번 머릿속에서 옮겨 앉혀야 한다. */
+.rv-opt { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: .35rem;
+          margin-bottom: .35rem; align-items: center; }
+.rv-opt .rv-rec { display: flex; align-items: center; gap: .25rem; white-space: nowrap; }
+.rv-ops { border-left: 5px solid var(--accent-2); padding: .1rem 0 .1rem .8rem;
+          margin: .6rem 0 1.1rem; }
+.rv-panel { padding: 1rem 1.2rem; }
+/* h2 의 기본 위 여백 2rem 이 모달 안에서는 상자 위에 빈 띠로 남는다 — 문서에서는 절
+   사이 간격이지만 여기서는 절 사이가 아니다. */
+.modal .box > h2:first-child { margin-top: 0; }
+/* 트레이는 화면에 붙어 있어야 한다 — 의견 20개를 스크롤하며 판정하는 동안 "몇 건이
+   쌓였나"가 문서 맨 아래에 있으면 그것을 보러 가는 사람이 없다. */
+.tray { position: fixed; left: 1.1rem; bottom: 1.1rem; z-index: 70;
+        width: min(30rem, 94vw); background: var(--bg-elevated);
+        border: var(--border-width) solid var(--border); box-shadow: var(--offset-lg);
+        display: none; }
+.tray.on { display: block; }
+/* 트레이 머리도 **조작 자리**다 — 골드(인용·주석)가 아니라 그린이 규약이다(§4.4).
+   조작 자리 색이 화면 두 곳에서 갈려 있으면 「여기는 무엇을 하는 자리인가」가 색으로
+   안 읽힌다. */
+.tray-head { display: flex; gap: .5rem; align-items: center; padding: .45rem .7rem;
+             border-bottom: var(--border-width) solid var(--border);
+             background: var(--accent-2); color: var(--ink); }
+.tray-head b { font-size: 15px; }
+.tray-head .meta { color: var(--ink); margin: 0; }
+.tray .spacer { flex: 1 1 auto; }
+/* 40rem 이하에서만 뜬다 — 넓은 화면에서 트레이는 늘 펼쳐져 있어 접을 이유가 없다. */
+#tray-toggle { display: none; }
+.tray ol { margin: 0; padding: .4rem .7rem; max-height: 12rem; overflow-y: auto;
+           font-family: var(--font-mono); font-size: 12px;
+           font-variant-numeric: tabular-nums; }
+.tray li { display: flex; gap: .4rem; align-items: baseline; }
+.tray li span { flex: 1 1 auto; }
+.tray-foot { display: flex; gap: .5rem; padding: .5rem .7rem;
+             border-top: 1px solid var(--border); }
+.modal { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.55);
+         display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+.modal.on { display: flex; }
+.modal .box { background: var(--bg); border: var(--border-width) solid var(--border);
+              box-shadow: var(--offset-lg); max-width: 56rem; width: 100%;
+              max-height: 88vh; overflow-y: auto; padding: 1.2rem 1.4rem 1.6rem; }
+.modal pre { white-space: pre-wrap; word-break: break-all; max-height: 20rem;
+             overflow-y: auto; }
+.toast { position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%);
+         background: var(--ink); color: var(--cream); padding: .5rem 1rem; z-index: 95;
+         border: var(--border-width) solid var(--border); font-size: 14px; display: none;
+         max-width: 90vw; }
+.toast.on { display: block; }
+/* ─── 저장 결과 셋 — applied / failed / pending 을 안 뭉친다 ─────────────────
+ * `review-apply` 는 첫 실패에서 멈추고 **앞선 것은 되돌리지 않는다**. 화면이 그것을
+ * 「저장 실패」 한 덩어리로 뭉치면 유저는 검토서를 다시 읽어 무엇이 들어갔는지 맞춰야
+ * 하고, 모르는 채 다시 누르면 들어간 것이 두 번 들어간다.
+ *
+ * 표시는 셋이다 — ●반영됨(실선 채움) · ✕실패(반려색) · ○안 보냄(빈 원). 아이콘 자리를
+ * `flex: 0 0 auto` 로 고정하는 것은 `.tray li span` 이 전부 늘어나게 돼 있어서다
+ * (선택자를 `.tray li span.rs-i` 로 써야 그 규칙을 이긴다). */
+.tray li.rs-ok { color: var(--fg-muted); }
+.tray li.rs-no { color: var(--danger); }
+.tray li.rs-wait { color: var(--fg-subtle); }
+.tray li span.rs-i { flex: 0 0 auto; width: 1.1rem; text-align: center;
+                     font-family: var(--font-mono); font-weight: 700; }
+.tray li.rs-ok span.rs-i { color: var(--ok); }
+.tray li.rs-no span.rs-i { color: var(--danger); }
+
+/* ─── 모드 질감 — 문구가 아니라 손끝으로 갈린다 ──────────────────────────────
+ * 정적으로 연 화면과 서버가 내준 화면이 문구 한 줄로만 구별됐다(의뢰서 §6-5).
+ * 「새 색을 만들지 않는다」(§4.4·§7)를 지키면서 가를 방법은 **같은 토큰의 질감**이다 —
+ * 조작 자리(그린)가 serve 면 단색, 정적이면 45° 사선 해칭이다. 해칭은 CSS 그라디언트라
+ * 외부 자산이 0건이고(§5-1), `var()` 두 개로만 쓰므로 다크에서 같이 뒤집힌다
+ * (§5-3 의 리터럴 강제는 SVG 한정이다 — CSS 는 `var()` 를 푼다).
+ *
+ * **정적 모드에서 버튼을 비활성화하지 않는다.** 그 버튼들은 진짜로 작동한다 — 패치 큐에
+ * 쌓이고 「패치·명령 보기」로 나간다. 비활성은 거짓말이다. */
+.jd-band-ops.is-static > .jd-body {
+  background-image: repeating-linear-gradient(45deg,
+      var(--accent-2) 0 3px, var(--bg-elevated) 3px 6px); }
+.tray-head.is-static { background: repeating-linear-gradient(45deg,
+      var(--accent-2) 0 6px, var(--bg-elevated) 6px 12px); }
+/* 모드 지문 — 두 모드에서 **같은 자리**(타이틀 머리줄 오른쪽 끝)에 선다. 타이틀 블록은
+   두 테마에서 늘 골드+잉크라, 지문도 그 안에서 잉크/크림을 뒤집어 고정으로 읽힌다. */
+.mode-stamp { background: var(--ink); color: var(--cream); padding: .1rem .5rem;
+              font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+              letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+/* ─── 대기 — 「아직 정본이 아님」은 상태가 아니다 ─────────────────────────────
+ * 큐에 든 것을 상태 태그·수렴에 미리 반영하지 않는다(§3.4·§6-3). 그러려면 도출 규칙을
+ * 브라우저에 복제해야 하고, 그 순간 화면이 보드·validate 와 다른 말을 한다. 그래서 대기는
+ * **색을 안 쓰는 표시**로만 말한다 — 2px 점선 · 빈 원 · 회색 모노. 판정 태그 6종을 하나도
+ * 안 빌리므로 훑는 눈이 대기를 상태로 읽을 수 없다(§4.4).
+ *
+ * 반투명은 버렸다 — 잉크선 정체성이 사라지고 「비활성」으로 읽힌다. 점선은 밝기를 안
+ * 건드리므로 다크에서도 그대로 선다(`--border` 를 쓰니 같이 뒤집힌다. 신설 토큰 0).
+ *
+ * 여기가 `REVIEW_CSS` 인 이유: 큐는 판정을 내릴 수 있는 문서에만 있다. `승계됨` 문서에는
+ * 조작 자리 자체가 없어서 이 규칙이 걸릴 요소가 하나도 없다(§5-10). */
+.tag-wait { background: transparent; color: var(--fg-subtle);
+            border: var(--border-width) dashed var(--border); }
+/* 카드 밖 점선 한 겹. `outline` 이라 레이아웃을 안 밀어 대기가 켜질 때 줄이 안 흔들린다. */
+.jd.is-pending { outline: var(--border-width) dashed var(--border); outline-offset: 4px; }
+.rail-c.rail-pending { outline: var(--border-width) dashed var(--border);
+                       outline-offset: 3px; }
+/* 유령 줄 — 판정 이력·의견 목록 **끝**에 붙는 「저장 전」. 이미 적힌 줄과 같은 자리에
+   서되 테두리가 점선이고 글자가 회색이라 눈으로 갈린다. */
+.jd-vs > li.jd-ghost { border-style: dashed; border-color: var(--fg-subtle);
+                       color: var(--fg-subtle); }
+.jd-ns > li.jd-ghost { border-left-style: dashed; border-left-color: var(--fg-subtle);
+                       color: var(--fg-subtle); }
+.jd-o { font-family: var(--font-mono); font-weight: 700; }
+
+/* ─── 40rem 이하 — 조작줄 · 트레이 · 모달 ─────────────────────────────────────
+ * 의뢰서 §6-6 이 「확인 안 함」으로 남긴 자리다. 셋 다 넓은 화면 전제로 세워져 있었다 —
+ * 버튼이 한 줄로 늘어서고, 트레이가 좌하단 카드로 본문을 덮고, 모달이 좌우 여백을 갖는다.
+ *
+ * 손가락 기준 44px 은 조작 요소 **전부**에 건다. 버튼 2×2 배치는 버린 안(1c)에서 가져온
+ * 유일한 것이다. */
+@media (max-width: 40rem) {
+  /* 3열 + 라디오는 이 폭에서 못 선다. 한 열로 쌓고 손가락 폭을 준다. */
+  .rv-opt { grid-template-columns: minmax(0, 1fr); gap: .3rem; }
+  .rv-opt input:not([type=radio]) { min-height: 44px; }
+  .rv-ops .row { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; }
+  .rv-ops .row label { grid-column: 1 / -1; }
+  .rv-ops button, .rv-ops input, .rv-ops select { min-height: 44px; }
+  .rv-ops .row > input { grid-column: 1 / -1; width: 100%; }
+  .rv-panel button, .rv-panel input, .rv-panel select, .rv-panel textarea,
+  #rv-toolbar select { min-height: 44px; }
+
+  /* 트레이는 좌하단 카드 → **하단 전폭 바**. 접힘으로 시작하고 ▴ 로 편다 — 펼친 채로
+     두면 목록이 화면 절반을 먹어 정작 판정할 항목이 안 보인다. */
+  .tray { left: 0; right: 0; bottom: 0; width: auto;
+          border-width: var(--border-width) 0 0; box-shadow: none; }
+  #tray-toggle { display: inline-block; min-height: 44px; min-width: 44px; }
+  .tray:not(.open) ol, .tray:not(.open) .tray-foot { display: none; }
+  .tray ol { max-height: 40vh; }
+  .tray-foot button { flex: 1 1 auto; min-height: 44px; }
+
+  /* 모달은 **전폭 시트** — 좌우 여백 0, 상단 2px 잉크선, 닫기 44px. */
+  .modal { padding: 0; align-items: flex-end; }
+  .modal .box { max-height: 92vh; padding: 1rem .9rem 1.4rem;
+                border-width: var(--border-width) 0 0; box-shadow: none; }
+  .modal .box button { min-height: 44px; }
+  #x-close { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+</style>
+<div class="wrap">
+<div class="title-block">
+  <div class="tb-row">
+    <p class="meta">KAN-001-MJ3PE1 · 검토 · 브랜치 KAN-001-MJ3PE1</p>
+    <span class="mode-stamp">정적 · 저장 없음 · 패치로</span>
+  </div>
+  <h1>authoring-kit 0.4.0 — 문체 설정 체계화(전역→voice 계승·어휘 가중치·정성 지시·편집기) — 검토 요청</h1>
+</div>
+
+<p class="note"><strong>머지됨</strong> — 이 카드는 이미 병합됐습니다 (832d85e). 검토 대상은 브랜치가 아니라 아래 고정 범위입니다.</p>
+
+
+
+<div class="dh">
+  <div class="dh-cv"><span class="meta">수렴</span>
+    <b>2<i> / </i>2</b>
+    <span class="dh-sub">살아있는 항목 전부 승인</span></div>
+  <div class="dh-sep"></div>
+  <div class="dh-rail">
+    <div class="dh-rail-head"><span class="meta">항목 레일 — 누르면 그 항목으로</span>
+      <span class="meta">2칸</span></div>
+    <div class="rail"><a class="rail-c st-approved" href="#item-1" title="§3-1 승인 — 조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫으로만 확인">1</a><a class="rail-c st-approved" href="#item-2" title="§3-2 승인 — 기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼스로 검증하">2</a></div>
+  </div>
+  <div class="dh-sep"></div>
+  <div class="dh-act">
+    <span class="tag tag-done">승인</span>
+    </div>
+</div>
+<div class="dh-meta">변경 42파일 · +7053 −101 · 커밋 17 · 롤백 태그 0 · 추가 의견 0</div>
+
+
+
+<h2 class="h2-row">판단 항목 2<span class="meta">열린 것 0 · 닫힌 것 2</span></h2>
+<p class="note">번호는 의견 순서입니다. <b>의견마다 판정과 추가 의견이 따로 붙습니다</b> — 판정은 상태이고
+추가 의견은 말입니다. 승인/반려를 아직 안 정했어도 추가 의견만 달 수 있고, 반대로 의견 하나만 먼저 닫을 수도
+있습니다. <b>판정과 추가 의견, 의견 추가는 이 화면에서 바로 합니다</b> — 누른 것은 왼쪽 아래
+<b>판정 대기</b> 트레이에 쌓이고, 「패치·명령 보기」가 그것을 터미널 한 줄로 내줍니다.
+브라우저는 파일을 못 쓰므로 실제 쓰기는 그 한 줄이 합니다. 터미널을 쓸 것이면 아래 명령을
+그대로 써도 됩니다(번호 대신 주제의 문구 일부도 받습니다). <b>발행본(<code>.review.md</code>)에 직접
+적지 않습니다</b> — 그 줄은 정본에 없어 다음 발행이 거부하고, 다시 뽑는 순간 사라집니다. <b>전체 승인은 살아있는 항목이 전부
+승인일 때만 섭니다</b> — 철회는 분모에서 빠집니다.</p>
+<p class="note"><b>대기 배지는 상태가 아닙니다.</b> 줄 맨 앞의 상태 태그는 검토서에 적힌 사실이고,
+<span class="tag tag-wait">대기</span> 는 아직 안 적힌 것입니다 — 반영하고 다시 렌더해야 태그가
+움직입니다. 화면이 미리 태그를 바꾸면 리포트가 보드·<code>validate</code> 와 다른 말을 하게 됩니다.</p>
+<pre>python3 scripts/kanban.py review-judge &lt;project-root&gt; --card KAN-001-MJ3PE1 --item &lt;번호&gt; --verdict 승인
+python3 scripts/kanban.py review-note  &lt;project-root&gt; --card KAN-001-MJ3PE1 --item &lt;번호&gt; --text "&lt;추가 의견&gt;"
+python3 scripts/kanban.py review-item  &lt;project-root&gt; --card KAN-001-MJ3PE1 --add "&lt;새 주제&gt;
+  &lt;상세&gt;"</pre>
+
+<div class="row" id="rv-toolbar">
+  <label for="rv-by">작성자</label>
+  <select id="rv-by" style="width:auto"><option>유저</option><option>ai</option></select>
+  <span class="meta">이 화면에서 내는 판정·추가 의견에 붙습니다 — 기본은 유저입니다</span>
+</div>
+<ol id="rv-list"><li id="item-1" class="jd jd-closed"><details class="jd-fold"><summary><span class="jd-num st-approved">1</span><span class="jd-title">조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫으로만 확인했고 주장마다 확인 수준 표지를 달았습니다</span><span class="tag tag-done">승인</span><span class="meta">판정 1 · 의견 0</span><span class="meta jd-tog"></span></summary><div class="jd-band jd-band-ctx"><span class="jd-g">배경</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-facts"><li><span class="jd-fact">원문 지시는 「구조화에는 조사가 선행되어야 한다」와 「전문적 토대 위에 구조화」를 요구합니다.</span></li><li><span class="jd-fact">조사 때 원문 페이지 열람이 네트워크 정책에 막혀 논문·문헌 본문은 읽지 못했습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:14</span></li><li><span class="jd-fact">그래서 노트의 모든 주장에 [확인]·[추정] 같은 확인 수준 표지를 붙였습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:19</span></li></ul></div></div><div class="jd-band jd-band-ctx"><span class="jd-g">정할 것</span><span class="jd-rule"></span><div class="jd-body"><p>이 근거 수준으로 카드를 닫을 것인가.</p><div class="scroll jd-tbl"><table><thead><tr><th>선택지</th><th>대가</th><th>그러면 어떻게 되는가</th></tr></thead><tbody><tr class="jd-rec"><td><span class="tag tag-done">추천</span> 이대로 받는다</td><td>분류 일부는 원문 대조 없이 선다</td><td>카드가 닫히고, 원문 대조는 필요할 때 별도 카드로 한다</td></tr><tr><td>원문 대조 후 닫는다</td><td>열람이 되는 환경에서 조사를 다시 해야 한다</td><td>이 카드는 그때까지 검토에 머문다</td></tr></tbody></table></div></div></div><div class="jd-band jd-band-v"><span class="jd-g">판정 1</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-vs"><li><span class="meta">1회차</span><span class="tag tag-done">승인</span><span><span class="meta">유저 · 2026-09-26</span> </span></li></ul></div></div><div class="jd-band jd-band-n"><span class="jd-g">의견 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">추가 의견 없음 — <code>review-note --card KAN-001-MJ3PE1 --item 1 --text "&lt;추가 의견&gt;"</code></p><ul class="jd-ns"></ul></div></div><div class="jd-band jd-band-ops is-static"><span class="jd-g">조작</span><span class="jd-rule"></span><div class="jd-body"><div class="rv-ops" data-item="1"><div class="row"><label>판정</label><button data-judge="승인">승인</button><button data-judge="반려">반려</button><button data-judge="철회">철회</button><span class="tag tag-wait" data-pending="1" hidden></span></div><div class="row"><label>추가 의견</label><input data-note placeholder="추가 의견 — 판정을 안 바꾸고 말만 남깁니다"><button data-note-add>추가 의견 달기</button></div></div></div></div></details></li><li id="item-2" class="jd jd-closed"><details class="jd-fold"><summary><span class="jd-num st-approved">2</span><span class="jd-title">기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼스로 검증하지 않았고 편집기에서 층마다 고칠 수 있게 열어 두었습니다</span><span class="tag tag-done">승인</span><span class="meta">판정 1 · 의견 0</span><span class="meta jd-tog"></span></summary><div class="jd-band jd-band-ctx"><span class="jd-g">배경</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-facts"><li><span class="jd-fact">어휘가 한 문장 안에서 몇 번 겹치면, 1,000자당 몇 번 나오면 경고할지의 기준값이 있습니다.</span><span class="jd-src">원문 plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md:23</span></li><li><span class="jd-fact">이 값은 측정으로 정한 것이 아니라 설계할 때 둔 초기값입니다.</span></li><li><span class="jd-fact">이 저장소의 사람이 쓴 문서 17편에서는 경고가 나오지 않았고, 일부러 과장한 표본에서는 나왔습니다.</span></li><li><span class="jd-fact">전역 설정과 voice 설정에서 키 하나씩 덮어 고칠 수 있습니다.</span><span class="jd-src">원문 plugins/authoring-kit/scripts/style_registry.py:279</span></li></ul></div></div><div class="jd-band jd-band-ctx"><span class="jd-g">정할 것</span><span class="jd-rule"></span><div class="jd-body"><p>초기값 그대로 내보낼 것인가.</p><div class="scroll jd-tbl"><table><thead><tr><th>선택지</th><th>대가</th><th>그러면 어떻게 되는가</th></tr></thead><tbody><tr class="jd-rec"><td><span class="tag tag-done">추천</span> 그대로 내보낸다</td><td>실제 글에서 경고가 너무 많거나 적을 수 있다</td><td>쓰면서 편집기로 조정하고, 조정한 값이 전역 설정에 쌓인다</td></tr><tr><td>코퍼스로 먼저 맞춘다</td><td>검증용 글 묶음을 모으는 작업이 따로 든다</td><td>이 카드는 그때까지 닫히지 않는다</td></tr></tbody></table></div></div></div><div class="jd-band jd-band-v"><span class="jd-g">판정 1</span><span class="jd-rule"></span><div class="jd-body"><ul class="jd-vs"><li><span class="meta">1회차</span><span class="tag tag-done">승인</span><span><span class="meta">유저 · 2026-09-26</span> </span></li></ul></div></div><div class="jd-band jd-band-n"><span class="jd-g">의견 0</span><span class="jd-rule"></span><div class="jd-body"><p class="jd-empty">추가 의견 없음 — <code>review-note --card KAN-001-MJ3PE1 --item 2 --text "&lt;추가 의견&gt;"</code></p><ul class="jd-ns"></ul></div></div><div class="jd-band jd-band-ops is-static"><span class="jd-g">조작</span><span class="jd-rule"></span><div class="jd-body"><div class="rv-ops" data-item="2"><div class="row"><label>판정</label><button data-judge="승인">승인</button><button data-judge="반려">반려</button><button data-judge="철회">철회</button><span class="tag tag-wait" data-pending="2" hidden></span></div><div class="row"><label>추가 의견</label><input data-note placeholder="추가 의견 — 판정을 안 바꾸고 말만 남깁니다"><button data-note-add>추가 의견 달기</button></div></div></div></div></details></li></ol>
+
+<h3>의견 추가</h3>
+<section class="card rv-panel" id="rv-add">
+<p class="note">추가 의견을 반영하다 새 의견이 생기는 것은 정상 경로입니다. 새 의견은 3항
+<b>맨 뒤</b>에 붙고 앞 번호는 안 밀립니다 — 이미 달린 추가 의견·판정과 승계 참조가 안 깨집니다.
+<b>카드 의도와 이어지지 않는 것</b>과 <b>지시 원본보다 낮은 레이어의 고민</b>은 여기 올릴 것이
+아닙니다 — 플래그 이름·함수 이름을 묻는 의견이 그렇습니다.</p>
+<div class="row"><label>주제</label>
+  <input id="rv-q" placeholder="한 줄로 — 무엇을 정해야 하는가"></div>
+<div class="row"><label>배경</label>
+  <textarea id="rv-bg" rows="3" placeholder="한 줄에 사실 하나 — 줄마다 목록 항목이 됩니다. 겪는 증상으로 쓰고, 줄 끝에 `원문: 파일:줄` 을 겁니다. 도구 내부를 모르는 사람이 읽고 판정할 수 있게 — 비면 큐에 안 들어갑니다"></textarea></div>
+<div class="row"><label>정할 것</label>
+  <textarea id="rv-dec" rows="2" placeholder="정할 것 한 줄 — 무엇을 고르는가"></textarea></div>
+<div class="row"><label>선택지</label>
+  <div id="rv-opts" style="flex:1">
+    <div class="rv-opt"><input data-opt placeholder="선택지"><input data-cost placeholder="대가"><input data-what placeholder="그러면 어떻게 되는가"><label class="rv-rec"><input type="radio" name="rv-rec" checked> 추천</label></div>
+    <div class="rv-opt"><input data-opt placeholder="선택지"><input data-cost placeholder="대가"><input data-what placeholder="그러면 어떻게 되는가"><label class="rv-rec"><input type="radio" name="rv-rec"> 추천</label></div>
+  </div></div>
+<div class="row"><label></label><button id="rv-opt-add" type="button">행 추가</button>
+  <span class="meta">갈래가 없으면 비워 두세요 — 고를 것이 없는 항목도 있습니다</span></div>
+<div class="row"><label>갈래</label>
+  <select id="rv-from" style="width:auto"><option value="">원 의견 없음</option><option value="1">§3-1 조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫</option><option value="2">§3-2 기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼</option></select>
+  <button id="rv-add-go">의견 추가</button>
+  <span class="tag tag-wait" data-pending="+" hidden></span></div>
+</section>
+
+<h2>전체 판정</h2>
+
+<section class="card rv-panel" id="rv-all">
+
+<p class="note">문서 전체에 대한 판정입니다 — <b>항목 판정과 다른 자리</b>입니다. 전체
+승인은 살아있는 항목이 전부 승인일 때만 섭니다(철회는 분모에서 빠집니다). <b>철회는
+항목에만</b> 있습니다 — 문서 전체를 철회하는 일은 검토를 닫는 것이 아니라 카드를 닫는
+것이라, 여기가 아니라 보드에서 합니다.</p>
+<div class="row">
+  <button data-judge-all="승인">전체 승인</button>
+  <button data-judge-all="반려">전체 반려</button>
+  <span class="tag tag-wait" data-pending="*" hidden></span></div>
+</section>
+
+<h2>대상과 근거</h2>
+<p class="note">판정을 내리는 데 <b>지금</b> 봐야 하는 것만 펴 뒀습니다 — 검증 결과와 변경 규모입니다.
+나머지는 1회차에만 읽는 자리라 접혀 있고, 여는 줄에 개수가 적혀 있습니다. 0건인 것은 아예 안 그립니다.</p>
+
+<h3>검증 — 기준과 실행 결과</h3>
+<section class="card"><p><strong>기준</strong></p>
+<ul>
+<li><code>python3 plugins/authoring-kit/fixtures/test_style.py</code> → <code>통과 92 · 실패 0</code> (계승·검증·가중치 스캔·L0 항목 면제·resolve·lock·편집기 API)</li>
+<li><code>test_scanner.py</code> · <code>test_linter.py</code> 통과, 대역 voice 로 돌린 <code>test_layer_separation.py</code> 32/32 (voice 간 누출 없음)</li>
+<li><code>authoring.py style validate</code> → 정상</li>
+<li>규칙 하나를 끈 돌연변이 실행에서 <code>test_style.py</code> 가 5건 실패 — 테스트가 실제로 잡는다</li>
+<li>Playwright 로 편집기 전체 흐름·라이트/다크·390px 폭 확인</li>
+<li>알려진 실패(이 카드와 무관, 이전부터): <code>test_plugin_shape.py</code> 의 <code>authoring-write: 142줄 ≤ 130</code></li>
+</ul>
+<p><strong>실행 결과</strong></p>
+<pre>$ test_style.py
+문체 설정 통과.
+통과 92 · 실패 0
+$ test_scanner.py
+통과 9 · 실패 0
+$ test_linter.py
+통과 25 · 실패 0
+$ test_layer_separation.py
+통과 32 · 실패 0
+$ authoring.py style validate
+문체 설정 정상 — 카탈로그 · 전역 · voice 전부
+$ test_plugin_shape.py (기존 실패 — 12dc324 에서도 authoring-write SKILL.md 142줄)
+  FAIL authoring-write: 142줄 ≤ 130 — 142줄
+  - authoring-write: 142줄 ≤ 130 — 142줄</pre></section>
+
+<h3>변경 규모</h3>
+<div class="chart"><svg viewBox="0 0 860 530" role="img" aria-label="파일별 변경 규모"><text x="16" y="28" font-size="12" fill="#6E6A5E">파일 42개 중 규모 상위 18개 · 초록 추가 · 빨강 삭제</text><text x="16" y="57" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">KANBAN.board.html</text><rect x="316.0" y="46" width="528.0" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="852.0" y="58" font-size="11" fill="#6E6A5E">+1545 −0</text><text x="16" y="83" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…ing-method/assets/style/qualitative.json</text><rect x="316.0" y="72" width="360.9" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="684.9" y="84" font-size="11" fill="#6E6A5E">+1056 −0</text><text x="16" y="109" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…/authoring-kit/scripts/style_registry.py</text><rect x="316.0" y="98" width="288.8" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="612.8" y="110" font-size="11" fill="#6E6A5E">+845 −0</text><text x="16" y="135" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…ugins/authoring-kit/ui/style-editor.html</text><rect x="316.0" y="124" width="210.9" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="534.9" y="136" font-size="11" fill="#6E6A5E">+617 −0</text><text x="16" y="161" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…g-style/assets/research/lexicon-notes.md</text><rect x="316.0" y="150" width="200.9" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="524.9" y="162" font-size="11" fill="#6E6A5E">+588 −0</text><text x="16" y="187" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…yle/assets/research/qualitative-notes.md</text><rect x="316.0" y="176" width="188.0" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="512.0" y="188" font-size="11" fill="#6E6A5E">+550 −0</text><text x="16" y="213" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…thoring-method/assets/style/lexicon.json</text><rect x="316.0" y="202" width="126.1" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="450.1" y="214" font-size="11" fill="#6E6A5E">+369 −0</text><text x="16" y="239" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…ins/authoring-kit/fixtures/test_style.py</text><rect x="316.0" y="228" width="112.4" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="436.4" y="240" font-size="11" fill="#6E6A5E">+329 −0</text><text x="16" y="265" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…ns/authoring-kit/scripts/style_server.py</text><rect x="316.0" y="254" width="90.2" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="414.2" y="266" font-size="11" fill="#6E6A5E">+264 −0</text><text x="16" y="291" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…s/authoring-kit/scripts/scan_ai_style.py</text><rect x="316.0" y="280" width="33.1" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><rect x="349.1" y="280" width="29.0" height="14" fill="#C0392B" stroke="#1C1B17" stroke-width="2"/><text x="386.2" y="292" font-size="11" fill="#6E6A5E">+97 −85</text><text x="16" y="317" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…authoring-style/assets/STYLE_RESEARCH.md</text><rect x="316.0" y="306" width="50.2" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="374.2" y="318" font-size="11" fill="#6E6A5E">+147 −0</text><text x="16" y="343" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…s/authoring-style/assets/STYLE_SCHEMA.md</text><rect x="316.0" y="332" width="37.9" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="361.9" y="344" font-size="11" fill="#6E6A5E">+111 −0</text><text x="16" y="369" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…ns/authoring-kit/scripts/scan_lexicon.py</text><rect x="316.0" y="358" width="36.6" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="360.6" y="370" font-size="11" fill="#6E6A5E">+107 −0</text><text x="16" y="395" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…ring-kit/skills/authoring-style/SKILL.md</text><rect x="316.0" y="384" width="30.8" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="354.8" y="396" font-size="11" fill="#6E6A5E">+90 −0</text><text x="16" y="421" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">.kanban/state.json</text><rect x="316.0" y="410" width="21.5" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="345.5" y="422" font-size="11" fill="#6E6A5E">+63 −0</text><text x="16" y="447" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">KANBAN/cards/KAN-001-MJ3PE1.md</text><rect x="316.0" y="436" width="19.8" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="343.8" y="448" font-size="11" fill="#6E6A5E">+58 −0</text><text x="16" y="473" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">…ugins/authoring-kit/scripts/authoring.py</text><rect x="316.0" y="462" width="18.5" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><rect x="334.5" y="462" width="1.0" height="14" fill="#C0392B" stroke="#1C1B17" stroke-width="2"/><text x="343.5" y="474" font-size="11" fill="#6E6A5E">+54 −3</text><text x="16" y="499" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">KANBAN.md</text><rect x="316.0" y="488" width="13.7" height="14" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="337.7" y="500" font-size="11" fill="#6E6A5E">+40 −0</text></svg></div>
+<div class="scroll"><table>
+<tr><th>파일</th><th>상태</th><th>추가</th><th>삭제</th></tr><tr><td><code>.claude-plugin/marketplace.json</code></td><td>M</td><td>2</td><td>2</td></tr><tr><td><code>.gitattributes</code></td><td>M</td><td>7</td><td>0</td></tr><tr><td><code>.gitignore</code></td><td>M</td><td>3</td><td>0</td></tr><tr><td><code>.kanban/archive.jsonl</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>.kanban/log.md</code></td><td>M</td><td>5</td><td>0</td></tr><tr><td><code>.kanban/reviews/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>.kanban/state.json</code></td><td>M</td><td>63</td><td>0</td></tr><tr><td><code>KANBAN.board.html</code></td><td>M</td><td>1545</td><td>0</td></tr><tr><td><code>KANBAN.md</code></td><td>M</td><td>40</td><td>0</td></tr><tr><td><code>KANBAN/batches/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>KANBAN/cards/KAN-001-MJ3PE1.md</code></td><td>M</td><td>58</td><td>0</td></tr><tr><td><code>KANBAN/reports/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>KANBAN/requests/backlog/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>KANBAN/requests/doing/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>KANBAN/requests/done/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>KANBAN/requests/review/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>KANBAN/requests/todo/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>KANBAN/reviews/.gitkeep</code></td><td>M</td><td>0</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/.claude-plugin/plugin.json</code></td><td>M</td><td>5</td><td>3</td></tr><tr><td><code>plugins/authoring-kit/README.md</code></td><td>M</td><td>36</td><td>1</td></tr><tr><td><code>plugins/authoring-kit/fixtures/run_all.sh</code></td><td>M</td><td>1</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/fixtures/test_plugin_shape.py</code></td><td>M</td><td>6</td><td>2</td></tr><tr><td><code>plugins/authoring-kit/fixtures/test_style.py</code></td><td>M</td><td>329</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/scripts/authoring.py</code></td><td>M</td><td>54</td><td>3</td></tr><tr><td><code>plugins/authoring-kit/scripts/scan_ai_style.py</code></td><td>M</td><td>97</td><td>85</td></tr><tr><td><code>plugins/authoring-kit/scripts/scan_lexicon.py</code></td><td>M</td><td>107</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/scripts/style_registry.py</code></td><td>M</td><td>845</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/scripts/style_server.py</code></td><td>M</td><td>264</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-doctor/SKILL.md</code></td><td>M</td><td>11</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-gate/SKILL.md</code></td><td>M</td><td>16</td><td>1</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-method/SKILL.md</code></td><td>M</td><td>7</td><td>2</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-method/assets/QUALITY_RUBRIC.md</code></td><td>M</td><td>10</td><td>1</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-method/assets/style/lexicon.json</code></td><td>M</td><td>369</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-method/assets/style/qualitative.json</code></td><td>M</td><td>1056</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-style/SKILL.md</code></td><td>M</td><td>90</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-style/assets/STYLE_RESEARCH.md</code></td><td>M</td><td>147</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-style/assets/STYLE_SCHEMA.md</code></td><td>M</td><td>111</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-style/assets/research/lexicon-notes.md</code></td><td>M</td><td>588</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-style/assets/research/qualitative-notes.md</code></td><td>M</td><td>550</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-voice/SKILL.md</code></td><td>M</td><td>8</td><td>0</td></tr><tr><td><code>plugins/authoring-kit/skills/authoring-voice/assets/VOICE_SCHEMA.md</code></td><td>M</td><td>6</td><td>1</td></tr><tr><td><code>plugins/authoring-kit/ui/style-editor.html</code></td><td>M</td><td>617</td><td>0</td></tr>
+</table></div>
+
+<details><summary>검토 대상 — 브랜치 · 워크트리 · 베이스 · diff 범위</summary><div class="scroll"><table>
+<tr><th>항목</th><th>값</th></tr>
+<tr><td>브랜치</td><td><code>KAN-001-MJ3PE1</code> — 머지됨</td></tr>
+<tr><td>워크트리</td><td><code>/Users/centurio/orca/workspaces/my-claude-plugin/KAN-001-MJ3PE1-2</code></td></tr>
+<tr><td>베이스</td><td><code>12dc324</code></td></tr>
+<tr><td>변경 훑기</td><td><code>git diff 12dc324..832d85e</code></td></tr>
+</table></div></details>
+<details><summary>커밋<span class="fold-n">17건</span></summary><pre>832d85e Merge KAN-001-MJ3PE1: authoring-kit 0.4.0 문체 설정 체계화 (카드는 진행 중 유지)
+aa5817a kanban: KAN-001-MJ3PE1 scope 기재 (plugins/authoring-kit/**, marketplace.json)
+d1164ea kanban: KAN-001-MJ3PE1 S8 완료 (소급)
+b26173b kanban: KAN-001-MJ3PE1 S7 완료 (소급)
+ebd3d4e kanban: KAN-001-MJ3PE1 S6 완료 (소급)
+f5ff3b4 kanban: KAN-001-MJ3PE1 S5 완료 (소급)
+69fd4ae kanban: KAN-001-MJ3PE1 S4 완료 (소급)
+027ab2b kanban: KAN-001-MJ3PE1 S3 완료 (소급)
+4ffd70d kanban: KAN-001-MJ3PE1 S2 완료 (소급)
+31733ac kanban: KAN-001-MJ3PE1 S1 완료 (소급)
+3353d07 kanban: KAN-001-MJ3PE1 소급 기록 사실을 수행 내역에 남김
+685f45b kanban: KAN-001-MJ3PE1 실행 문서 — 전략·실행 계획·검증 (소급)
+5b28533 kanban: KAN-001-MJ3PE1 진행 중으로 이동
+955ad1b kanban: KAN-001-MJ3PE1 할 일에 추가 (문체 설정 체계화, 소급)
+c129205 Merge claude/beautiful-mccarthy-kxg2nl into KAN-001-MJ3PE1 — 소급: 먼저 수행한 작업을 카드 브랜치로
+3dda6d1 kanban: 보드 환경 초기화 (layout 3)
+3e1ada8 feat(authoring-kit) 0.4.0: 문체 설정 — 전역을 voice 가 계승하는 어휘 가중치·정성 지시와 편집기</pre></details>
+
+<details><summary>판정 — 문서 전체 이력<span class="fold-n">1건</span></summary><section class="card"><p><strong>판정</strong>: 승인</p>
+<p><strong>판정 이력</strong>:</p>
+<ul>
+<li>승인 · 유저 · 2026-09-26</li>
+</ul></section></details>
+
+<p class="meta">생성 근거: .kanban/reviews/KAN-001-MJ3PE1.review.json
+· KANBAN.md · 갱신 2026-09-26</p>
+</div>
+
+<div class="tray" id="tray">
+  <div class="tray-head is-static"><b>판정 대기</b><span id="tray-n" class="meta"></span>
+    <div class="spacer"></div>
+    <button id="tray-toggle" aria-expanded="false" aria-controls="tray-list"
+            title="목록 펴기/접기">&#9652;</button>
+    <button id="tray-clear">전부 취소</button></div>
+  <ol id="tray-list"></ol>
+  <div class="tray-foot">
+    <button id="tray-save"></button>
+    
+    <button id="tray-export">패치·명령 보기</button>
+  </div>
+</div>
+<div class="modal" id="modal"><div class="box" id="modal-box"></div></div>
+<div class="toast" id="toast"></div>
+<script type="application/json" id="review-ops">{"card": "KAN-001-MJ3PE1", "serve": false, "token": null, "cli": {"py": "python3", "kanban": "/Users/centurio/.claude/skills/manage-kanban/scripts/kanban.py", "report": "/Users/centurio/.claude/skills/manage-kanban/scripts/report.py", "root": "/Users/centurio/orca/workspaces/my-claude-plugin/KAN-001-MJ3PE1-2", "card": "KAN-001-MJ3PE1"}, "items": [{"idx": 1, "text": "조사 근거를 이 수준으로 받아들일 것인가 — 초록·검색 스니펫으로만 확인했고 주장마다 확인 수준 표지를 달았습니다"}, {"idx": 2, "text": "기본 점검 기준값을 설계 초기값 그대로 내보낼 것인가 — 코퍼스로 검증하지 않았고 편집기에서 층마다 고칠 수 있게 열어 두었습니다"}]}</script>
+<script>
+
+'use strict';
+const DATA = JSON.parse(document.getElementById('review-ops').textContent);
+const $ = s => document.querySelector(s);
+// 선택지 행은 여러 개라 목록으로 집는다. 화면 전체에서 이 한 자리만 쓴다.
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g,
+  m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const clip = (s, n) => { s = String(s == null ? '' : s).replace(/\s+/g, ' ');
+                         return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+
+let queue = [];        // 아직 검토서에 안 쓰인 op 목록
+/* 저장이 **일부만** 들어간 뒤 켜진다. 그 순간부터 화면의 상태 태그·수렴 KPI 는 검토서와
+   다른 말을 한다 — 들어간 것을 화면에 미리 반영하지 않기로 했기 때문이다. 그 어긋남을
+   말 없이 두면 유저는 판정이 안 들어간 줄 알고 같은 것을 다시 누른다. */
+let stale = false;
+/* 마지막 저장에서 **정본에 들어간** op 의 이름. 큐에서는 덜어냈지만 화면에서 지우지
+   않는다 — 「무엇이 들어갔는가」가 그 순간 제일 중요한 사실이고, 지우면 유저가 검토서를
+   다시 읽어 맞춰야 한다. */
+let applied = [];
+/* 첫 실패에서 멈췄는가. 그러면 `queue[0]` 이 멈춘 자리이고 그 뒤는 「안 보냄」이다. */
+let stopped = false;
+/* 저장 요청이 도는 중인가. **그동안 큐를 얼린다** — 안 얼리면 방금 보낸 묶음의 응답이
+   오면서 그 사이 들어온 op 까지 함께 지워지고, 화면은 성공이라고 말한다. 유저가 누른
+   판정이 아무 데도 안 남는 종류의 실패라 눌러 본 사람도 모른다. */
+let sending = false;
+
+/* ─── op 큐 ────────────────────────────────────────────────────────────────
+   **판정만 마지막 것을 남긴다.** 판정은 상태라, 승인을 눌렀다 반려로 고친 사람이 한
+   일은 반려 하나다 — 두 줄로 보내면 검토서에 왕복이 없는데도 왕복 이력이 생긴다.
+   추가 의견과 의견 추가는 **덧붙이는 것**이라 겹쳐 쌓는다. 여기서 추가 의견까지 덮어쓰면 한
+   의견에 두 마디를 남기려던 검토자의 첫 마디가 소리 없이 사라진다(잘못 넣은 것은
+   트레이가 낱개로 취소해 준다 — 무음 유실보다 한 번 더 누르는 쪽이 낫다). */
+function enqueue(op) {
+  // **조용히 막지 않고 말한다.** 누른 것이 아무 데도 안 남고 화면도 가만히 있으면
+  // 유저는 버튼이 고장 난 줄 안다. 저장은 보통 1초 안에 끝난다.
+  if (sending) return toast('저장 중입니다 — 끝나면 다시 누르세요.');
+  if (op.op === 'judge') {
+    const key = q => (q.op === 'judge' && (q.item || null) === (op.item || null));
+    const at = queue.findIndex(key);
+    if (at >= 0) { queue[at] = op; return sync(); }
+  }
+  queue.push(op);
+  sync();
+}
+const ITEM = Object.fromEntries(DATA.items.map(x => [String(x.idx), x.text]));
+/* board.py 의 idLab() 과 같은 자리다 — **번호를 앞세우고 문구를 짧게 붙인다.** 번호만
+   두면 여덟 건 쌓인 뒤 "§3-4 가 뭐였지"가 되고, 문구만 두면 닮은 의견 둘이 안 갈린다. */
+const at = n => { const t = ITEM[String(n)]; return t ? `§3-${n} · ${clip(t, 16)}` : `§3-${n}`; };
+function opText(q) {
+  // 대기 줄은 "무엇을 되돌릴 것인가"를 고르는 자리다. 그래서 추가 의견 본문보다
+  // **무엇에 대한 무엇인가**를 앞에 둔다.
+  if (q.op === 'judge') return q.item
+    ? `판정 ${q.verdict} · ${at(q.item)}`
+    : `전체 판정 ${q.verdict}`;
+  if (q.op === 'note') return `추가 의견 · ${at(q.item)} · ${clip(q.text, 14)}`;
+  if (q.op === 'item') return `의견 추가 · ${clip(String(q.add).split('\n')[0], 20)}`;
+  return q.op;
+}
+
+/* board.py 의 reapply() 자리다. 다만 여기서는 **되감을 화면 모형이 없다** — 큐에 든 op
+   를 항목 상태 태그나 수렴 KPI 에 미리 반영하지 않기로 했기 때문이다. 그러려면 상태·
+   수렴 도출 규칙을 브라우저에 복제해야 하고, 그 순간 리포트가 보드·validate 와 다른
+   말을 한다. 그래서 취소·추가 뒤에 다시 세는 것은 **대기 배지뿐**이다. */
+function repaint() {
+  const n = {};
+  for (const q of queue) {
+    const k = q.op === 'item' ? '+' : (q.item ? String(q.item) : '*');
+    n[k] = (n[k] || 0) + 1;
+  }
+  document.querySelectorAll('[data-pending]').forEach(b => {
+    const c = n[b.dataset.pending] || 0;
+    b.textContent = c ? `대기 ${c}` : '';
+    b.hidden = !c;
+  });
+  /* 대기가 **상태를 안 바꾼다**는 것을 눈으로도 지킨다 — 상태 칩과 수렴은 그대로 두고
+     점선 한 겹만 더한다. 항목 카드와 레일 칸 둘 다에 거는 것은, 레일만 훑다가 「어디에
+     쌓였더라」를 다시 찾게 하지 않기 위해서다. */
+  document.querySelectorAll('#rv-list > li').forEach(li => {
+    li.classList.toggle('is-pending', !!n[li.id.replace('item-', '')]);
+  });
+  document.querySelectorAll('.rail-c').forEach(a => {
+    a.classList.toggle('rail-pending',
+      !!n[(a.getAttribute('href') || '').replace('#item-', '')]);
+  });
+  drawGhosts();
+}
+
+/* ─── 유령 줄 ──────────────────────────────────────────────────────────────
+   판정 이력·의견 목록 끝에 「누르기는 했는데 아직 안 적힌 것」을 한 줄로 붙인다. 이것이
+   §6-3 의 답이다 — 화면 모형을 되감지 않으면서 대기를 보여 주는 유일한 방법은 **이미
+   적힌 것 옆에 안 적힌 것을 따로 세우는 것**이다.
+
+   회차 번호는 DOM 에 이미 그려진 줄을 세어 낸다(도출 규칙 복제가 아니라 세기다). 판정은
+   `enqueue` 가 항목마다 마지막 하나만 남기므로 유령 판정 줄도 항목당 하나다. */
+function drawGhosts() {
+  document.querySelectorAll('[data-ghost]').forEach(g => g.remove());
+  document.querySelectorAll('.jd-empty').forEach(e => { e.hidden = false; });
+  for (const q of queue) {
+    if (!q.item) continue;                    // 전체 판정은 어느 항목에도 안 붙는다
+    const li = document.getElementById('item-' + q.item);
+    if (!li) continue;
+    const ul = li.querySelector(q.op === 'judge' ? '.jd-band-v .jd-vs'
+                                : q.op === 'note' ? '.jd-band-n .jd-ns' : null);
+    if (!ul) continue;
+    if (q.op === 'judge') {
+      const r = ul.querySelectorAll('li:not([data-ghost])').length + 1;
+      ul.insertAdjacentHTML('beforeend',
+        `<li class="jd-ghost" data-ghost><span class="meta">${r}회차</span>`
+        + `<span class="jd-o">\u25CB</span><span>${esc(q.verdict)} 을 눌렀습니다 — `
+        + `저장하면 검토서에 들어갑니다 · <b>저장 전</b></span></li>`);
+    } else {
+      ul.insertAdjacentHTML('beforeend',
+        `<li class="jd-ghost" data-ghost><span class="jd-o">\u25CB</span> `
+        + `<span class="meta">저장 전</span> ${esc(clip(q.text, 60))}</li>`);
+    }
+    // 「판정 없음」 자리와 유령 줄이 같이 서면 화면이 스스로와 모순된다.
+    const em = ul.parentElement.querySelector('.jd-empty');
+    if (em) em.hidden = true;
+  }
+}
+/* 저장 결과 셋을 갈라 낸다. **큐에서 파생**되므로 취소·추가에 저절로 따라간다 — 결과를
+   따로 들고 있으면 그 목록과 큐가 갈라지는 자리가 생긴다. */
+const ICON = {ok: '\u25CF', no: '\u2715', wait: '\u25CB'};
+function resultRows() {
+  const L = applied.map(t => ({k: 'ok', t: t + ' — 반영됨 (정본에 들어감)'}));
+  queue.forEach((q, i) => L.push(
+    stopped && i === 0 ? {k: 'no', t: opText(q) + ' — 실패 · 여기서 멈춤', i: i}
+    : stopped ? {k: 'wait', t: opText(q) + ' — 안 보냄 (앞이 막힘)', i: i}
+    : {k: 'wait', t: opText(q), i: i}));
+  return L;
+}
+function drawTray() {
+  $('#tray').classList.toggle('on', queue.length > 0 || applied.length > 0);
+  const waiting = stopped ? Math.max(queue.length - 1, 0) : queue.length;
+  const line = (applied.length || stopped)
+    ? `${applied.length}건 반영 · ${stopped ? 1 : 0}건 실패 · ${waiting}건 대기`
+    : queue.length + '건';
+  $('#tray-n').textContent = line
+    + (stale ? ' · 검토서가 여기서 갱신됨 — 새로고침해야 태그가 맞습니다' : '');
+  // 정적으로 연 화면(파일·Artifact)에서는 쓸 길이 없어 꺼진다. 숨기지 않는 것은, 저장이
+  // 어디서 일어나는 일인지(터미널이 아니라 화면) 를 자리로 말해 두기 위해서다 —
+  // `report.py … --kind review` 로 열면(서버가 기본이다) 같은 버튼이 그대로 켜진다.
+  $('#tray-save').textContent = DATA.serve ? '저장 (검토서에 반영)' : '저장 (서버 모드에서만)';
+  busy(sending);
+  $('#tray-list').innerHTML = resultRows().map(r =>
+    `<li class="rs-${r.k}"><span class="rs-i">${ICON[r.k]}</span>`
+    + `<span>${esc(r.t)}</span>`
+    + (r.i === undefined ? '' : `<button data-drop="${r.i}">취소</button>`)
+    + '</li>').join('');
+  $('#tray-list').querySelectorAll('[data-drop]').forEach(b =>
+    b.addEventListener('click', () => {
+      if (sending) return toast('저장 중입니다 — 끝나면 다시 누르세요.');
+      const i = +b.dataset.drop;
+      queue.splice(i, 1);
+      // 멈춘 자리를 지웠으면 그 표시도 함께 걷는다 — 없는 줄을 계속 가리키면
+      // 그 뒤가 「앞이 막힘」인 채로 남는다.
+      if (i === 0) stopped = false;
+      sync();
+    }));
+}
+function sync() { drawTray(); repaint(); }
+
+/* ─── 내보내기 — 화면이 모은 것을 터미널이 쓴다 ──────────────────────────── */
+function cliLines() {
+  const {py, kanban, root, card} = DATA.cli;
+  const q = s => "'" + String(s == null ? '' : s).replace(/'/g, `'"'"'`) + "'";
+  return queue.map(o => {
+    const b = [py, q(kanban), '', q(root), '--card', card];
+    if (o.op === 'judge') {
+      b[2] = 'review-judge';
+      if (o.item) b.push('--item', q(o.item));       // 없으면 문서 전체 판정이다
+      b.push('--verdict', o.verdict, '--by', o.by);
+    } else if (o.op === 'note') {
+      b[2] = 'review-note';
+      b.push('--item', q(o.item), '--text', q(o.text), '--by', o.by);
+    } else {
+      b[2] = 'review-item';
+      b.push('--add', q(o.add));
+      if (o.from_item) b.push('--from-item', q(o.from_item));
+    }
+    return b.join(' ');
+  });
+}
+function showExport() {
+  const {py, kanban, report, root, card} = DATA.cli;
+  const js = JSON.stringify(queue, null, 2);
+  const one = `cat <<'PATCH' | ${py} '${kanban}' review-apply '${root}' --card ${card} --patch -\n${js}\nPATCH`;
+  const rerender = `${py} '${report}' '${root}' --card ${card} --kind review --no-serve`;
+  // 재렌더 명령을 같이 내는 이유: 반영은 **검토서(.md)** 에 되고 이 화면은 그때 낡는다.
+  // 이 줄이 없으면 판정을 넣고도 화면은 그대로라, 반영이 안 된 줄 알고 다시 누른다.
+  // **`--no-serve` 를 붙인다.** `--kind review` 는 기본이 편집 서버라, 안 붙이면 이 줄이
+  // 낡은 정적 파일을 다시 그리는 대신 서버를 띄우고 터미널을 물고 있는다 — 여기서 원하는
+  // 것은 방금 붙여 넣은 반영을 **이 파일에** 반영해 두는 것이다.
+  $('#modal-box').innerHTML = `
+    <h2>모은 판정을 검토서에 반영하기</h2>
+    <p class="note">브라우저는 파일을 못 씁니다. 아래 ①이나 ②를 터미널에 붙여 넣으면
+      검토 정본과 보드가 갱신되고, ④로 이 화면을 다시 그립니다.</p>
+    <h3>① 한 번에 — review-apply</h3>
+    <pre id="x1">${esc(one)}</pre><button data-copy="x1">복사</button>
+    <h3>② 낱개로 — kanban.py 명령 ${queue.length}줄</h3>
+    <pre id="x2">${esc(cliLines().join('\n')) || '(대기 중인 것이 없습니다)'}</pre><button data-copy="x2">복사</button>
+    <h3>③ patch JSON</h3>
+    <pre id="x3">${esc(js)}</pre><button data-copy="x3">복사</button>
+    <h3>④ 반영 뒤 이 화면 다시 그리기</h3>
+    <pre id="x4">${esc(rerender)}</pre><button data-copy="x4">복사</button>
+    <div class="row"><button id="x-close">닫기</button></div>`;
+  $('#modal').classList.add('on');
+  $('#modal-box').querySelectorAll('[data-copy]').forEach(b =>
+    b.addEventListener('click', () => {
+      const t = document.getElementById(b.dataset.copy).textContent;
+      navigator.clipboard
+        ? navigator.clipboard.writeText(t).then(() => toast('복사했습니다.'),
+            () => toast('복사가 막혔습니다 — 직접 선택해 복사하세요.'))
+        : toast('이 브라우저에서는 복사가 막힙니다 — 직접 선택하세요.');
+    }));
+  $('#x-close').addEventListener('click', () => $('#modal').classList.remove('on'));
+}
+
+/* `kanban.py die()` 는 사유·교정을 JSON 한 줄로 낸다. 그 줄을 그대로 alert 에 던지면
+   중괄호와 따옴표가 본문을 덮어 무엇이 막혔는지가 안 읽힌다 — 그래서 여기서 편다.
+   못 펴면 원문을 그대로 낸다: 모양이 예상과 달랐다고 사유를 삼키면, 화면은 "실패"만
+   말하고 유저는 터미널로 가서 같은 명령을 다시 쳐야 한다. */
+function failDetail(out) {
+  const raw = String((out.failed || {}).detail || '').trim();
+  if (!raw) return '';
+  try {
+    const j = JSON.parse(raw.split('\n').pop());
+    return [j.reason, j.remediation].filter(Boolean).join('\n');
+  } catch (e) { return raw; }
+}
+
+/* **어디까지 갔는지 말한다.** `review-apply` 는 첫 실패에서 멈추고, 앞선 op 는 이미
+   이벤트로 커밋된 전진이라 되돌아가지 않는다. "저장 실패"로 뭉뚱그리면 유저는 검토서를
+   다시 읽어 무엇이 들어갔는지 맞춰야 하고, 모르는 채 다시 누르면 들어간 것이 두 번
+   들어간다. 그래서 반영된 앞머리는 큐에서 덜어내고 **멈춘 자리부터** 남긴다 — 남은 것을
+   고쳐 다시 누르는 것이 그대로 이어짐이 되게. */
+function partialReport(out, done, stopped) {
+  const L = [done ? `${done}건이 검토서에 들어갔습니다 — 되돌아가지 않습니다.`
+                  : '검토서에 들어간 것은 없습니다.'];
+  if (stopped) L.push('멈춘 자리: ' + opText(stopped));
+  const why = failDetail(out);
+  if (why) L.push(why);
+  if (out.code) L.push(`(종료코드 ${out.code})`);
+  L.push(`대기에 남은 것 ${queue.length}건 — 멈춘 자리가 맨 앞입니다.`);
+  return L.join('\n\n');
+}
+
+/* 이 파일에서 바깥으로 나가는 요청은 **이 함수 하나뿐**이고, 그것도 DATA.serve 가드
+   안이다. Artifact 의 CSP 와 file:// 이 요청을 전부 막으므로, 가드가 없으면 정적으로
+   연 화면에서 콘솔이 빨개지고 저장이 조용히 실패한 것처럼 보인다. **서버가 내준 화면에서만**
+   DATA.serve 가 켜지고, 그때만 이 fetch 가 뜬다 — serve 모드가 먼저 쓰는 정적 파일까지
+   꺼진 채로 그리는 것이 그래서다(같은 명령이 낸 파일이라고 켜 두면 그 파일이 깨진다). */
+async function save(andClose) {
+  if (!DATA.serve || !queue.length) return;
+  /* **보낸 것을 집어 둔다.** 성공했다고 큐를 통째로 비우면 요청이 도는 동안 들어온 것까지
+     함께 지워진다. 위 `busy(true)` 와 `enqueue`·취소 가드가 그 사이의 입력을 막지만,
+     잠금이 한 자리에만 있으면 언젠가 새어 나온다 — 이 파일에서 `drawTray` 가 `busy` 를
+     도로 풀어 실제로 한 번 그랬다. 그래서 두 겹이다: 얼리고, 얼음이 새도 안 잃는다. */
+  const sent = queue.slice();
+  busy(true);
+  try {
+    const r = await fetch('/apply', {method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      /* 토큰은 **서버가 그린 화면에만** 실린다. 정적 파일에서는 null 이지만 그쪽은
+         애초에 이 fetch 가 안 뜬다(DATA.serve 가드). 옛 탭은 옛 토큰을 그대로 들고
+         있어 서버가 그것으로 걸러낸다. */
+      body: JSON.stringify({card: DATA.card, token: DATA.token, patch: sent,
+                            close: !!andClose})});
+    const out = await r.json();
+    const done = (out.applied || []).length;
+    if (out.ok) {
+      // **길이가 아니라 동일성으로 뺀다.** 큐가 그 사이 흔들렸으면 앞에서 n 개를 자르는
+      // 것은 엉뚱한 것을 지운다.
+      queue = queue.filter(q => !sent.includes(q));
+      applied = []; stopped = false; sync();
+      if (queue.length) {
+        /* 얼음이 샜다는 뜻이다. 여기서 새로고침하면 이 큐가 메모리째 사라지므로 **하지
+           않는다** — 화면이 잠깐 낡는 것보다 유저가 누른 판정을 잃는 것이 나쁘다.
+           트레이의 「검토서가 여기서 갱신됨」이 그 낡음을 말해 준다. */
+        stale = true; sync(); busy(false);
+        return alert(`반영 ${sent.length}건이 검토서에 들어갔습니다.\n\n`
+          + `저장하는 동안 ${queue.length}건이 더 쌓였고 그것은 아직 안 보냈습니다 — `
+          + `「저장」을 한 번 더 누르세요.`);
+      }
+      /* **서버가 준 out.data 로 다시 그리지 않고 통째로 새로 받는다.** 이 화면의 본문
+         (상태 태그·판정 이력·수렴 KPI)은 파이썬이 그린 HTML 이라, JS 로 갱신하려면
+         item_state·review_converge 의 도출 규칙을 브라우저에 복제해야 한다 — 그 순간
+         리포트가 보드·validate 와 다른 말을 한다. reload 는 같은 서버가 요청마다 다시
+         그리므로, 그 사이 다른 세션이 CLI 로 낸 판정까지 함께 따라온다.
+
+         **`out.closing` 이어도 하는 일은 같다.** 그 GET 이 서버가 내는 마지막 응답이고,
+         서버는 그것을 다 보낸 뒤에 닫는다 — 먼저 닫으면 이 새로고침이 연결 거부로 깨져서
+         유저는 반영이 됐는지 못 본 채 빈 오류 화면을 받는다. */
+      location.reload();
+    } else if (out.ghost) {
+      /* **유령 탭이다.** 서버가 한 줄도 안 썼고 큐도 그대로다 — 그러니 여기서 할 말은
+         「어디까지 갔는가」(partialReport)가 아니라 **큐를 어떻게 빼내는가**다.
+         새로고침이 곧 큐 소멸이라, 새로고침을 권하는 대신 명령을 눈앞에 띄운다. */
+      stopped = true;
+      sync();
+      alert(failDetail(out) + '\n\n'
+        + `대기에 남은 것 ${queue.length}건 — 한 건도 검토서에 안 들어갔습니다.\n`
+        + '이어서 뜨는 창의 명령을 터미널에 옮긴 뒤 새로고침하세요.');
+      showExport();
+    } else {
+      const at = sent[done];         // 덜어내기 전에 집는다 — 보낸 묶음 기준이다
+      if (done) {
+        const gone = sent.slice(0, done);
+        applied = applied.concat(gone.map(opText));
+        queue = queue.filter(q => !gone.includes(q));
+        stale = true;
+      }
+      stopped = true;
+      sync();
+      alert(partialReport(out, done, at));
+    }
+  } catch (e) { alert('저장 실패: ' + e); }
+  busy(false);
+}
+
+/* 「저장」과 「저장하고 종료」는 **같은 요청**을 낸다. 하나가 도는 동안 다른 하나가 또
+   눌리면 같은 큐가 두 번 가므로, 잠그는 자리를 한 함수로 둔다. 종료 버튼은 정적 화면에
+   아예 없으므로 있을 때만 만진다. */
+function busy(on) {
+  // **진행 여부를 값으로 들고 있는다.** 잠근 직후 유저가 판정 버튼을 누르면 `sync()` →
+  // `drawTray()` 가 도는데, 거기서 무조건 풀어 주면 요청이 도는 중에 두 버튼이 다시
+  // 켜진다 — 그때 「저장하고 종료」를 누르면 첫 요청의 응답이 오기 전에 서버가 닫힌다.
+  // 그래서 `drawTray` 는 `busy(false)` 가 아니라 `busy(sending)` 을 부른다.
+  sending = on;
+  $('#tray-save').disabled = on || !DATA.serve;
+  const c = $('#tray-close');
+  if (c) c.disabled = on || !DATA.serve;
+  // 「전부 취소」는 정적 화면에서도 쓸 수 있어야 하므로 **진행 중일 때만** 잠근다.
+  // 보낸 것을 큐에서 지우면 응답이 무엇을 덜어낼지 못 정한다.
+  const cl = $('#tray-clear');
+  if (cl) cl.disabled = on;
+}
+
+let toastT = null;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3000);
+}
+
+/* ─── 조작 ─────────────────────────────────────────────────────────────────
+   의견마다 리스너를 세 개씩 거는 대신 목록 하나에 위임한다. 의견은 `review-item` 으로
+   늘어나는 것이라, 늘어난 의견에만 리스너가 안 걸리는 실패가 실제로 가능하다 —
+   그 실패는 화면이 멀쩡해 보이므로 눌러 봐야 안다. */
+$('#rv-list').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const box = b.closest('.rv-ops');
+  if (!box) return;
+  const item = box.dataset.item, by = $('#rv-by').value;
+  if (b.dataset.judge !== undefined) {
+    // 게이트가 없다 — 판정은 버튼 하나로 끝난다. 사유 칸이 있던 자리이고, 비면 큐에
+    // 못 들어갔다. 할 말이 있으면 아래 「추가 의견」이 받는다: 판정은 상태이고 추가
+    // 의견은 말이라, 말을 강요하느라 상태를 못 내는 자리를 만들 이유가 없다.
+    enqueue({op: 'judge', item: item, verdict: b.dataset.judge, by: by});
+    return;
+  }
+  if (b.dataset.noteAdd !== undefined) {
+    const box2 = box.querySelector('[data-note]');
+    const text = box2.value.trim();
+    if (!text) return toast('추가 의견이 비었습니다 — 빈 추가 의견은 판단 항목을 못 옮깁니다.');
+    enqueue({op: 'note', item: item, text: text, by: by});
+    box2.value = '';
+  }
+});
+$('#rv-all').addEventListener('click', e => {
+  const b = e.target.closest('[data-judge-all]');
+  if (!b) return;
+  // item 키를 **아예 안 넣는다** — 비워 넣으면 받는 쪽이 "0번 의견"으로 읽을 여지가 있다.
+  enqueue({op: 'judge', verdict: b.dataset.judgeAll, by: $('#rv-by').value});
+});
+$('#rv-add-go').addEventListener('click', () => {
+  // 주제는 한 줄이다(입력칸도 한 줄짜리다). 여러 줄이면 파서가 둘째 줄부터를 상세로
+  // 읽으므로, 주제와 상세를 나눠 받는 이 폼의 뜻이 무너진다.
+  const q = $('#rv-q').value.trim();
+  const lines = v => v.split('\n').map(l => l.trim()).filter(Boolean);
+  const bg = lines($('#rv-bg').value), dec = lines($('#rv-dec').value);
+  if (!q) return toast('주제가 비었습니다.');
+  // **조각이 비면 큐에 못 들어간다.** review-item 이 종료코드 12 로 거부하는 자리를
+  // 화면에서 미리 막는 것이다 — 검토자는 이 카드를 수행하지 않았으므로 결론만으로는
+  // 판정할 재료가 없고, 재료가 있어도 줄글 한 덩이면 필요한 부분만 골라 읽지 못한다.
+  if (!bg.length) return toast('배경을 적으세요 — 조각 없는 의견은 검토서가 거부합니다(종료코드 12).');
+  if (!dec.length) return toast('정할 것을 적으세요 — 조각 없는 의견은 검토서가 거부합니다(종료코드 12).');
+  // 선택지는 **셋이 다 찬 행만** 표로 나간다. 반쯤 적힌 행을 실으면 열이 밀려 셀이 다른
+  // 뜻으로 읽힌다(게이트가 경고하는 자리이기도 하다).
+  const rows = [];
+  $$('#rv-opts .rv-opt').forEach(el => {
+    const name = el.querySelector('[data-opt]').value.trim();
+    const cost = el.querySelector('[data-cost]').value.trim();
+    const what = el.querySelector('[data-what]').value.trim();
+    if (name && cost && what)
+      rows.push({name, cost, what, rec: el.querySelector('input[type=radio]').checked});
+  });
+  // CLI 와 **같은 문법 한 덩이**로 조립한다 — patch 스키마(`op:item`, `add`)는 한 글자도
+  // 안 바뀐다. 화면이 따로 실어 보내면 두 경로가 갈리고, 갈리면 그 순간부터 서로 다른
+  // 것을 저장한다.
+  // **배경은 목록이다** — 칸의 한 줄이 사실 하나다. `- ` 를 이미 붙여 적은 줄은 그대로 둔다.
+  // 게이트가 목록 없는 배경을 종료코드 12 로 거부하므로, 여기서 붙이지 않으면 폼으로
+  // 세운 의견이 전부 거부된다.
+  const body = ['  **배경**'].concat(bg.map(l => '  ' + (/^-\s/.test(l) ? l : '- ' + l)))
+    .concat(['  **정할 것**']).concat(dec.map(l => '  ' + l));
+  if (rows.length) {
+    body.push('  | 선택지 | 대가 | 그러면 어떻게 되는가 |');
+    rows.forEach(r => body.push('  | ' + (r.rec ? '**추천** ' : '') + r.name
+                                + ' | ' + r.cost + ' | ' + r.what + ' |'));
+  }
+  enqueue({op: 'item', add: q + '\n' + body.join('\n'),
+           from_item: $('#rv-from').value || null});
+  $('#rv-q').value = ''; $('#rv-bg').value = ''; $('#rv-dec').value = '';
+  $$('#rv-opts .rv-opt input').forEach(i => {
+    if (i.type !== 'radio') i.value = '';
+  });
+});
+
+/* 선택지 행을 한 줄 더 연다. 행은 **비어 있어도 무해하다** — 조립이 셋 다 찬 행만
+   싣는다. 라디오는 같은 name 이라 새 행도 같은 그룹에 들어간다(추천은 언제나 하나다). */
+$('#rv-opt-add').addEventListener('click', () => {
+  const box = $('#rv-opts');
+  const row = box.firstElementChild.cloneNode(true);
+  row.querySelectorAll('input').forEach(i => {
+    if (i.type === 'radio') i.checked = false; else i.value = '';
+  });
+  box.appendChild(row);
+});
+
+/* 좁은 화면 전용 접기. 넓은 화면에서는 버튼이 안 보이므로 이 상태값도 안 쓰인다 —
+   CSS 가 `.tray:not(.open)` 규칙을 미디어 쿼리 안에서만 걸기 때문이다. */
+$('#tray-toggle').addEventListener('click', () => {
+  const on = $('#tray').classList.toggle('open');
+  $('#tray-toggle').setAttribute('aria-expanded', on ? 'true' : 'false');
+  $('#tray-toggle').innerHTML = on ? '&#9662;' : '&#9652;';
+});
+$('#tray-clear').addEventListener('click', () => {
+  queue = []; applied = []; stopped = false; stale = false; sync();
+});
+/* **화살표로 감싼다.** `save` 를 그대로 걸면 이벤트 객체가 첫 인자로 들어가 `andClose`
+   가 참이 되고, 평범한 저장이 서버를 닫는다. */
+$('#tray-save').addEventListener('click', () => save(false));
+const closeEl = $('#tray-close');
+if (closeEl) closeEl.addEventListener('click', () => save(true));
+$('#tray-export').addEventListener('click', showExport);
+$('#modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') $('#modal').classList.remove('on');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#modal').classList.contains('on'))
+    $('#modal').classList.remove('on');
+});
+
+sync();
+
+</script>
