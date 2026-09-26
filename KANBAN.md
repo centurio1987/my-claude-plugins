@@ -15,7 +15,7 @@
   - 이유: 문체 규칙이 문서·스캐너 하드코딩에 흩어져 사용자가 손댈 수 없고 전역과 voice 의 계승 구조가 없었다
   - 목표: 전역→voice 계승 설정을 편집기로 고치면 resolve·스캐너·게이트가 그대로 따르고, 분류 체계는 조사 근거를 갖는다
   - 메모: 소급 등록 — 작업은 claude/beautiful-mccarthy-kxg2nl 에서 먼저 수행(3e1ada8)
-  - 실행 문서: KANBAN/cards/KAN-001-MJ3PE1.md (7/8 · 최근 09-26)
+  - 실행 문서: KANBAN/cards/KAN-001-MJ3PE1.md (8/8 · 최근 09-26)
   - 원문:
     ```text
     authoring-kit를 더 체계화 및 고도화 하고자 한다.

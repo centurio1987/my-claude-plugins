@@ -23,7 +23,7 @@ created: 2026-09-26
 - [x] `S5` 통합 — `authoring.py` resolve·validate·lock·`style` 서브커맨드, `scan_lexicon.py`. 완료 기준: resolve 가 유효 설정을 L1 절에 싣고 lock 이 어긋남을 안다
 - [x] `S6` 편집기 — `style_server.py` + `ui/style-editor.html`. 완료 기준: 브라우저로 편집·저장·거부·미리보기·시험 스캔, 폰 너비 가로 스크롤 0
 - [x] `S7` 문서 — `authoring-style` 스킬·스키마·조사 종합, gate V5·V6, rubric·voice·method·doctor·README, 0.4.0. 완료 기준: 끊어진 assets 참조 없음
-- [ ] `S8` 검증 — `test_style.py` 신설, 기존 스위트 재실행. 완료 기준: 새 스위트 전부 통과, 기존 실패는 이전부터 있던 것만
+- [x] `S8` 검증 — `test_style.py` 신설, 기존 스위트 재실행. 완료 기준: 새 스위트 전부 통과, 기존 실패는 이전부터 있던 것만
 
 ## 검증
 - `python3 plugins/authoring-kit/fixtures/test_style.py` → `통과 92 · 실패 0` (계승·검증·가중치 스캔·L0 항목 면제·resolve·lock·편집기 API)
@@ -53,3 +53,5 @@ created: 2026-09-26
 - 2026-09-26T14:06 · s:c2291411 · S6 done — style_server.py(127.0.0.1·쓰기 헤더 가드·422 저장 거부) + ui/style-editor.html — Playwright 로 편집·저장·미리보기·스캔·390px 확인
 - 2026-09-26T14:07 · s:c2291411 · S7 doing — 착수
 - 2026-09-26T14:07 · s:c2291411 · S7 done — authoring-style 스킬·STYLE_SCHEMA·STYLE_RESEARCH·research/, gate V5·V6(읽기로만 판정), rubric·voice·method·doctor·README, 0.4.0
+- 2026-09-26T14:07 · s:c2291411 · S8 doing — 착수
+- 2026-09-26T14:07 · s:c2291411 · S8 done — test_style.py 92/92(돌연변이 시 5건 실패 확인), scanner·linter 통과, 층 분리 32/32 — shape 의 authoring-write 142줄 실패는 기존 것
