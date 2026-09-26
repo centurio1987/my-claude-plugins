@@ -1,7 +1,7 @@
 {
  "$schema": "authoring-kit/qualitative-taxonomy@1",
  "schema_version": 1,
- "about": "정성 문체 요소 분류 체계. 지시문(directive)은 이 분류의 말단에 붙는다. 모든 말단은 L1 축 넷 중 하나에 묶인다. 근거: STYLE_RESEARCH.md",
+ "about": "정성 문체 요소 분류 체계. 지시문(directive)은 이 분류의 말단에 붙는다. 모든 말단은 L1 축 넷 중 하나에 묶인다. 근거: STYLE_RESEARCH.md 말단마다 options(고를 수 있는 선택지)가 있다 — spectrum 은 한 분류에 하나만, rule 은 여러 개. id 는 고정이라 문구를 다듬어도 사용자 선택이 끊기지 않는다.",
  "judging": {
   "verdicts": [
    "충족",
@@ -47,6 +47,43 @@
     "격식은 상담적 수준으로 유지하되 속어·유행어는 쓰지 않는다.",
     "공문 수준의 의례적 표현은 피한다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "격식도: ‘의례적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "격식도: ‘격식’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "격식도: ‘상담적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s4",
+     "group": "spectrum",
+     "text": "격식도: ‘일상’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s5",
+     "group": "spectrum",
+     "text": "격식도: ‘친밀’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "격식은 상담적 수준으로 유지하되 속어·유행어는 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "공문 수준의 의례적 표현은 피한다."
+    }
+   ],
    "basis": "Joos 5단계(frozen·formal·consultative·casual·intimate) · Halliday tenor",
    "boundary": "종결 등급 자체는 tenor.speech-level, 구어 어휘는 tenor.orality."
   },
@@ -72,6 +109,38 @@
     "본문은 '-다' 평서체, 독자에게 직접 말을 거는 박스만 해요체로 쓴다.",
     "합쇼체를 쓰되 '-하시기 바랍니다' 같은 공문투 종결은 줄인다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "종결 문체(상대높임 등급): ‘합쇼체(-ㅂ니다)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "종결 문체(상대높임 등급): ‘해요체(-요)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "종결 문체(상대높임 등급): ‘해라체(-다)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s4",
+     "group": "spectrum",
+     "text": "종결 문체(상대높임 등급): ‘해체(반말)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "본문은 '-다' 평서체, 독자에게 직접 말을 거는 박스만 해요체로 쓴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "합쇼체를 쓰되 '-하시기 바랍니다' 같은 공문투 종결은 줄인다."
+    }
+   ],
    "basis": "상대높임법(격식체 4등급·비격식체 2등급) · Kim & Biber(1994) honorification 차원[부분검증]",
    "boundary": "등급별 비율·혼용률 계산은 어휘 목록(종결어미 분류)이 센다. 여기서는 선택의 적합성과 전환의 정당성만 판정한다."
   },
@@ -94,6 +163,28 @@
    "templates": [
     "강연 원고처럼 말하는 문체로 쓰되 '뭐', '약간' 같은 군말은 넣지 않는다.",
     "'거'가 아니라 '것'을 쓴다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "구어성: ‘구어체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "구어성: ‘문어체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "강연 원고처럼 말하는 문체로 쓰되 '뭐', '약간' 같은 군말은 넣지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "'거'가 아니라 '것'을 쓴다."
+    }
    ],
    "basis": "Halliday mode · Biber Dimension 1(Involved ↔ Informational) · 국립국어원 구어/문어 구분 답변",
    "boundary": "격식과 구어성은 독립이다 — 격식 있는 구어(연설)도, 비격식 문어(메모)도 있다."
@@ -119,6 +210,33 @@
     "독자를 같은 분야 동료로 대하고 훈계하는 투는 쓰지 않는다.",
     "'~하도록 한다', '~할 것' 같은 지시형 공문투는 쓰지 않는다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "독자와의 거리·위계: ‘권위적·교시적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "독자와의 거리·위계: ‘대등·동료적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "독자와의 거리·위계: ‘겸양·봉사적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "독자를 같은 분야 동료로 대하고 훈계하는 투는 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "'~하도록 한다', '~할 것' 같은 지시형 공문투는 쓰지 않는다."
+    }
+   ],
    "basis": "Halliday tenor(지위·권력) · 국립국어원 공공언어 진단 기준 '권위적·차별적 표현'",
    "boundary": "명령·청유 장치의 빈도와 기능은 engage.directive. 여기서는 그것이 만드는 관계의 느낌만 본다."
   },
@@ -143,6 +261,38 @@
    "templates": [
     "가벼운 위트는 허용하되 단락당 한 번을 넘기지 않는다.",
     "사고·손실을 다루는 대목에서는 농담을 쓰지 않는다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "진지도: ‘엄숙’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "진지도: ‘담담’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "진지도: ‘경쾌’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s4",
+     "group": "spectrum",
+     "text": "진지도: ‘유희’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "가벼운 위트는 허용하되 단락당 한 번을 넘기지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "사고·손실을 다루는 대목에서는 농담을 쓰지 않는다."
+    }
    ],
    "basis": "Hymes SPEAKING 의 Key[미검증] · Leech & Short Context 의 필자 태도(tone)",
    "boundary": "'톤'이라는 말 하나로 stance.force 와 섞이기 쉽다 — 무게(진지↔경쾌)면 여기, 세기(강↔약)면 stance.force. 반어·풍자 기법은 figure.indirection."
@@ -175,6 +325,28 @@
     "확신도는 근거 수준에 맞춘다.",
     "추정에는 '~로 보인다'를 쓰고 한 문장에 유보 표현은 하나만 쓴다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "확신도 조율: ‘유보(hedge)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "확신도 조율: ‘단정(booster)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "확신도는 근거 수준에 맞춘다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "추정에는 '~로 보인다'를 쓰고 한 문장에 유보 표현은 하나만 쓴다."
+    }
+   ],
    "basis": "Hyland(2005) hedges/boosters · Martin & White Engagement 의 entertain ↔ pronounce",
    "boundary": "근거가 참인지는 evidence(L0)가 본다. 여기서는 글이 스스로 제시한 근거에 비춰 언어적 확신도가 맞는지만 본다."
   },
@@ -197,6 +369,28 @@
    "templates": [
     "형용사로 평가하지 말고 사실을 보여 준 뒤 판단은 독자에게 맡긴다.",
     "리뷰 글에서는 장단점 평가를 분명히 드러낸다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "평가·감정 표출: ‘절제·중립’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "평가·감정 표출: ‘평가적·정서적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "형용사로 평가하지 말고 사실을 보여 준 뒤 판단은 독자에게 맡긴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "리뷰 글에서는 장단점 평가를 분명히 드러낸다."
+    }
    ],
    "basis": "Martin & White Attitude(affect·judgement·appreciation) · Hyland attitude markers",
    "boundary": "수식어 밀도는 diction.ornament, 강도 조절은 stance.force."
@@ -221,6 +415,28 @@
     "개인 경험은 1인칭으로 쓰되 주장 문장에서는 '나는 ~라고 생각한다'를 쓰지 않는다.",
     "'필자는'이라는 표현은 쓰지 않는다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "저자 현존: ‘비인칭·익명’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "저자 현존: ‘1인칭 전면화’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "개인 경험은 1인칭으로 쓰되 주장 문장에서는 '나는 ~라고 생각한다'를 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "'필자는'이라는 표현은 쓰지 않는다."
+    }
+   ],
    "basis": "Hyland(2005) self-mention",
    "boundary": "독자를 끌어들이는 포괄적 '우리'는 engage.address."
   },
@@ -244,6 +460,28 @@
     "주요 주장마다 가장 강한 반론을 한 문장으로 인정한 뒤 답한다.",
     "업계 통념을 인용할 때는 동의하지 않는다는 거리를 표시한다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "이견 다루기: ‘단성적(단언)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "이견 다루기: ‘다성적(인정·양보·반박)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "주요 주장마다 가장 강한 반론을 한 문장으로 인정한 뒤 답한다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "업계 통념을 인용할 때는 동의하지 않는다는 거리를 표시한다."
+    }
+   ],
    "basis": "Martin & White Engagement: contract(disclaim·proclaim) ↔ expand(entertain·attribute)",
    "boundary": "반론 섹션을 둘지는 structure(L2). 인용의 정확성은 evidence(L0)."
   },
@@ -266,6 +504,28 @@
    "templates": [
     "결론 단락은 단호하게 쓰되 느낌표는 쓰지 않는다.",
     "위로하는 글이므로 부드럽고 온화한 어세를 유지한다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "어세: ‘강건체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "어세: ‘우유체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "결론 단락은 단호하게 쓰되 느낌표는 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "위로하는 글이므로 부드럽고 온화한 어세를 유지한다."
+    }
    ],
    "basis": "이태준 『문장강화』 강건체↔우유체 · Martin & White Graduation–Force",
    "boundary": "확신(인식적)은 stance.certainty — '확실하지만 부드럽게'도 가능하다. '톤'이 무게(진지↔경쾌)를 뜻하면 tenor.key."
@@ -298,6 +558,28 @@
     "한 문장에는 생각 하나만 담는다.",
     "긴 호흡을 기본으로 하되 강조할 대목에서만 짧게 끊는다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "문장 호흡 길이: ‘간결체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "문장 호흡 길이: ‘만연체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "한 문장에는 생각 하나만 담는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "긴 호흡을 기본으로 하되 강조할 대목에서만 짧게 끊는다."
+    }
+   ],
    "basis": "이태준 간결체↔만연체(구절의 길고 짧음) · Strunk & White 'vigorous writing is concise' · Clark 'Fear not the long sentence'",
    "boundary": "평균·최대 길이 계산은 스캐너 몫(L0 R2). 여기서는 호흡이 내용에 맞는지를 판정한다."
   },
@@ -320,6 +602,28 @@
    "templates": [
     "긴 설명 문장 뒤에는 짧은 문장으로 요점을 박는다.",
     "같은 구조의 문장을 세 번 넘게 잇지 않는다(의도적 대구는 예외)."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "길이·구조 변주: ‘균일(메트로놈)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "길이·구조 변주: ‘변주(음악)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "긴 설명 문장 뒤에는 짧은 문장으로 요점을 박는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "같은 구조의 문장을 세 번 넘게 잇지 않는다(의도적 대구는 예외)."
+    }
    ],
    "basis": "Provost, 100 Ways to Improve Your Writing · Clark 'Set the pace with sentence length' · 6+1 Trait Sentence Fluency",
    "boundary": "의도적 대구·반복은 figure.scheme."
@@ -345,6 +649,33 @@
     "주어 앞에 관형절을 두 겹 넘게 쌓지 않는다.",
     "'-는데'로 문장을 잇지 말고 끊어서 관계를 드러낸다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "문장 형상: ‘앞머리 적재’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "문장 형상: ‘균형’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "문장 형상: ‘뒤로 잇기’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "주어 앞에 관형절을 두 겹 넘게 쌓지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "'-는데'로 문장을 잇지 말고 끊어서 관계를 드러낸다."
+    }
+   ],
    "basis": "Leech & Short anticipatory ↔ trailing structure · periodic ↔ loose 문장 · Williams 'Shape'(sprawl)",
    "boundary": "주술 호응 오류·비문은 grammar(L0)."
   },
@@ -363,6 +694,18 @@
    "templates": [
     "단락은 가장 중요한 문장으로 끝낸다. 부연으로 끝내지 않는다.",
     "'~한 것은 ~이다' 강조 구문은 결정적 대목에만 쓴다."
+   ],
+   "options": [
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "단락은 가장 중요한 문장으로 끝낸다. 부연으로 끝내지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "'~한 것은 ~이다' 강조 구문은 결정적 대목에만 쓴다."
+    }
    ],
    "basis": "Quirk end-focus·end-weight · Williams stress position · Clark 'Order words for emphasis'",
    "boundary": "구정보→신정보 흐름과 주제 연쇄는 이해 가능성의 문제라 comprehension(L0). 여기서는 수사적 힘의 배치만 본다."
@@ -387,6 +730,33 @@
    "templates": [
     "소리 내어 읽었을 때 걸리는 문장은 고친다.",
     "대구를 쓸 때는 음절 수를 맞춰 운율을 살린다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "소리 흐름: ‘걸림·단조’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "소리 흐름: ‘매끄러움’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "소리 흐름: ‘(의도적) 운율’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "소리 내어 읽었을 때 걸리는 문장은 고친다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "대구를 쓸 때는 음절 수를 맞춰 운율을 살린다."
+    }
    ],
    "basis": "Leech & Short phonological schemes · 6+1 Trait Sentence Fluency('plays to the ear')",
    "boundary": "종결어미 연속 횟수처럼 셀 수 있는 것은 스캐너(L0 R1a·R1b)가 센다. 여기서는 청각적 인상만 본다."
@@ -419,6 +789,28 @@
     "한 문장에 새 개념은 하나만 들인다.",
     "전문가용 요약이므로 부연 없이 밀도 높게 쓴다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "정보 밀도: ‘압축’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "정보 밀도: ‘완만’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "한 문장에 새 개념은 하나만 들인다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "전문가용 요약이므로 부연 없이 밀도 높게 쓴다."
+    }
+   ],
    "basis": "Biber Dimension 1 informational 극 · 이태준 간결체의 압축·함축",
    "boundary": "개념을 들이는 순서(점진적 공개)는 comprehension(L0). 여기서는 속도감으로서의 밀도만 본다."
   },
@@ -441,6 +833,28 @@
    "templates": [
     "한 줄 단락은 전환점에서만 쓴다.",
     "단락은 3~6문장 호흡을 기본으로 한다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "단락 호흡: ‘짧은 단락’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "단락 호흡: ‘긴 단락’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "한 줄 단락은 전환점에서만 쓴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "단락은 3~6문장 호흡을 기본으로 한다."
+    }
    ],
    "basis": "6+1 Trait Organization·Sentence Fluency · Clark, Writing Tools[부분검증]",
    "boundary": "단락 순서·구성은 structure(L2). 요지문 위치는 comprehension(L0)."
@@ -465,6 +879,28 @@
     "핵심 사례 하나는 장면으로 느리게 보여 주고 나머지는 한 문장 요약으로 넘긴다.",
     "배경 설명은 두 문장 안에서 개괄한다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "상술↔개괄 비율: ‘장면·세부(느림)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "상술↔개괄 비율: ‘요약·개괄(빠름)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "핵심 사례 하나는 장면으로 느리게 보여 주고 나머지는 한 문장 요약으로 넘긴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "배경 설명은 두 문장 안에서 개괄한다."
+    }
+   ],
    "basis": "Clark 'Mix narrative modes'[부분검증] · Biber Dimension 2 · Genette 서사 속도[미검증]",
    "boundary": "사례를 넣을지는 illus. 여기서는 넣은 사례를 어떤 속도로 펴는지만 본다."
   },
@@ -487,6 +923,28 @@
    "templates": [
     "여담은 괄호 한 문장으로 끝내고 본론으로 돌아온다.",
     "긴 여담을 한 번 허용하되 결말에서 회수한다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "전진감·여담 허용: ‘직진’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "전진감·여담 허용: ‘우회·산책’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "여담은 괄호 한 문장으로 끝내고 본론으로 돌아온다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "긴 여담을 한 번 허용하되 결말에서 회수한다."
+    }
    ],
    "basis": "Clark 'Place gold coins along the path'[부분검증]",
    "boundary": "여담의 목소리(저자 논평) 자체는 engage.aside."
@@ -520,6 +978,33 @@
     "비유는 섹션당 하나, 기술적 설명 뒤에 둔다.",
     "은유를 쓰면 같은 은유를 단락 끝까지 일관되게 유지한다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "비유: ‘축자’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "비유: ‘절제된 비유’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "비유: ‘비유 중심’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "비유는 섹션당 하나, 기술적 설명 뒤에 둔다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "은유를 쓰면 같은 은유를 단락 끝까지 일관되게 유지한다."
+    }
+   ],
    "basis": "비유법(직유·은유·의인·환유) · Silva Rhetoricae trope · Leech & Short tropes",
    "boundary": "설명 목적의 체계적 유추는 illus.analogy. 직역 비유('X라는 신화')는 grammar(L0 A1)."
   },
@@ -544,6 +1029,33 @@
     "대조 구문은 핵심 논지에서 한 번만 쓴다.",
     "나열은 셋으로 맞추지 말고 실제 항목 수대로 쓴다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "배열 문채: ‘없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "배열 문채: ‘결정적 대목에만’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "배열 문채: ‘빈번’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "대조 구문은 핵심 논지에서 한 번만 쓴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "나열은 셋으로 맞추지 말고 실제 항목 수대로 쓴다."
+    }
+   ],
    "basis": "Silva Rhetoricae scheme · 강조법·변화법 · Clark 'Choose the number of elements with a purpose'[부분검증]",
    "boundary": "우연한 구조 반복으로 생긴 단조로움은 cadence.variation."
   },
@@ -566,6 +1078,28 @@
    "templates": [
     "기술 설명에서는 과장과 반어를 쓰지 않는다.",
     "칼럼에서는 절제된 반어 한 번을 허용한다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "간접 표현: ‘직설’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "간접 표현: ‘간접’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "기술 설명에서는 과장과 반어를 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "칼럼에서는 절제된 반어 한 번을 허용한다."
+    }
    ],
    "basis": "Silva Rhetoricae(irony 등) · 변화법(반어·역설)·강조법(과장)",
    "boundary": "과장이 사실 왜곡이 되면 evidence(L0). 물리·전투 어휘의 과장 은유 적발은 어휘 목록(D6~D11)이 센다."
@@ -599,6 +1133,33 @@
     "독자는 '여러분'으로만 부르고 '당신'은 쓰지 않는다.",
     "설명은 3인칭으로 쓰고 실습 절에서만 독자를 부른다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "독자 호명·포함: ‘호명 없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "독자 호명·포함: ‘간헐’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "독자 호명·포함: ‘대화형’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "독자는 '여러분'으로만 부르고 '당신'은 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "설명은 3인칭으로 쓰고 실습 절에서만 독자를 부른다."
+    }
+   ],
    "basis": "Hyland reader pronouns · Biber D1(2인칭 = involved)",
    "boundary": "호명이 만드는 위계의 느낌은 tenor.distance."
   },
@@ -622,6 +1183,33 @@
    "templates": [
     "수사의문은 도입부에 하나만 쓰고 본문에서 반드시 답한다.",
     "'~하지 않을까요?'로 주장을 흐리지 않는다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "질문: ‘없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "질문: ‘전략적 배치’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "질문: ‘빈번’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "수사의문은 도입부에 하나만 쓰고 본문에서 반드시 답한다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "'~하지 않을까요?'로 주장을 흐리지 않는다."
+    }
    ],
    "basis": "Hyland questions · 변화법(설의·문답)",
    "boundary": "도입 첫 문장으로 쓰인 질문의 위치 효과는 frame.opening 에서도 본다."
@@ -647,6 +1235,33 @@
     "절차 안내는 명령형 대신 '~합니다' 서술형으로 쓴다.",
     "생각을 이끌 때는 '~해 보자' 청유형을 쓴다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "지시·권유: ‘없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "지시·권유: ‘청유 중심’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "지시·권유: ‘명령 중심’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "절차 안내는 명령형 대신 '~합니다' 서술형으로 쓴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "생각을 이끌 때는 '~해 보자' 청유형을 쓴다."
+    }
+   ],
    "basis": "Hyland directives · Biber Dimension 4(overt persuasion)",
    "boundary": "절차서의 단계 구성은 structure(L2)."
   },
@@ -671,6 +1286,33 @@
     "'다들 알다시피', '당연히'는 쓰지 않는다.",
     "도입에서 독자가 겪었을 법한 상황 하나로 공감대를 만든다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "공유 기반 호소: ‘없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "공유 기반 호소: ‘절제’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "공유 기반 호소: ‘빈번’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "'다들 알다시피', '당연히'는 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "도입에서 독자가 겪었을 법한 상황 하나로 공감대를 만든다."
+    }
+   ],
    "basis": "Hyland appeals to shared knowledge",
    "boundary": "전제 지식 수준을 맞추는 것 자체는 comprehension(L0)."
   },
@@ -694,6 +1336,33 @@
    "templates": [
     "괄호 속 농담은 섹션당 하나까지.",
     "핵심 정보는 괄호에 넣지 않는다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "여담·괄호 논평: ‘없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "여담·괄호 논평: ‘드물게’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "여담·괄호 논평: ‘잦음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "괄호 속 농담은 섹션당 하나까지."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "핵심 정보는 괄호에 넣지 않는다."
+    }
    ],
    "basis": "Hyland personal asides",
    "boundary": "여담이 전개 속도에 주는 영향은 pacing.momentum. 줄표 남용 횟수는 스캐너(L0 P2)가 센다."
@@ -726,6 +1395,28 @@
     "추상적 주장 두 개가 이어지면 구체적 예를 하나 넣는다.",
     "예시는 원리 설명 직후에 둔다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "예시 운용: ‘원리 선행(연역)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "예시 운용: ‘예시 선행(귀납)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "추상적 주장 두 개가 이어지면 구체적 예를 하나 넣는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "예시는 원리 설명 직후에 둔다."
+    }
+   ],
    "basis": "Hayakawa 추상의 사다리 · Clark 'Climb up and down the ladder of abstraction'",
    "boundary": "단어 수준의 구체성은 diction.concreteness. 예시가 사실인지는 evidence(L0)."
   },
@@ -750,6 +1441,33 @@
     "가상 시나리오는 '가령'으로 시작해 가상임을 밝힌다.",
     "각 장은 실무자 한 명의 짧은 사례로 연다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "일화·사례 서사: ‘없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "일화·사례 서사: ‘보조적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "일화·사례 서사: ‘서사 중심’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "가상 시나리오는 '가령'으로 시작해 가상임을 밝힌다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "각 장은 실무자 한 명의 짧은 사례로 연다."
+    }
+   ],
    "basis": "Clark 'Get the name of the dog'[부분검증] · anecdotal hook",
    "boundary": "실제 사례의 사실성은 evidence(L0). 도입 위치 효과는 frame.opening."
   },
@@ -773,6 +1491,33 @@
    "templates": [
     "유추를 쓸 때는 한계를 한 문장으로 밝힌다.",
     "유추는 일상 사물에서만 가져온다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "설명적 유추: ‘없음’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "설명적 유추: ‘핵심 개념에만’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "설명적 유추: ‘빈번’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "유추를 쓸 때는 한계를 한 문장으로 밝힌다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "유추는 일상 사물에서만 가져온다."
+    }
    ],
    "basis": "비유법(풍유·비교) · 설명 기능이 강해 figure.imagery 에서 분리",
    "boundary": "정서·미적 비유는 figure.imagery."
@@ -805,6 +1550,28 @@
     "첫 문장은 구체적 장면이나 사실로 시작하고 '~에 대해 알아보자'로 시작하지 않는다.",
     "첫 문장에 이 글이 푸는 문제를 쓴다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "도입 방식: ‘직입(요점부터)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "도입 방식: ‘후킹(일화·질문·장면·수치·인용·역설)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "첫 문장은 구체적 장면이나 사실로 시작하고 '~에 대해 알아보자'로 시작하지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "첫 문장에 이 글이 푸는 문제를 쓴다."
+    }
+   ],
    "basis": "hook 유형론(anecdotal·statistical·question·quotation·description)",
    "boundary": "도입 섹션의 존재·구성은 structure(L2). 약속이 있어야 한다는 원칙은 L0 C4."
   },
@@ -832,6 +1599,48 @@
    "templates": [
     "결말에서 본문을 다시 요약하지 말고 독자가 내일 할 수 있는 행동 하나로 끝낸다.",
     "도입의 일화로 돌아가 닫는다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "마무리 방식: ‘요약’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "마무리 방식: ‘수미상관’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "마무리 방식: ‘함의·전망’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s4",
+     "group": "spectrum",
+     "text": "마무리 방식: ‘행동 촉구’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s5",
+     "group": "spectrum",
+     "text": "마무리 방식: ‘여운’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s6",
+     "group": "spectrum",
+     "text": "마무리 방식: ‘핵심 한 문장’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "결말에서 본문을 다시 요약하지 말고 독자가 내일 할 수 있는 행동 하나로 끝낸다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "도입의 일화로 돌아가 닫는다."
+    }
    ],
    "basis": "결론 전략(echo the introduction·call to action·implication)",
    "boundary": "결론 섹션의 필수 여부는 structure(L2). 요약 반복 결론 적발은 L0 F1."
@@ -865,6 +1674,33 @@
     "'활용하다'보다 '쓰다'처럼 쉬운 말을 먼저 고른다.",
     "업계 통용 영어 용어는 그대로 쓰되 한글 표기를 따른다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "어종: ‘고유어 중심’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "어종: ‘한자어 중심’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s3",
+     "group": "spectrum",
+     "text": "어종: ‘외래어 허용’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "'활용하다'보다 '쓰다'처럼 쉬운 말을 먼저 고른다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "업계 통용 영어 용어는 그대로 쓰되 한글 표기를 따른다."
+    }
+   ],
    "basis": "박갑수 문체론의 어휘 차원[부분검증] · 국립국어원 공공언어 진단 '어려운 외래어·한자어' · 국어기본법 제14조",
    "boundary": "외래어 표기법 준수는 grammar. 한자어 비율 단독 지표는 근거가 약해(연구 노트 §6.2) 정량 목록에 넣지 않았다."
   },
@@ -887,6 +1723,28 @@
    "templates": [
     "'다양한', '여러 가지' 뒤에는 항목을 실제로 나열한다.",
     "성과는 형용사가 아니라 관찰 가능한 결과로 쓴다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "구체성: ‘추상’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "구체성: ‘구체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "'다양한', '여러 가지' 뒤에는 항목을 실제로 나열한다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "성과는 형용사가 아니라 관찰 가능한 결과로 쓴다."
+    }
    ],
    "basis": "Hayakawa 추상의 사다리 · Leech & Short lexical – nouns(abstract/concrete)",
    "boundary": "예시 삽입은 illus.example."
@@ -911,6 +1769,28 @@
     "'관련', '부분'은 무엇과 어떻게 관련되는지 밝힐 수 있으면 쓰지 않는다.",
     "'문제'는 오류·결함·위험 가운데 정확한 말로 바꾼다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "정밀성: ‘뭉뚱그린 말’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "정밀성: ‘딱 맞는 말’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "'관련', '부분'은 무엇과 어떻게 관련되는지 밝힐 수 있으면 쓰지 않는다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "'문제'는 오류·결함·위험 가운데 정확한 말로 바꾼다."
+    }
+   ],
    "basis": "Leech & Short lexical – general vs specific · Williams concision",
    "boundary": "뜻이 틀린 단어(오용)는 grammar."
   },
@@ -933,6 +1813,28 @@
    "templates": [
     "입문 독자용이므로 전문어는 꼭 필요한 것만 쓴다.",
     "사내 약어는 쓰지 않는다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "전문성 수준: ‘일상어’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "전문성 수준: ‘전문어’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "입문 독자용이므로 전문어는 꼭 필요한 것만 쓴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "사내 약어는 쓰지 않는다."
+    }
    ],
    "basis": "Federal Plain Language Guidelines · 국립국어원 쉬운 공공언어(소통성)",
    "boundary": "전문어 첫 정의와 용어 일관성은 comprehension(L0 C2·C3)."
@@ -957,6 +1859,28 @@
     "형용사는 명사 하나에 하나까지.",
     "수식은 사실을 더할 때만 붙인다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "수식 밀도: ‘건조체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "수식 밀도: ‘화려체’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "형용사는 명사 하나에 하나까지."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "수식은 사실을 더할 때만 붙인다."
+    }
+   ],
    "basis": "이태준 건조체↔화려체 · Williams concision('delete adjectives and adverbs')",
    "boundary": "정도부사 개별 어휘의 가중치는 어휘 목록(정도부사)이 센다. 비유는 figure.imagery, 평가 태도는 stance.attitude."
   },
@@ -979,6 +1903,28 @@
    "templates": [
     "'~하는 것이 가능하다'는 '~할 수 있다'로 줄인다.",
     "빼도 뜻이 그대로인 부사는 뺀다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "어휘 경제: ‘군더더기’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "어휘 경제: ‘절약(과하면 전보체)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "'~하는 것이 가능하다'는 '~할 수 있다'로 줄인다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "빼도 뜻이 그대로인 부사는 뺀다."
+    }
    ],
    "basis": "Strunk & White 'Omit needless words' · Williams concision 규칙",
    "boundary": "번역투에서 온 군더더기('~에 있어서', '~을 가지다')는 grammar 가 우선한다. 문장 길이는 cadence.length."
@@ -1003,6 +1949,28 @@
     "어디에나 붙는 문장은 이 글에만 맞는 문장으로 바꾼다.",
     "관용구는 새로 쓸 수 있으면 새로 쓴다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "신선도: ‘상투적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "신선도: ‘참신(과하면 기교적)’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "어디에나 붙는 문장은 이 글에만 맞는 문장으로 바꾼다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "관용구는 새로 쓸 수 있으면 새로 쓴다."
+    }
+   ],
    "basis": "Clark 'Seek original images'[부분검증] · Orwell 'Politics and the English Language'[미검증] · Leech & Short idioms·collocations",
    "boundary": "목록에 있는 상투구의 적발은 어휘 목록(상투구·빈 평가 서술)이 센다. 목록 밖의 상투성을 판정하는 것이 이 요소의 몫이다."
   },
@@ -1026,6 +1994,28 @@
     "행위는 동사로 쓴다. '분석을 수행한다'가 아니라 '분석한다'.",
     "책임 주체가 있는 문장은 그 주체를 주어로 쓴다."
    ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "행위 중심성: ‘명사화·정태적’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "행위 중심성: ‘동사·행위자 중심’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "행위는 동사로 쓴다. '분석을 수행한다'가 아니라 '분석한다'."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "책임 주체가 있는 문장은 그 주체를 주어로 쓴다."
+    }
+   ],
    "basis": "Williams, Style 핵심 원칙 · Strunk & White 'Use the active voice' · Biber D1 명사화",
    "boundary": "비문·부자연(이중 피동·'~에 의해')은 grammar(L0), 자연스럽지만 밋밋하면 여기. 기능동사 개별 어휘는 어휘 목록이 센다."
   },
@@ -1048,6 +2038,28 @@
    "templates": [
     "기술 개념은 처음 정한 이름을 끝까지 쓴다.",
     "같은 서술어를 한 단락에서 두 번 넘게 쓰지 않는다."
+   ],
+   "options": [
+    {
+     "id": "s1",
+     "group": "spectrum",
+     "text": "반복↔바꿔 쓰기: ‘동어 유지’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "s2",
+     "group": "spectrum",
+     "text": "반복↔바꿔 쓰기: ‘변이’ 쪽으로 맞춘다."
+    },
+    {
+     "id": "t1",
+     "group": "rule",
+     "text": "기술 개념은 처음 정한 이름을 끝까지 쓴다."
+    },
+    {
+     "id": "t2",
+     "group": "rule",
+     "text": "같은 서술어를 한 단락에서 두 번 넘게 쓰지 않는다."
+    }
    ],
    "basis": "Leech & Short cohesion – elegant variation",
    "boundary": "이해를 위한 용어 일관성은 comprehension(L0)이 우선한다. 여기서는 미적 선택만 본다."

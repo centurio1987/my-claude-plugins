@@ -113,7 +113,7 @@ def empty_layer() -> dict:
         "$schema": SCHEMA,
         "schema_version": 1,
         "lexicon": {"overrides": {}, "categories": {}, "add": []},
-        "directives": {"overrides": {}, "add": []},
+        "directives": {"overrides": {}, "add": [], "choices": {}},
     }
 
 
@@ -161,6 +161,10 @@ def prune_layer(layer: dict) -> dict:
     d = layer.get("directives", {})
     d_over = {k: v for k, v in (d.get("overrides") or {}).items() if v}
     out["directives"] = {"overrides": dict(sorted(d_over.items())), "add": list(d.get("add") or [])}
+    # 고른 선택지 — 분류 id → 선택지 id 목록. 빈 목록도 남긴다: voice 에서 "이 분류는 아무것도 고르지 않음"이다.
+    ch = {k: list(v) for k, v in (d.get("choices") or {}).items() if isinstance(v, list)}
+    if ch:
+        out["directives"]["choices"] = dict(sorted(ch.items()))
     return out
 
 
@@ -318,6 +322,26 @@ def effective(voice_id: str | None = None, *, layers: dict | None = None) -> dic
                 x["gate"] = {**x["gate"], **ov["gate"]}
             x["overridden_by"] = source
 
+    # 고른 선택지 — 분류 단위로 위 층이 아래 층을 통째로 대신한다(빈 목록 = 이 층에서는 고르지 않음).
+    choices: dict[str, dict] = {}
+    for source, layer in stack:
+        for cid, ids in ((layer.get("directives", {}) or {}).get("choices") or {}).items():
+            if isinstance(ids, list):
+                choices[cid] = {"ids": list(ids), "source": source,
+                                "overrides": choices.get(cid, {}).get("source")}
+    for cid, ch in choices.items():
+        cat = tcats.get(cid) or {}
+        opts = {o["id"]: o for o in cat.get("options") or []}
+        for oid in ch["ids"]:
+            o = opts.get(oid)
+            if not o:
+                continue  # 검증이 막는다. 여기서는 모르는 선택지를 싣지 않을 뿐이다
+            did = f"{cid}#{oid}"
+            directives[did] = {"id": did, "category": cid, "text": o["text"], "enabled": True,
+                               "gate": {"enabled": False, "level": "SHOULD"}, "source": ch["source"],
+                               "overridden_by": None, "axis": cat.get("axis"),
+                               "choice": {"option": oid, "group": o.get("group")}}
+
     out_cats = []
     for c in catalog.get("categories", []):
         st = cat_state.get(c["id"], {})
@@ -332,6 +356,8 @@ def effective(voice_id: str | None = None, *, layers: dict | None = None) -> dic
         "items": list(items.values()),
         "categories": out_cats,
         "directives": list(directives.values()),
+        # 분류마다 고른 선택지와 그 출처. 편집기가 체크 상태·계승·재정의를 그린다.
+        "choices": choices,
     }
 
 
@@ -453,6 +479,29 @@ def validate_layer(scope: str, layer: dict, *, base_layers: dict | None = None) 
         if not (di.get("text") or "").strip():
             problems.append(f"{w}: 지시문(text)이 비었다")
         _check_gate(di.get("gate"), w, problems)
+    ch = d.get("choices") or {}
+    if not isinstance(ch, dict):
+        problems.append(f"{where}/directives.choices: {{분류 id: [선택지 id…]}} 객체다")
+        ch = {}
+    for cid, ids in ch.items():
+        w = f"{where}/directives.choices[{cid}]"
+        cat = tcats.get(cid)
+        if not cat or not cat.get("parent"):
+            problems.append(f"{w}: 알 수 없는 정성 분류 — 선택지는 하위 분류(예: tenor.formality)에 고른다")
+            continue
+        if not isinstance(ids, list) or not all(isinstance(x, str) for x in ids):
+            problems.append(f"{w}: 선택지 id 의 목록이어야 한다")
+            continue
+        opts = {o["id"]: o for o in cat.get("options") or []}
+        unknown = [x for x in ids if x not in opts]
+        if unknown:
+            problems.append(f"{w}: 없는 선택지 {unknown} — 이 분류의 선택지는 {list(opts)}")
+        if len(set(ids)) != len(ids):
+            problems.append(f"{w}: 같은 선택지를 두 번 골랐다")
+        spec = [x for x in ids if opts.get(x, {}).get("group") == "spectrum"]
+        if len(spec) > 1:
+            problems.append(f"{w}: 스펙트럼 선택지는 하나만 고른다 — {spec} "
+                            f"(한 분류를 두 방향으로 동시에 맞출 수 없다)")
     for did, ov in (d.get("overrides") or {}).items():
         w = f"{where}/directives.overrides[{did}]"
         if did not in base_dirs:
@@ -657,6 +706,7 @@ def render(eff: dict, *, profile: str = "worker", usage: str = "generate") -> st
     for d in dirs:
         gate = d.get("gate", {})
         mark = f" · 게이트 {gate['level']}" if gate.get("enabled") else ""
+        mark += " · 고른 선택지" if d.get("choice") else ""
         L.append(f"- **`Q:{d['id']}`** [{tpath(d.get('category', ''))} · `{d.get('axis')}`{mark}] {d['text'].strip()}")
         ex = d.get("example") or {}
         if ex.get("good"):
