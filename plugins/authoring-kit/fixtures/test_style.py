@@ -312,6 +312,68 @@ def main() -> int:
           st == 200 and body["lexicon"]["forbidden_hits"] >= 1 and "D1" not in {f["code"] for f in body["l0"]["findings"]})
     st, body = call("POST", "/api/render", {"scope": "voice:alpha", "profile": "main"})
     check("미리보기 렌더", st == 200 and "정성 지시" in body["markdown"])
+
+    print("\n[10] 사용자 정성 범주")
+    ucat = {"id": "tenor.office", "parent": "tenor", "label": "사내 보고 말투",
+            "definition": "보고서를 읽는 상사에게 맞춘 말투", "questions": ["보고 대상에 맞는가?"]}
+    ug = SR.load_layer("global")
+    ug["directives"]["categories"] = [ucat]
+    ug["directives"]["add"] = list(ug["directives"]["add"]) + [
+        {"id": "tenor.office.a1", "category": "tenor.office", "text": "결론을 첫 줄에 둔다.",
+         "gate": {"enabled": True, "level": "SHOULD"}}]
+    check("사용자 범주를 쓴 지시가 검증을 통과한다", SR.validate_layer("global", ug) == [],
+          str(SR.validate_layer("global", ug)))
+    ueff = SR.effective(None, layers={"global": ug})
+    utax = {c["id"]: c for c in ueff["taxonomy"]}
+    check("사용자 범주는 상위의 축을 물려받고 출처를 단다",
+          utax["tenor.office"]["axis"] == "register" and utax["tenor.office"]["source"] == "global"
+          and next(d for d in ueff["directives"] if d["id"] == "tenor.office.a1")["axis"] == "register")
+    umd = SR.render(ueff)
+    check("렌더에 범주 이름과 판정 질문이 실린다",
+          "격식·관계 > 사내 보고 말투" in umd and "판정 질문: 보고 대상에 맞는가?" in umd)
+    bad = SR.empty_layer()
+    bad["directives"]["categories"] = [
+        {"id": "nope.x", "parent": "nope", "label": "x"},
+        {"id": "tenor.formality", "parent": "tenor", "label": "겹침"},
+        {"id": "stance.y", "parent": "stance", "label": "", "axis": "evidence"},
+        {"id": "wrong", "parent": "cadence", "label": "z"},
+        {"id": "cadence.q", "parent": "cadence", "label": "q", "questions": ["", 3]},
+        {"id": "cadence.f", "parent": "cadence", "label": "f", "extra": 1}]
+    bp = " | ".join(SR.validate_layer("global", bad))
+    for frag in ("상위 'nope' 가 없다", "tenor.formality]: 이미 있는 범주", "축은 적지 않는다",
+                 "이름(label)이 비었다", "'cadence.<이름>' 꼴", "questions 는", "모르는 필드"):
+        check(f"잘못된 범주 거부 — {frag}", frag in bp, bp)
+    uv = SR.empty_layer()
+    uv["directives"]["add"] = [{"id": "v.office", "category": "tenor.office", "text": "보고서처럼 쓴다."}]
+    check("voice 가 전역 범주를 쓸 수 있다", SR.validate_layer("voice:beta", uv, base_layers={"global": ug}) == [])
+    check("전역 범주가 사라지면 그 voice 지시가 걸린다",
+          any("알 수 없는 정성 분류 'tenor.office'" in p
+              for p in SR.validate_layer("voice:beta", uv, base_layers={"global": SR.empty_layer()})))
+    dup = SR.empty_layer()
+    dup["directives"]["categories"] = [dict(ucat, label="voice 가 다시 만든 것")]
+    check("voice 가 전역 범주 id 를 다시 만들 수 없다",
+          any("이미 있는 범주" in p for p in SR.validate_layer("voice:beta", dup, base_layers={"global": ug})))
+    check("범주를 안 쓰는 층은 저장 파일에 빈 categories 키를 만들지 않는다",
+          "categories" not in SR.prune_layer(SR.empty_layer())["directives"]
+          and SR.prune_layer(ug)["directives"]["categories"] == [ucat])
+    # 서버 — 저장, 그리고 voice 가 쓰는 전역 범주를 지우는 전역 저장은 거부
+    st, body = call("PUT", "/api/layer?scope=global", {"layer": ug})
+    check("서버가 사용자 범주를 저장한다", st == 200 and body["layer"]["directives"]["categories"] == [ucat], str(body)[:300])
+    vb = SR.load_layer("voice:beta")
+    vb["directives"]["add"] = list(vb["directives"]["add"]) + uv["directives"]["add"]
+    st, _ = call("PUT", "/api/layer?scope=voice:beta", {"layer": vb})
+    check("voice 가 전역 범주를 쓰는 지시를 저장한다", st == 200)
+    gone = json.loads(json.dumps(ug))
+    gone["directives"]["categories"] = []
+    gone["directives"]["add"] = [d for d in gone["directives"]["add"] if d["category"] != "tenor.office"]
+    before = SR.global_path().read_text(encoding="utf-8")
+    st, body = call("PUT", "/api/layer?scope=global", {"layer": gone})
+    check("voice 가 쓰는 전역 범주를 지우는 전역 저장은 422",
+          st == 422 and any("voice 'beta'" in p for p in body["problems"])
+          and SR.global_path().read_text(encoding="utf-8") == before, str(body)[:300])
+    st, body = call("POST", "/api/effective", {"scope": "voice:beta"})
+    check("유효값 API 가 병합된 분류를 준다",
+          st == 200 and any(c["id"] == "tenor.office" and c["source"] == "global" for c in body["effective"]["taxonomy"]))
     srv.shutdown()
 
     print(f"\n{'=' * 56}")

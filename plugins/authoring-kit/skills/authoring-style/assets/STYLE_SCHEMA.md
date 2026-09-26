@@ -24,7 +24,9 @@ skills/authoring-method/assets/style/qualitative.json  ① 정성 분류 체계 
   "directives": {
     "overrides":  { "<지시 id>": { "enabled": false, "text": "…", "gate": { "enabled": true, "level": "MUST" } } },
     "add":        [ { "id": "…", "category": "stance.certainty", "text": "…", "example": { "good": "…", "bad": "…" },
-                      "enabled": true, "gate": { "enabled": false, "level": "SHOULD" } } ]
+                      "enabled": true, "gate": { "enabled": false, "level": "SHOULD" } } ],
+    "categories": [ { "id": "tenor.office", "parent": "tenor", "label": "사내 보고 말투",
+                      "definition": "…", "questions": ["…"] } ]
   }
 }
 ```
@@ -86,10 +88,26 @@ L0 스캐너(`scan_ai_style.py --voice`)는 면제된 항목을 목록에서 빼
 | 필드 | 내용 |
 | --- | --- |
 | `id` | 소문자·숫자·점·하이픈. 해석 결과에서 `Q:<id>` 로 불린다 |
-| `category` | 정성 분류의 말단 하나(`stance.certainty` 등). 말단의 축이 곧 이 지시의 축이다 — L1 넷 중 하나 |
+| `category` | 정성 분류의 말단 하나(`stance.certainty` 등, 또는 아래 사용자 범주). 말단의 축이 곧 이 지시의 축이다 — L1 넷 중 하나 |
 | `text` | 모델에게 들어가는 지시. 비울 수 없다 — 끄려면 `enabled: false` |
 | `example` | `{good, bad}` 예문(선택). 추상 형용사만으로는 재현되지 않는다 |
 | `gate` | `{enabled, level}`. 켜면 게이트 채점 항목이 된다. `level` 은 `MUST` · `SHOULD` |
+
+### 사용자 범주 — `directives.categories`
+
+플러그인 분류(9범주 41말단)에 없는 범주가 필요하면 층에서 직접 만든다. **기존 상위 9개 밑의 하위로만** 선다.
+
+| 필드 | 내용 |
+| --- | --- |
+| `id` | `<상위>.<이름>` 꼴. 소문자·숫자·점·하이픈. 플러그인 분류나 아래 층 범주와 겹치면 안 된다 |
+| `parent` | 상위 9개(`tenor` · `stance` · `cadence` · `pacing` · `figure` · `engage` · `illus` · `frame` · `diction`) 중 하나 |
+| `label` | 편집기·해석 결과에 보이는 이름. 비울 수 없다 |
+| `definition` | 정의(선택) |
+| `questions` | 판정 질문 목록(선택). 이 범주에 묶인 지시를 게이트에 붙이면 채점 항목 아래에 실린다 |
+
+**축은 적지 않는다** — 상위에서 물려받는다. 사용자가 축을 고르면 L1 이 아닌 축을 가리키는 범주가 생기고, 갈래 소유권이 거기서 깨진다.
+전역에서 만든 범주는 모든 voice 가 쓰고, voice 에서 만든 범주는 그 voice 만 쓴다. voice 는 전역 범주를 고치지 않는다 — 전역에서 고친다.
+지시가 쓰는 범주는 지울 수 없다. **voice 가 쓰는 전역 범주를 지우는 전역 저장은 편집기가 거부한다.**
 
 **게이트에 붙은 지시는 채점자가 읽고만 판정한다.** 스크립트·정규식·카운터를 만들지 않는다.
 판정 규칙은 `qualitative.json` 의 `judging.rules` 에 있다.
@@ -104,6 +122,7 @@ L0 스캐너(`scan_ai_style.py --voice`)는 면제된 항목을 목록에서 빼
 - hard floor 항목을 올리거나 끄지 않았는가, `machine-rhythm` 항목 면제에 `reason` 이 있는가
 - 정규식이 컴파일되는가, 분류·기능 태그·정성 분류가 실재하는가
 - 정성 분류의 축이 L1 소유인가, 지시문이 비지 않았는가, 게이트 등급이 `MUST`·`SHOULD` 인가
+- 사용자 범주의 상위가 실재하는가, id 가 `<상위>.<이름>` 꼴이고 겹치지 않는가, 이름이 있는가, 축을 적지 않았는가
 
 ## 재현성
 
