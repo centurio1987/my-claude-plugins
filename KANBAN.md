@@ -20,7 +20,7 @@
   - 목표: 전역→voice 계승 설정을 편집기로 고치면 resolve·스캐너·게이트가 그대로 따르고, 분류 체계는 조사 근거를 갖는다
   - 메모: 소급 등록 — 작업은 claude/beautiful-mccarthy-kxg2nl 에서 먼저 수행(3e1ada8)
   - 실행 문서: KANBAN/cards/KAN-001-MJ3PE1.md (8/8 · 최근 09-26)
-  - 검토 문서: KANBAN/reviews/KAN-001-MJ3PE1.review.md (승인 2/2 · 승인)
+  - 검토 문서: KANBAN/reviews/KAN-001-MJ3PE1.review.html (승인 2/2 · 승인)
   - 원문:
     ```text
     authoring-kit를 더 체계화 및 고도화 하고자 한다.
