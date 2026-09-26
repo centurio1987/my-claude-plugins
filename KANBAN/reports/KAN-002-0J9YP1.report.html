@@ -1,0 +1,492 @@
+<meta charset="utf-8">
+<!-- kanban-fp:696916edf5d72af1f0482d67e8b0ce69dcddb429 -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAN-002-0J9YP1 실행 계획</title>
+<style>
+/* manage-kanban 계획 리포트 스타일 — Neobrutalism_Editorial_01 (editorial brutalism)
+ *
+ * 출처: bbangto-ui/packages/style-guide-catalog/src/neobrutalismEditorial.tsx
+ *   라이트 = foundations(semantic) · 다크 = midnightFoundations(makeColorway)
+ *
+ * **왜 사본인가.** @centurio1987/bbangto-ui-visualization 은 React 컴포넌트 + 빌드가
+ * 필요하고 사설 레지스트리(npm.pkg.github.com)에 있다. 리포트는 빌드 없이 열리는 단일
+ * HTML 이고 CSP 로 외부 로드가 막히므로, 패키지를 런타임에 쓸 수 없다. 그래서 토큰 값만
+ * 옮겼다.
+ *
+ * **drift 는 이 주석이 아니라 테스트가 막는다** — scripts/test_report.py 가 위 .tsx 를
+ * 파싱해 아래 값과 대조한다(원본이 없는 머신에서는 skip).
+ */
+
+:root {
+  --ink: #1C1B17;
+  --ink-hover: #2A2823;
+  --cream: #FAF2DD;
+  --paper: #FFFCF2;
+  --cream-sunken: #F3E8C9;
+  --gold: #E9C766;
+  --green: #C2D3B4;
+  --pink: #ECC3C8;
+  --muted: #4A463C;
+  --subtle: #6E6A5E;
+  --faint: #9A9483;
+  --border-width: 2px;
+
+  --bg: var(--cream);
+  --bg-elevated: var(--paper);
+  --bg-sunken: var(--cream-sunken);
+  --fg: var(--ink);
+  --fg-muted: var(--muted);
+  --fg-subtle: var(--subtle);
+  --border: var(--ink);
+  /* ─── 색의 역할 — 「자리」와 「상태」를 한 색이 겸하지 않는다 ─────────────────
+   * 장치가 둘이다. **왼쪽 5px 띠**는 「이 자리는 무엇인가」를 말하고, **칩(.tag·번호칩·
+   * 레일 칸)**은 「이것은 어떤 상태인가」를 말한다. 같은 값이 두 장치에 쓰이는 것은
+   * 괜찮지만, 한 장치 안에서 두 뜻을 겸하면 훑는 눈이 갈라내지 못한다.
+   *
+   *   --accent   (골드) 띠: 인용·주석 · 상세 밴드(「배경」·「정할 것」) · 선택지 표의
+   *                        추천 행 / 그 밖: 타이틀 블록 · 포커스 링
+   *   --accent-2 (그린) 띠: **조작 자리 전용**. 질감이 모드를 말한다 —
+   *                        단색=serve(누르면 정본에 씀) · 45° 해칭=정적(패치로 나감)
+   *   --accent-3 (핑크) 띠: **승계 전용**. 상태 칩 `tag-hold` 와 레일 칸 `st-noted` 가
+   *                        같은 값을 쓰지만 그쪽은 띠가 아니라 칩이라 안 겹친다
+   *   --bg-sunken       th · 미정 칩 · 승계 블록 바탕 · **접힌 조각 바탕**(「여기 더
+   *                        있다」의 단일 신호) · 결정 헤더 아래 모노 줄
+   *   --offset-lg       타이틀 · 트레이 · 모달 · **결정 헤더** · **레일의 현재 칸**
+   *                        (「지금 조작하는 자리」의 표시)
+   *   --danger/--ok/--warn  반려 / 승인 / 경고. 상태 전용이라 띠로 안 쓴다
+   *
+   * **신설 토큰 0.** 대기(아직 정본이 아님)는 색이 아니라 2px 점선 + `outline-offset`
+   * 으로 말한다 — 색을 쓰면 훑는 눈이 그것을 상태로 읽고, `--border` 를 쓰므로 다크에서
+   * 같이 뒤집힌다. 새 색을 만들면 다크 전환(토큰 재정의)이 그 자리만 안 뒤집는다. */
+  --accent: var(--gold);
+  --accent-2: var(--green);
+  --accent-3: var(--pink);
+  --danger: #C0392B;
+  --ok: #5C7A4A;
+  --warn: #B8860B;
+  --offset: 3px 3px 0 var(--gold);
+  --offset-lg: 5px 5px 0 var(--ink);
+
+  /* 결정 헤더의 높이. sticky 가 둘(결정 헤더 · 항목 헤더줄)이라 이 값이 세 자리에서
+   * 함께 움직인다 — 항목 헤더줄의 `top`, 앵커의 `scroll-margin-top`, 그리고 둘의 층 순서.
+   * 한 자리만 고치면 레일을 눌러 간 항목이 헤더 밑에 숨거나 헤더줄이 겹친다. */
+  --dh-h: 7rem;
+
+  --font-sans: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* 다크는 잉크/크림을 뒤집는다(midnight colorway). 시스템 기본은 media query 가,
+ * 명시적 선택은 [data-theme] 가 이긴다 — 둘 다 정의해야 토글이 양방향으로 먹는다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1B17;
+    --bg-elevated: #2A2823;
+    --bg-sunken: #141310;
+    --fg: #FAF2DD;
+    --fg-muted: #C9C2AE;
+    --fg-subtle: #9A9483;
+    --border: #FAF2DD;
+    --offset: 3px 3px 0 #FAF2DD;
+    --offset-lg: 5px 5px 0 #FAF2DD;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1B17;
+  --bg-elevated: #2A2823;
+  --bg-sunken: #141310;
+  --fg: #FAF2DD;
+  --fg-muted: #C9C2AE;
+  --fg-subtle: #9A9483;
+  --border: #FAF2DD;
+  --offset: 3px 3px 0 #FAF2DD;
+  --offset-lg: 5px 5px 0 #FAF2DD;
+}
+
+body {
+  margin: 0;
+  padding: 2.5rem 1.25rem 5rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.wrap { max-width: 62rem; margin: 0 auto; }
+
+/* 각진 모서리 · 2px 잉크선 · 하드 오프셋. 이 셋이 모티프의 전부다. */
+.card, .kpi, table, pre, .chart {
+  background: var(--bg-elevated);
+  border: var(--border-width) solid var(--border);
+  border-radius: 0;
+}
+.card { padding: 1.25rem 1.5rem; margin: 1.5rem 0; box-shadow: var(--offset); }
+
+h1, h2, h3 { font-weight: 700; margin: 2rem 0 .75rem; }
+h1 { font-size: 38px; line-height: 1.05; letter-spacing: -.01em; margin-top: 0; }
+h2 { font-size: 30px; line-height: 1.1; letter-spacing: -.01em;
+     border-bottom: var(--border-width) solid var(--border); padding-bottom: .35rem; }
+h3 { font-size: 20px; line-height: 1.3; }
+
+.meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em;
+        font-weight: 600; text-transform: uppercase; color: var(--fg-subtle); }
+
+.title-block { border: var(--border-width) solid var(--border); background: var(--accent);
+               color: var(--ink); padding: 1.5rem; box-shadow: var(--offset-lg); }
+.title-block h1, .title-block .meta { color: var(--ink); }
+/* 타이틀 머리줄 — 왼쪽은 문서가 무엇인가, 오른쪽은 이 화면이 무엇을 할 수 있는가(모드
+   지문). 두 모드에서 **같은 자리**에 서야 「지금 어느 쪽인가」를 자리로 알 수 있다. */
+.tb-row { display: flex; justify-content: space-between; gap: .5rem 1rem;
+          align-items: baseline; flex-wrap: wrap; margin-bottom: .5rem; }
+/* 줄 자체가 아래 간격을 지므로 안의 문단은 여백을 안 갖는다 — 안 그러면 좁은 화면에서
+   지문이 아래로 접힐 때 h1 과 맞붙는다(375px 실측). */
+.tb-row > .meta { margin: 0; }
+
+.kpis { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+.kpi { flex: 1 1 9rem; padding: .9rem 1rem; box-shadow: var(--offset); }
+.kpi b { display: block; font-size: 30px; line-height: 1.1; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left;
+         vertical-align: top; font-size: 15px; }
+th { background: var(--bg-sunken); font-weight: 700; }
+
+/* 넓은 것은 페이지가 아니라 자기 안에서 가로 스크롤한다. */
+.scroll { overflow-x: auto; }
+pre { padding: .8rem 1rem; font-family: var(--font-mono); font-size: 13px; overflow-x: auto; }
+code { font-family: var(--font-mono); font-size: .9em; }
+
+.chart { padding: 1rem; margin: 1rem 0; }
+.chart svg { display: block; width: 100%; height: auto; }
+
+.tag { display: inline-block; border: var(--border-width) solid var(--border);
+       padding: 0 .4rem; font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.tag-done { background: var(--ok); color: var(--cream); }
+.tag-doing { background: var(--accent); color: var(--ink); }
+.tag-todo { background: var(--bg-sunken); color: var(--fg-muted); }
+/* 「추가 의견」 상태. `--accent-3` 을 쓰지만 **칩이라 승계 띠와 안 겹친다** — 띠로서의
+   핑크는 승계 전용이고, 이 자리는 장치가 다르다(위 역할 주석). */
+.tag-hold { background: var(--accent-3); color: var(--ink); }
+.tag-warn { background: var(--warn); color: var(--ink); }
+.tag-danger { background: var(--danger); color: var(--cream); }
+/* 승계 칩은 판정 태그(승인·반려·미정)와 **다른 종류의 사실**이다 — 판정은 이 문서가
+ * 내린 상태이고 승계는 어디서 왔는가다. 위 여섯 중 하나를 빌려 쓰면 훑는 눈이 그것을
+ * 상태로 읽으므로, 어느 것과도 안 겹치게 잉크와 바탕을 뒤집는다. 토큰을 뒤집는 것이라
+ * 다크에서도 그대로 선다(리터럴을 박으면 그 자리만 안 뒤집힌다). */
+.tag-inh { background: var(--fg); color: var(--bg); }
+
+.note, blockquote { border-left: 5px solid var(--accent); padding-left: 1rem;
+                    color: var(--fg-muted); margin: 1rem 0; }
+ol, ul { padding-left: 1.4rem; }
+li { margin: .25rem 0; }
+
+/* ─── 승계 — 넘어온 의견임이 접기 밖에서 보여야 한다 ──────────────────────────
+ * 승계 사실은 `inherit` 값으로 이미 있었는데, 화면에는 상세(접기) 안의 텍스트 한 줄로만
+ * 있었다. 그래서 훑는 사람은 이 의견이 남의 검토서에서 넘어온 것인지 모른 채 판정한다 —
+ * 값을 가르는 것과 화면에서 드러나는 것은 다른 일이고, 이 블록이 뒤엣것이다.
+ *
+ * 왼쪽 띠는 이 스타일이 이미 쓰는 모티프다(.note·blockquote 가 accent, 검토 화면의 조작
+ * 자리가 accent-2). 승계는 남은 accent-3 을 쓴다 — 셋이 한 항목 안에 같이 서므로 자리마다
+ * 색이 달라야 "여기는 무엇을 하는 자리인가"가 색으로 읽힌다. **띠로서의 accent-3 은 승계
+ * 전용**이고, 항목이 거터 밴드로 바뀐 뒤로 이 띠는 `.jd-band-inh > .jd-body` 가 진다.
+ *
+ * 검토 화면 전용 CSS(report.py 의 REVIEW_CSS)가 아니라 여기 두는 이유: 그쪽은 **판정을
+ * 내릴 수 있는 문서**에만 실린다. 승계된 검토서(판정이 다른 문서로 넘어간 쪽)도 자기가
+ * 물려받은 의견을 그대로 들고 있어서, 거기 두면 그 화면에서만 띠가 통째로 빠진다. */
+.inh { border-left: 5px solid var(--accent-3); background: var(--bg-sunken);
+       padding: .5rem .75rem; margin: .5rem 0 .7rem; }
+/* 머리의 승계 알림은 문서 전체의 사실이라 절 사이 간격과 카드 여백을 그대로 쓴다. */
+.card.inh { padding: 1rem 1.25rem; margin: 1.5rem 0; }
+.inh-row { display: flex; flex-wrap: wrap; gap: .4rem; align-items: baseline;
+           margin: .2rem 0; }
+/* 라벨 폭을 맞춘다 — 줄이 여럿인데 값의 시작이 들쭉날쭉하면 무엇이 무엇의 값인지가
+   눈으로 안 붙는다. */
+.inh-row > .meta:first-child { margin: 0; min-width: 4.5rem; }
+.inh-val { flex: 1 1 16rem; color: var(--fg-muted); }
+/* 계보는 좁은 화면에서 페이지를 밀 수 있다. 가로 스크롤 대신 접어 내린다 — 홉이 낱개
+   조각이라 줄이 바뀌어도 읽는 순서가 안 깨진다. */
+.inh-chain { display: flex; flex-wrap: wrap; gap: .35rem; align-items: baseline; }
+.inh-arrow { color: var(--fg-subtle); }
+
+/* ─── 결정 헤더 — 판정에 필요한 것만 무게를 갖는다 ───────────────────────────
+ * KPI 6~7칸이 같은 무게로 한 줄에 서던 자리다. 변경 파일 수와 수렴이 동급으로 보이면
+ * 훑는 눈이 「지금 무엇을 정해야 하는가」를 못 찾는다(의뢰서 §6-1·§6-4). 헤더에 남는 것은
+ * 넷뿐이다 — 수렴 · 항목 레일 · 문서 판정 · 다음 미해결. 나머지 사실(변경 파일·추가/삭제·
+ * 커밋·태그·의견)은 아래 `.dh-meta` 모노 한 줄로 내려간다. 사실을 지우는 것이 아니라
+ * 무게를 가르는 것이다.
+ *
+ * **REVIEW_CSS(report.py)가 아니라 여기 두는 이유**: 그쪽은 판정을 내릴 수 있는 문서에만
+ * 실린다. 판정이 다른 문서로 넘어간 `승계됨` 검토서도 자기 항목과 수렴을 그대로 들고
+ * 있어서, 거기 두면 그 화면에서만 헤더와 레일이 통째로 빠진다(의뢰서 §5-10). */
+.dh { position: sticky; top: 0; z-index: 40;
+      display: grid; grid-template-columns: auto 2px minmax(0, 1fr) 2px auto;
+      gap: 1.1rem; align-items: center; margin: 1.25rem 0 0; padding: .85rem 1.1rem;
+      background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+      box-shadow: var(--offset-lg); }
+/* 세로 잉크선. 테두리 대신 칸을 하나 쓰는 것은 그리드가 접힐 때(40rem 이하) 이 칸만
+   빼면 되기 때문이다 — 테두리면 방향까지 함께 바꿔야 한다. */
+.dh-sep { background: var(--border); align-self: stretch; min-height: 2.5rem; }
+.dh-cv { display: grid; gap: .1rem; white-space: nowrap; }
+.dh-cv b { font-family: var(--font-mono); font-size: 34px; line-height: 1;
+           letter-spacing: -.02em; font-weight: 700; }
+/* 분모의 슬래시만 죽인다 — 「5 / 7」에서 눈이 잡아야 하는 것은 5 와 7 이다. */
+.dh-cv b i { font-style: normal; color: var(--fg-subtle); }
+.dh-sub { font-size: 13px; line-height: 1.4; color: var(--fg-muted);
+          text-transform: none; letter-spacing: 0; font-weight: 400; }
+.dh-rail { display: grid; gap: .4rem; min-width: 0; }
+.dh-rail-head { display: flex; justify-content: space-between; gap: .8rem;
+                align-items: baseline; }
+.dh-act { display: grid; gap: .45rem; justify-items: end; }
+/* 「다음 미해결」은 **앵커**다. 스크롤 위치 추적이나 목록 필터가 아니라 `#item-N` 으로
+   뛰는 링크라, 이 화면의 `fetch` 자리를 하나도 안 늘린다(의뢰서 §5-2). */
+.dh-next { border: var(--border-width) solid var(--border); background: var(--accent-2);
+           color: var(--ink); box-shadow: var(--offset); text-decoration: none;
+           padding: .4rem .85rem; font-weight: 700; font-size: 15px; line-height: 1.2;
+           white-space: nowrap; }
+.dh-meta { margin: .8rem 0 0; padding: .4rem .9rem; background: var(--bg-sunken);
+           border: var(--border-width) solid var(--border); overflow-x: auto;
+           white-space: nowrap; font-family: var(--font-mono); font-size: 12px;
+           font-weight: 600; letter-spacing: .04em; color: var(--fg-muted); }
+
+/* ─── 항목 레일 — 칸 하나가 항목 하나 ────────────────────────────────────────
+ * 수렴을 숫자로만 말하면 「아직 안 닫힌 항목으로 가는 길」이 화면에 없다(의뢰서 §6-1).
+ * 항목 8개에 판정 12건이 붙은 문서에서 실제로 그랬다.
+ *
+ * 색은 `review-data` 가 항목마다 실어 보낸 `state` 를 **칠하기만** 한다. 도출 규칙을
+ * 여기서 다시 쓰면 화면이 보드·validate 와 다른 말을 한다(SKILL.md 5.8 마지막 줄). */
+.rail { display: flex; flex-wrap: wrap; gap: .4rem; }
+.rail-c { width: 30px; height: 30px; display: grid; place-items: center;
+          border: var(--border-width) solid var(--border);
+          background: var(--bg-elevated); color: var(--fg); text-decoration: none;
+          font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+/* 상태 5색은 **레일 칸과 항목 번호칩이 같은 클래스를 쓴다.** 두 벌로 두면 언젠가 한쪽만
+   고쳐지고, 그때 레일과 항목이 같은 항목을 다른 색으로 말한다. 기하(30px·26px)는 각자
+   `.rail-c`·`.jd-num` 이 지고 색만 여기서 준다. */
+.st-approved { background: var(--ok); color: var(--cream); }
+.st-rejected { background: var(--danger); color: var(--cream); }
+.st-noted    { background: var(--accent-3); color: var(--ink); }
+.st-open     { background: var(--bg-sunken); color: var(--fg); }
+/* 철회는 분모에서 빠진다 — 빈 판 + 취소선이라 색 다섯 중 어느 것도 안 쓴다. */
+.st-retired  { background: var(--bg-elevated); color: var(--fg-subtle);
+               text-decoration: line-through; }
+/* 헤더의 「다음 미해결」이 가리키는 칸. **스크롤 위치를 좇지 않는다** — 그러려면 JS 가
+   필요한데 이 레일은 앵커 장치라 그 자리를 안 늘린다. 그래서 「지금」을 버튼과 같은
+   칸으로 두고, 둘이 늘 같은 항목을 가리키게 한다. */
+.rail-cur { box-shadow: var(--offset-lg); }
+
+/* ─── 접기 — 「여기 더 있다」의 단일 신호는 --bg-sunken 하나다 ───────────────
+ * 접힌 조각의 바탕을 하나로 고정하면 훑는 눈이 그 색만 배우면 된다. 여는 줄에 개수를
+ * 적는 것은 §4.5-2 의 「접기 안에만 있으면 없는 것과 같다」를 접힌 채로 지키기 위해서다.
+ * 0건이면 애초에 안 그린다(§4.5-1) — 그 판단은 렌더러가 한다. */
+details { margin: .7rem 0; }
+details > summary { cursor: pointer; list-style: none;
+                    background: var(--bg-sunken);
+                    border: var(--border-width) solid var(--border);
+                    padding: .4rem .8rem; font-family: var(--font-mono);
+                    font-size: 13px; font-weight: 600; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "\25B8\00a0"; }
+details[open] > summary::before { content: "\25BE\00a0"; }
+.fold-n { float: right; color: var(--fg-subtle); font-weight: 400; }
+
+/* h2 오른쪽에 집계를 다는 자리. 아래 잉크선은 h2 규칙이 그대로 준다. */
+.h2-row { display: flex; justify-content: space-between; align-items: baseline;
+          gap: 1rem; flex-wrap: wrap; }
+
+
+/* ─── 판단 항목 하나 — 다섯 조각에 이름을 달고 잉크선으로 가른다 ────────────────
+ * 옛 판은 승계 블록 · 상세 접기 · 판정 이력 · 의견 · 조작줄이 세로로 쌓이기만 했고,
+ * 위계는 들여쓰기와 왼쪽 띠 색으로만 있었다. 스크롤하면 지금 보는 것이 누구의 무엇인지가
+ * 흐려진다(의뢰서 §6-2). 왼쪽 84px 거터에 조각 이름을 달고 2px 잉크선으로 가르면 그
+ * 위계가 **읽히는 이름**을 갖는다.
+ *
+ * 거터는 본문 열 **밖**이다(grid 3열). 음수 마진으로 밀면 `pre`·표의 본문 폭이 그만큼
+ * 줄어 좁은 열에서 가로 스크롤이 하나 더 생긴다 — §5-7 과 싸우는 자리다.
+ *
+ * 색 규약은 그대로다 — 승계=핑크 · 근거=골드 · 조작=그린. **띠는 밴드가 진다**:
+ * 조각 안의 요소(`.inh`·`.rv-ops`)가 자기 띠를 또 그리면 5px 이 두 겹이 되므로
+ * 아래에서 그 둘의 띠를 끈다(선택자 특이도로 이기므로 파일 순서와 무관하다). */
+#rv-list { list-style: none; padding-left: 0; display: grid; gap: .9rem; }
+#rv-list > li { margin: 0; scroll-margin-top: var(--dh-h); }
+.jd { background: var(--bg-elevated); border: var(--border-width) solid var(--border);
+      box-shadow: var(--offset); }
+/* 헤더줄은 항목 안에서 sticky — 긴 항목을 스크롤해도 「누구의 무엇」이 위에 남는다.
+   결정 헤더 바로 밑에 서고 그보다 낮은 층이라 겹칠 때 헤더가 이긴다. */
+.jd-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+           gap: .5rem; align-items: center; padding: .55rem .8rem;
+           background: var(--bg-elevated);
+           border-bottom: var(--border-width) solid var(--border);
+           position: sticky; top: var(--dh-h); z-index: 20; }
+.jd-num { width: 26px; height: 26px; display: grid; place-items: center;
+          border: var(--border-width) solid var(--border);
+          font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+.jd-title { font-size: 17px; font-weight: 700; line-height: 1.35; }
+.jd-head .meta { margin: 0; white-space: nowrap; }
+.jd-band { display: grid; grid-template-columns: 84px 2px minmax(0, 1fr);
+           column-gap: .7rem; padding: .7rem .8rem;
+           border-top: var(--border-width) solid var(--border); }
+/* 헤더줄(또는 접힘 줄)이 이미 아래 잉크선을 그렸다 — 첫 밴드가 또 그리면 4px 이 된다. */
+.jd-head + .jd-band, summary + .jd-band { border-top: 0; }
+.jd-g { font-family: var(--font-mono); font-size: 11.5px; line-height: 1.4;
+        font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+        color: var(--fg-subtle); padding-top: .25rem; }
+.jd-rule { background: var(--border); align-self: stretch; }
+.jd-body { min-width: 0; }
+.jd-body > :first-child { margin-top: 0; }
+.jd-body > :last-child { margin-bottom: 0; }
+.jd-band-inh > .jd-body { border-left: 5px solid var(--accent-3); padding-left: .75rem; }
+.jd-band-ctx > .jd-body { border-left: 5px solid var(--accent); padding-left: .75rem; }
+/* 「배경」의 사실 목록 — 사실 하나가 한 칸이고, 그 근거(원문)는 칸 안에서 제 줄로 선다.
+   칸 사이 가는 선은 사실의 경계를 눈으로 가르는 자리다(줄글에서 사라지던 것). */
+.jd-facts { list-style: none; margin: 0; padding: 0; }
+.jd-facts > li { padding: .45rem 0; border-top: 1px solid var(--bg-sunken); }
+.jd-facts > li:first-child { border-top: 0; padding-top: 0; }
+.jd-facts > li::before { content: "·"; font-weight: 700; margin-right: .45rem; color: var(--fg-subtle); }
+.jd-src { display: block; margin-top: .15rem; padding-left: .9rem; font-family: var(--font-mono);
+          font-size: 12px; color: var(--fg-subtle); overflow-wrap: anywhere; }
+/* 조작 자리 띠만 테두리가 아니라 **바탕 조각**이다 — `border` 는 질감을 못 받는데, 이
+   자리는 단색(serve)과 45° 해칭(정적)으로 모드를 말해야 한다(REVIEW_CSS 의 `.is-static`).
+   자리·너비·색은 다른 두 띠와 똑같다. */
+.jd-band-ops > .jd-body { padding-left: .75rem;
+  background: linear-gradient(var(--accent-2), var(--accent-2)) left top / 5px 100% no-repeat; }
+.jd-band .inh, .jd-band .rv-ops { border-left: 0; padding-left: 0; }
+/* 「쓸 수 있다는 사실까지가 인터페이스」(§4.5-3) — 0건 자리는 비우지 않고 점선으로 낸다.
+   점선을 쓰는 것은 이 자리가 상태가 아니라 **빈 자리**이기 때문이다. */
+/* 「정할 것」 아래의 선택지 표. **여기(REPORT_STYLE)에 두는 이유**는 3항 본문이
+   `승계됨` 문서에도 보이기 때문이다 — REVIEW_CSS 는 판정을 내릴 수 있는 문서에만 실리므로
+   거기 두면 그 화면에서만 표가 통째로 무너진다(의뢰서 §5-10).
+   표 자체의 테두리·여백은 위의 공용 `table` 규칙이 이미 진다. 여기서 더하는 것은 밴드
+   안에서의 여백과 **추천 행의 표시**뿐이다. 추천은 새 색을 안 만들고 이미 「자리」를
+   가리키는 골드 띠를 왼쪽에 세운다 — 칩(`tag-done`)이 상태를 말하므로 겹치지 않는다. */
+.jd-tbl { margin: .6rem 0 .2rem; }
+.jd-tbl table { margin: 0; }
+.jd-rec > td:first-child { border-left: 3px solid var(--accent); }
+.jd-empty { border: 2px dashed var(--fg-subtle); color: var(--fg-subtle);
+            padding: .45rem .7rem; margin: 0; font-size: 14px; }
+.jd-vs, .jd-ns { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.jd-vs > li { display: grid; grid-template-columns: 3.6rem auto minmax(0, 1fr);
+              gap: .6rem; align-items: baseline; margin: 0;
+              border: var(--border-width) solid var(--border); padding: .35rem .55rem; }
+.jd-vs > li .meta, .jd-ns > li .meta { margin: 0; }
+.jd-ns > li { margin: 0; border-left: 5px solid var(--accent); padding: .2rem 0 .2rem .7rem; }
+
+/* ─── 닫힌 항목은 한 줄로 접힌다 ──────────────────────────────────────────────
+ * §4.5-1 의 「0건이면 안 그린다」를 「**닫혔으면 안 펼친다**」로 연장한 것이다. 판정이 난
+ * 항목은 다시 읽을 자리가 아니라 「이건 끝났다」만 확인하는 자리라, 번호·주제·상태·판정
+ * 수 한 줄이면 그 확인이 끝난다. 항목 8 · 판정 12 짜리 문서가 한 판에 들어오는 것이
+ * 이 규칙의 값이다(의뢰서 §6-1).
+ *
+ * **접되 지우지 않는다** — 펴면 열린 항목과 한 글자도 다르지 않은 내용이 나온다. */
+.jd-fold > summary { display: grid;
+                     grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+                     gap: .5rem; align-items: center; font-family: var(--font-sans);
+                     font-size: 15px; font-weight: 400; border: 0;
+                     border-bottom: var(--border-width) solid var(--border); }
+/* 전역 접기 표식(▸)을 여기서는 끈다 — grid 컨테이너 안의 `::before` 는 칸 하나를 차지해
+   네 칸짜리 줄을 통째로 밀어낸다. 대신 오른쪽 끝의 「펴기/접기」가 같은 말을 한다. */
+.jd-fold > summary::before { content: none; }
+.jd-tog::after { content: "펴기"; }
+.jd-fold[open] .jd-tog::after { content: "접기"; }
+.jd-fold[open] > summary { background: var(--bg-elevated); }
+
+@media (max-width: 40rem) {
+  h1 { font-size: 30px; } h2 { font-size: 24px; }
+  body { padding: 1.5rem .75rem 3rem; }
+
+  /* ─── 40rem 이하 — 375px 에서 실제로 판정할 수 있는가 ──────────────────────
+   * **sticky 를 끈다.** 결정 헤더는 이 폭에서 세로로 접혀 400px 을 넘고, 그 위에 항목
+   * 헤더줄이 또 붙으면 812px 뷰포트에 판정할 것이 안 남는다(실측 425px). `--dh-h` 를
+   * 0 으로 덮으면 `top` 과 `scroll-margin-top` 이 함께 따라온다 — 토큰 하나로 묶어 둔
+   * 값이 여기서 값을 한다. */
+  :root { --dh-h: 0rem; }
+  .dh { grid-template-columns: minmax(0, 1fr); gap: .7rem; position: static; }
+  /* 세로 잉크선은 방향이 안 맞는다 — 열이 사라졌으므로 함께 뺀다. */
+  .dh-sep { display: none; }
+  .dh-cv b { font-size: 30px; }
+  /* 판정 칩은 칩 크기 그대로 두고 「다음 미해결」만 손가락 폭으로 늘린다. */
+  .dh-act { justify-items: start; }
+  .dh-next { display: grid; place-items: center; min-height: 44px; text-align: center;
+             width: 100%; }
+  .jd-head { position: static; }
+
+  /* 레일은 26px 칸으로 줄고 줄바꿈한다(8칸이 두 줄까지). */
+  .rail-c { width: 26px; height: 26px; font-size: 12px; }
+
+  /* **거터가 사라지고 조각 이름이 머리글로 올라간다.** 84px 을 유지하면 본문 열이
+     213px 로 눌려(실측) `pre` 와 표가 저마다 가로 스크롤을 하나씩 더 만든다 — §5-7 이
+     막으려는 것이 바로 그 상태다. 이름은 위로 올라가므로 사라지지 않는다. */
+  .jd-band { grid-template-columns: minmax(0, 1fr); gap: .35rem; padding: .6rem .7rem; }
+  .jd-rule { display: none; }
+  .jd-g { padding-top: 0; }
+  .jd-band-inh > .jd-body, .jd-band-ctx > .jd-body, .jd-band-ops > .jd-body {
+    padding-left: .6rem; }
+  /* 3열 표는 이 폭에서 실제로 좁다. **열을 줄이거나 카드로 접지 않는다** — 레이아웃이
+     두 벌이 되면 검사할 자리도 두 배가 된다. 글자와 셀 여백만 줄이고 넘치는 것은
+     `.scroll` 이 자기 안에서 민다(body 는 안 밀린다). */
+  .jd-tbl table { font-size: 13px; }
+  .jd-tbl th, .jd-tbl td { padding: .35rem .45rem; }
+  /* 헤더줄·접힘 줄도 두 열로 접는다 — 번호|주제 / 상태|개수 / 펴기. */
+  .jd-head, .jd-fold > summary { grid-template-columns: auto minmax(0, 1fr);
+                                 row-gap: .3rem; }
+  .jd-vs > li { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
+}
+
+</style>
+<div class="wrap">
+<div class="title-block">
+  <p class="meta">KAN-002-0J9YP1 · 진행 중 · 브랜치 KAN-002-0J9YP1</p>
+  <h1>authoring-kit 문체 설정 앱 — 정성 지시 범주를 사용자가 직접 만들고 항목에서 고른다</h1>
+</div>
+<p class="note"><strong>voice 미적용</strong> — authoring-kit 이 없어 집필 단계를 건너뛰고 데이터만으로 렌더했습니다. 문체가 다른 리포트와 다를 수 있습니다.</p>
+
+<div class="kpis">
+  <div class="kpi"><span class="meta">work</span><b>0/4</b></div>
+  <div class="kpi"><span class="meta">배치</span><b>1</b></div>
+  <div class="kpi"><span class="meta">보류</span><b>0</b></div>
+  <div class="kpi"><span class="meta">독립성</span><b>OK</b></div>
+</div>
+
+
+
+<h2>전략</h2>
+<section class="card"><p><strong>사용자 범주는 층 파일의 차분으로 둔다.</strong> 플러그인 분류 체계(<code>qualitative.json</code>)는 읽기 전용으로 두고, 층 파일(<code>global/style.json</code> · <code>voices/&lt;id&gt;/style.json</code>)의 <code>directives.categories</code> 에 사용자가 만든 하위 범주를 적는다. 유효값을 계산할 때 기본 분류 → 전역 → voice 순서로 겹친다. 지시 항목이 계승되는 방식과 같다.</p>
+<ul>
+<li><strong>위치</strong> — 기존 상위 9개 밑의 하위로만 만든다(유저 결정, 2026-09-27). 담당 축은 상위에서 물려받고 따로 적지 않는다. 그래서 L1 갈래 소유권 검사와 게이트·미리보기가 지금 경로 그대로 돈다.</li>
+<li><strong>범주 필드</strong> — <code>id</code>(<code>&lt;상위&gt;.&lt;이름&gt;</code>) · <code>parent</code> · <code>label</code> · <code>definition</code>(선택) · <code>questions</code>(선택, 게이트 판정 질문으로 실린다).</li>
+<li><strong>삭제 안전</strong> — 지시가 쓰고 있는 범주는 지울 수 없다. 전역 범주를 voice 지시가 쓰고 있으면 전역 저장이 거부된다.</li>
+<li><strong>제약</strong> — 표준 라이브러리만 쓴다, 조용한 보정 없이 저장 전에 거부한다, 기존 설정 파일과 호환된다(<code>directives.categories</code> 가 없으면 지금과 같다).</li>
+<li><strong>버린 대안</strong> — 새 상위 범주 허용(축을 사람이 골라야 하고 갈래 위반 자리가 생긴다 — 유저가 고르지 않음) · 플러그인 분류 파일에 직접 추가(업데이트 때 덮인다) · voice 가 전역 범주를 재정의(지금 요구에 없다, 전역에서 고치면 된다).</li>
+</ul></section>
+
+<h2>실행 계획 (WBS)</h2>
+<div class="chart"><svg viewBox="0 0 860 178" role="img" aria-label="WBS 간트"><text x="16" y="57" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S1</text><rect x="148.0" y="45" width="696.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="156.0" y="59" font-size="12" fill="#1C1B17">레지스트리 — style_registry.py 에 층별 사용자 범주: 빈 층·정…</text><text x="16" y="87" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S2</text><rect x="148.0" y="75" width="696.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="156.0" y="89" font-size="12" fill="#1C1B17">서버 — style_server.py 유효값 응답에 병합된 분류를 싣고, 전역 …</text><text x="16" y="117" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S3</text><rect x="148.0" y="105" width="696.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="156.0" y="119" font-size="12" fill="#1C1B17">편집기 — ui/style-editor.html 정성 분류 트리에 범주 추가·수…</text><text x="16" y="147" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S4</text><rect x="148.0" y="135" width="696.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="156.0" y="149" font-size="12" fill="#1C1B17">검사·문서 — test_style.py 에 사용자 범주 검사 추가, STYLE_…</text><line x1="148.0" y1="34" x2="148.0" y2="174" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="154.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치1</text></svg></div>
+<div class="scroll"><table>
+<tr><th>work</th><th>내용</th><th>상태</th></tr><tr><td><code>S1</code></td><td>레지스트리 — <code>style_registry.py</code> 에 층별 사용자 범주: 빈 층·정리·유효값 병합(출처 표시)·검증(id·상위·이름·충돌·축 금지·사용 중 삭제)·렌더가 병합된 분류를 쓴다. 완료 기준: 사용자 범주를 쓴 지시가 저장되고 미리보기·게이트 항목에 범주 이름과 판정 질문이 실린다, 잘못된 범주는 저장 전에 거부된다</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S2</code></td><td>서버 — <code>style_server.py</code> 유효값 응답에 병합된 분류를 싣고, 전역 저장 때 voice 층이 쓰는 범주가 사라지면 거부한다. 완료 기준: API 로 범주 추가·저장·거부가 재현된다</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S3</code></td><td>편집기 — <code>ui/style-editor.html</code> 정성 분류 트리에 범주 추가·수정·삭제, 출처 표시, 항목 범주 선택에 사용자 범주가 나온다. 완료 기준: 브라우저에서 범주를 만들고 항목에 골라 저장·새로고침 후 유지, 폰 너비 가로 스크롤 0</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S4</code></td><td>검사·문서 — <code>test_style.py</code> 에 사용자 범주 검사 추가, <code>STYLE_SCHEMA.md</code>·<code>authoring-style</code> 스킬 갱신, 0.4.1(plugin.json·marketplace.json). 완료 기준: 새 스위트 전부 통과, 기존 실패는 이전부터 있던 것만</td><td><span class="tag tag-todo">미착수</span></td></tr>
+</table></div>
+
+<h2>배치 구성</h2>
+<div class="chart"><svg viewBox="0 0 860 164" role="img" aria-label="배치 2안 비교"><text x="16" y="52" font-size="14" font-weight="700" fill="#1C1B17">단일 에이전트</text><rect x="190.0" y="30" width="638.0" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="198.0" y="52" font-size="12" fill="#1C1B17">단계1</text><text x="16" y="108" font-size="14" font-weight="700" fill="#1C1B17">오케스트레이션</text><rect x="190.0" y="86" width="638.0" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="198.0" y="108" font-size="12" fill="#1C1B17">단계1</text><text x="16" y="160" font-size="11" fill="#6E6A5E">배치 크기 기준: work 3~4개 = 한 세션 예산의 절반</text></svg></div>
+<div class="scroll"><table>
+<tr><th>배치</th><th>work</th><th>진행</th><th>배정 출처</th></tr><tr><td>배치1</td><td><code>S1, S2, S3, S4</code></td><td>0/4</td><td>frontmatter</td></tr>
+</table></div>
+
+
+<h2>루트 독립성</h2>
+<div class="chart"><svg viewBox="0 0 860 144" role="img" aria-label="경로 레인 × 루트 카드 점유 매트릭스 — 위반 레인 0개"><rect x="310.0" y="12" width="530.0" height="102" fill="#E9C766" opacity="0.10"/><text x="314.0" y="26" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">▶ KAN-002-0J9YP1</text><text x="314.0" y="40" font-size="12" font-weight="700" fill="#1C1B17">정성 범주 직접 추가</text><line x1="14" y1="46" x2="846" y2="46" stroke="#1C1B17" stroke-width="2"/><text x="14" y="67.0" font-size="11.5" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">.claude-plugin/marketplace.json</text><rect x="314.0" y="52" width="518.0" height="20" fill="#E9C766" stroke="#1C1B17" stroke-width="2"/><text x="14" y="101.0" font-size="11.5" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">plugins/authoring-kit/**</text><rect x="314.0" y="86" width="518.0" height="20" fill="#E9C766" stroke="#1C1B17" stroke-width="2"/><text x="14" y="132" font-size="12" fill="#6E6A5E">겹치는 레인 없음 — 루트가 서로 독립입니다</text></svg></div>
+<p class="note">이 카드가 속한 루트는 다른 루트와 경로가 겹치지 않습니다. 병렬로 수행해도 충돌하지 않습니다.</p>
+<p class="note">경로 겹침은 신호이지 판정이 아닙니다. DB 스키마·환경변수·패키지
+매니페스트·공유 API 계약처럼 경로에 드러나지 않는 의존은 여기 잡히지 않습니다.</p>
+
+<h2>검증 기준</h2>
+<section class="card"><ul>
+<li><code>python3 plugins/authoring-kit/fixtures/test_style.py</code> — 실패 0 (사용자 범주 추가분 포함)</li>
+<li><code>test_scanner.py</code> · <code>test_linter.py</code> · <code>test_layer_separation.py</code> 통과</li>
+<li><code>authoring.py style validate</code> → 정상</li>
+<li>시험용 <code>AUTHORING_KIT_HOME</code> 에서 편집기로 범주 생성 → 항목에 선택 → 저장 → <code>authoring.py style show --voice &lt;id&gt;</code> 와 <code>resolve</code> 출력에 범주 이름·판정 질문이 실리는지 확인</li>
+<li>알려진 실패(이 카드와 무관): <code>test_plugin_shape.py</code> 의 <code>authoring-write: 142줄 ≤ 130</code></li>
+</ul></section>
+
+<p class="meta">생성 근거: KANBAN.md
+KANBAN/cards/KAN-002-0J9YP1.md · 갱신 2026-09-27</p>
+</div>
