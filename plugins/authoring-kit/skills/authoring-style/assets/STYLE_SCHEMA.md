@@ -4,7 +4,7 @@
 
 ```
 skills/authoring-method/assets/style/lexicon.json      ① 기본 카탈로그 — 분류 체계·기능 태그·기본 어휘 (읽기 전용)
-skills/authoring-method/assets/style/qualitative.json  ① 정성 분류 체계 — 9범주 41말단·판정 질문·지시 예시 (읽기 전용)
+skills/authoring-method/assets/style/qualitative.json  ① 정성 분류 체계 — 9범주 41말단·판정 질문·고를 수 있는 선택지 (읽기 전용)
 ~/.claude/authoring/global/style.json                  ② 전역 설정 — 모든 voice 가 계승한다
 ~/.claude/authoring/voices/<id>/style.json             ③ voice 설정 — 전역을 계승하고 확장한다
 ```
@@ -24,7 +24,8 @@ skills/authoring-method/assets/style/qualitative.json  ① 정성 분류 체계 
   "directives": {
     "overrides":  { "<지시 id>": { "enabled": false, "text": "…", "gate": { "enabled": true, "level": "MUST" } } },
     "add":        [ { "id": "…", "category": "stance.certainty", "text": "…", "example": { "good": "…", "bad": "…" },
-                      "enabled": true, "gate": { "enabled": false, "level": "SHOULD" } } ]
+                      "enabled": true, "gate": { "enabled": false, "level": "SHOULD" } } ],
+    "choices":    { "tenor.formality": ["s3", "t1"], "tenor.speech-level": [] }
   }
 }
 ```
@@ -91,6 +92,19 @@ L0 스캐너(`scan_ai_style.py --voice`)는 면제된 항목을 목록에서 빼
 | `example` | `{good, bad}` 예문(선택). 추상 형용사만으로는 재현되지 않는다 |
 | `gate` | `{enabled, level}`. 켜면 게이트 채점 항목이 된다. `level` 은 `MUST` · `SHOULD` |
 
+### 고른 선택지 — `directives.choices`
+
+직접 쓰는 지시 말고도, 하위 분류마다 플러그인이 준비한 **선택지**를 체크해 고를 수 있다. 선택지는 `qualitative.json` 의 말단마다 `options` 에 있다.
+
+| 무리 | id | 어디서 왔나 | 몇 개 고르나 |
+| --- | --- | --- | --- |
+| `spectrum` (방향) | `s1`… | 그 분류의 스펙트럼 값(`poles`) — "격식도: ‘상담적’ 쪽으로 맞춘다." | **하나만** — 한 분류를 두 방향으로 동시에 맞출 수 없다 |
+| `rule` (규칙) | `t1`… | 그 분류의 지시 예시(`templates`) | 여러 개 |
+
+- 층에는 `{분류 id: [선택지 id…]}` 로 적는다. id 는 고정이라 플러그인이 문구를 다듬어도 사용자 선택이 끊기지 않는다.
+- **계승은 분류 단위다.** voice 가 한 분류를 적으면 그 분류의 전역 선택을 통째로 대신한다. 빈 목록은 "이 voice 에서는 이 분류를 고르지 않음"이다. 적지 않은 분류는 전역을 물려받는다.
+- 고른 선택지는 해석 결과에서 지시 한 줄(`Q:<분류>#<선택지>`, 표지 "고른 선택지")이 되어 직접 쓴 지시와 같은 자리에 실린다. **게이트에는 붙지 않는다** — 채점 항목이 필요하면 직접 쓴 지시로 옮겨 게이트를 켠다.
+
 **게이트에 붙은 지시는 채점자가 읽고만 판정한다.** 스크립트·정규식·카운터를 만들지 않는다.
 판정 규칙은 `qualitative.json` 의 `judging.rules` 에 있다.
 
@@ -104,6 +118,7 @@ L0 스캐너(`scan_ai_style.py --voice`)는 면제된 항목을 목록에서 빼
 - hard floor 항목을 올리거나 끄지 않았는가, `machine-rhythm` 항목 면제에 `reason` 이 있는가
 - 정규식이 컴파일되는가, 분류·기능 태그·정성 분류가 실재하는가
 - 정성 분류의 축이 L1 소유인가, 지시문이 비지 않았는가, 게이트 등급이 `MUST`·`SHOULD` 인가
+- 고른 선택지의 분류·선택지가 실재하는가, 같은 선택지를 두 번 고르지 않았는가, 스펙트럼을 하나만 골랐는가
 
 ## 재현성
 

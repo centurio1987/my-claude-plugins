@@ -312,6 +312,48 @@ def main() -> int:
           st == 200 and body["lexicon"]["forbidden_hits"] >= 1 and "D1" not in {f["code"] for f in body["l0"]["findings"]})
     st, body = call("POST", "/api/render", {"scope": "voice:alpha", "profile": "main"})
     check("미리보기 렌더", st == 200 and "정성 지시" in body["markdown"])
+
+    print("\n[10] 정성 분류별 선택지")
+    leaves = [c for c in SR.load_taxonomy()["categories"] if c.get("parent")]
+    check("하위 분류마다 선택지가 있다", all(c.get("options") for c in leaves),
+          str([c["id"] for c in leaves if not c.get("options")]))
+    check("선택지는 스펙트럼 값과 지시 예시를 그대로 옮긴 것이다",
+          all(len([o for o in c["options"] if o["group"] == "spectrum"]) == len(c.get("poles") or [])
+              and [o["text"] for o in c["options"] if o["group"] == "rule"] == (c.get("templates") or []) for c in leaves))
+    cg = SR.empty_layer()
+    cg["directives"]["choices"] = {"tenor.formality": ["s3", "t1"], "tenor.speech-level": ["s2"]}
+    check("선택이 검증을 통과한다", SR.validate_layer("global", cg) == [], str(SR.validate_layer("global", cg)))
+    ceff = SR.effective(None, layers={"global": cg})
+    cids = [d["id"] for d in ceff["directives"] if d.get("choice")]
+    check("고른 선택지가 지시가 된다(축은 분류의 축)",
+          cids == ["tenor.formality#s3", "tenor.formality#t1", "tenor.speech-level#s2"]
+          and all(d["axis"] == "register" for d in ceff["directives"] if d.get("choice")), str(cids))
+    cmd = SR.render(ceff)
+    check("렌더에 고른 선택지 문장이 실린다", "격식도: ‘상담적’ 쪽으로 맞춘다." in cmd and "고른 선택지" in cmd)
+    cv = SR.empty_layer()
+    cv["directives"]["choices"] = {"tenor.formality": ["s5"], "tenor.speech-level": []}
+    check("voice 선택이 검증을 통과한다", SR.validate_layer("voice:beta", cv, base_layers={"global": cg}) == [])
+    cve = SR.effective("beta", layers={"global": cg, "voice:beta": cv})
+    check("voice 는 분류 단위로 전역 선택을 대신하고, 빈 목록은 고르지 않음이다",
+          [d["id"] for d in cve["directives"] if d.get("choice")] == ["tenor.formality#s5"]
+          and cve["choices"]["tenor.formality"] == {"ids": ["s5"], "source": "voice", "overrides": "global"})
+    cvi = SR.effective("beta", layers={"global": cg, "voice:beta": SR.empty_layer()})
+    check("voice 가 안 고른 분류는 전역을 물려받는다",
+          [d["id"] for d in cvi["directives"] if d.get("choice")] == cids)
+    cb = SR.empty_layer()
+    cb["directives"]["choices"] = {"tenor": ["s1"], "nope.x": [], "tenor.orality": "s1",
+                                   "tenor.formality": ["s1", "s2", "zz", "t1", "t1"]}
+    cbp = " | ".join(SR.validate_layer("global", cb))
+    for frag in ("choices[tenor]: 알 수 없는", "choices[nope.x]: 알 수 없는", "선택지 id 의 목록",
+                 "없는 선택지 ['zz']", "두 번 골랐다", "스펙트럼 선택지는 하나만"):
+        check(f"잘못된 선택 거부 — {frag}", frag in cbp, cbp)
+    check("선택이 없는 층은 저장 파일에 choices 키를 만들지 않는다, voice 의 빈 목록은 남긴다",
+          "choices" not in SR.prune_layer(SR.empty_layer())["directives"]
+          and SR.prune_layer(cv)["directives"]["choices"] == {"tenor.formality": ["s5"], "tenor.speech-level": []})
+    st, body = call("PUT", "/api/layer?scope=global", {"layer": {"directives": {"choices": {"tenor.formality": ["s1", "s2"]}}}})
+    check("서버가 스펙트럼 둘을 고른 저장을 422 로 거부", st == 422 and any("하나만" in p for p in body["problems"]))
+    st, body = call("POST", "/api/effective", {"scope": "global", "layer": cg})
+    check("유효값 API 가 고른 선택지를 준다", st == 200 and body["effective"]["choices"]["tenor.formality"]["ids"] == ["s3", "t1"])
     srv.shutdown()
 
     print(f"\n{'=' * 56}")
