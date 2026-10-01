@@ -90,6 +90,21 @@ def main() -> int:
     check("면제해도 적발 목록에는 남는다",
           any("면제됨" in f["label"] for f in r_waived["findings"]))
 
+    print("\n[5] 마커 주석과 숫자 쉼표는 문장이 아니다 (code_test KAN-063)")
+    markers = "본문 문단입니다.\n\n<!--viz:walk--> <!--fig:walk-->\n\n다음 문단입니다.\n"
+    check("마커 주석 둘은 P4 로 잡히지 않는다",
+          "P4" not in {f["code"] for f in S.scan(markers)["findings"]},
+          str([f["code"] for f in S.scan(markers)["findings"]]))
+    bang = "정말 빠릅니다! 놀랍게도 답이 맞습니다!\n"
+    check("본문의 느낌표 둘은 여전히 P4 로 잡힌다",
+          "P4" in {f["code"] for f in S.scan(bang)["findings"]},
+          str([f["code"] for f in S.scan(bang)["findings"]]))
+    nums = "칸 1,000 개면 1,000,000 번이고 칸 2,000 개면 4,000,000 번입니다.\n"
+    check("천 단위 쉼표는 P1 으로 세지 않는다",
+          "P1" not in {f["code"] for f in S.scan(nums)["findings"]},
+          str([f["code"] for f in S.scan(nums)["findings"]]))
+    check("숫자 사이가 아닌 쉼표는 여전히 센다", S.commas_outside_parens("1, 2, 3") == 2)
+
     print(f"\n{'='*56}")
     print(f"통과 {PASSES} · 실패 {len(FAILS)}")
     if FAILS:

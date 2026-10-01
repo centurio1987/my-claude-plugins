@@ -44,6 +44,10 @@ def strip_non_prose(text: str) -> str:
     text = re.sub(r"\A---\n.*?\n---\n", "", text, flags=re.S)
     # 코드 펜스 전체 (```viz / ```figure / ```ts 등 모두)
     text = re.sub(r"^```.*?^```", "", text, flags=re.S | re.M)
+    # HTML 주석(`<!--viz:…-->` · `<!--/proof-->` 같은 마커) — 문장이 아니다.
+    # 안 걷으면 마커 둘이 붙은 줄이 산문 문단이 되고 `!` 두 개가 P4 로 걸린다.
+    # 알고리즘 가이드 115편의 P4 354문단 중 303문단이 이것이었다(code_test KAN-063).
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
     # 레거시 마커
     text = re.sub(r"\[\[\[.*?\]\]\]", "", text, flags=re.S)
     text = re.sub(r"<<meme:.*?>>", "", text, flags=re.S)
@@ -294,6 +298,9 @@ def is_enumeration(sentence: str) -> bool:
 
 
 PAREN_SPAN = re.compile(r"\([^()\n]{0,120}\)")
+# 천 단위 쉼표(`1,000` · `32,000,000`) — 숫자의 일부지 절을 잇는 쉼표가 아니다.
+# 세면 수치가 많은 기술 글의 문단 밀도가 부풀어 P1 이 난다(code_test KAN-063: 70편 180자리).
+DIGIT_GROUP = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
 
 
 def commas_outside_parens(s: str) -> int:
@@ -304,7 +311,7 @@ def commas_outside_parens(s: str) -> int:
     실제로 글로스 10개를 넣자 등급이 A에서 C로 떨어졌다. 괄호 안은 삽입된 부연이지
     문장을 이어 붙인 리듬이 아니라서, P1 이 겨냥하는 대상이 아니다.
     """
-    return PAREN_SPAN.sub("", s).count(",")
+    return DIGIT_GROUP.sub("", PAREN_SPAN.sub("", s)).count(",")
 
 
 def scan(raw: str, waived: set[str] | None = None) -> dict:
