@@ -4,6 +4,10 @@
 `L0_MACHINE_RHYTHM.md` Part A 중 **기계적으로 셀 수 있는 항목만** 센다.
 상투 구조(F범주)·3의 법칙(R4)·품사 편중(R6)은 판단이 필요하므로 사람(에이전트)이 본문을 읽고 채운다.
 
+K범주(K1 꼬리표 서술어 · K2 종결 체계 섞임)는 **L0 문서에 아직 없는 코드**다. 손으로 고친 기술 문서
+한 편(고친 문장 76개)에서 정규식으로 잡히는 갈래만 넣었다. K1 은 다른 글 222편에서 0건이었고, K2 는 voice 의
+선택과 겹치므로 등급에 넣지 않는다(S3). 근거는 각 코드 옆 주석.
+
 **voice 를 인지한다.** `--voice <id>` 를 주면 그 퍼소나가 선언한 면제 코드를 등급에서 뺀다.
 어떤 리듬을 자기 색으로 삼을지는 퍼소나의 권리이고, 면제된 코드를 세면 목소리가 있는 글일수록
 점수가 나빠지는 뒤집힌 판정이 된다.
@@ -162,6 +166,49 @@ def regex_items(code: str) -> list[tuple[re.Pattern, re.Pattern | None, str]]:
 # 교정은 review-post 소관이라 보고에 그렇게 적어 넘긴다.
 QUOTE_NOUN = re.compile(r'"[^"\n]{2,40}"\s*(?:이?라는|처럼|으로|로|라고 하는|이라고)')
 
+# K1 — 개조식 꼬리표를 문장 속 서술어로 쓴다(`확인 안 됨입니다`, `재배포 없음이고`).
+# `확인 안 됨` 같은 꼬리표는 표 칸이나 괄호 안에서는 정상이다. 그런데 "확인하지 못했다면 `확인 안 됨`이라고
+# 적는다" 같은 지시를 받은 모델이 꼬리표를 문장에 그대로 끼워 넣고 계사를 붙인다. 한 번만 나와도 문장이
+# 부서지므로 S1 이다. 손으로 고친 기술 문서 한 편에서 산문·목록 12문장이 걸렸고 12문장 모두 고쳐졌다.
+# 다른 글 222편(블로그 34·알고리즘 가이드 182·원칙·말투 문서 6)에서는 0건이었다.
+#   - 명사형은 부정·상태 꼬리표만 받는다(`됨·않음·없음·있음·못함·아님·모름·불가`).
+#     `-음`·`-함` 전체를 받으면 `마음입니다`·`걸음입니다`·`물음입니다` 가 걸린다(가이드 182편에서 156건 오탐).
+#   - 꼬리표를 따옴표나 코드 표기로 감싸면(`"해당 없음"이고`, `` `확인 안 됨`으로 둡니다 ``) 이름을 가리키는
+#     정상 용법이라 세지 않는다. 볼드는 감싼 것이 아니라 강조라서 센다(`**확인 안 됨**입니다`).
+#   - 표 칸과 `>` 블록은 split_blocks 가 이미 뺐다.
+LABEL_PRED = re.compile(
+    r"(?:됨|않음|없음|있음|못함|아님|모름|불가)\**"
+    r"(?:입니다|이었습니다|이에요|이고|이며|이다|이라|이지만|으로\s?(?:둡|두|남|표시|적|처리|분류))"
+)
+
+# K2 — 종결 체계 섞임. 합쇼체(`~니다`)로 쓴 글에 해요체(`~어요`) 평서문이 섞이면 센다(반대도 같다).
+# `~세요`(권유)·`~죠`·`~지요`·의문문은 합쇼체 글에서도 흔하게 섞어 쓰므로 해요체로 세지 않는다.
+# **S3 이다(등급에 넣지 않는다).** 어떤 종결을 섞을지는 voice 의 `register` 가 정한다 — 등록된 voice 둘이
+# `~예요 / ~합니다` 를 함께 쓰라고 선언했고, 블로그 34편 중 14편이 해요체를 2~16% 섞는다. 그 글들의 등급을
+# 떨어뜨리면 목소리를 지우게 된다. 섞지 않기로 한 글이면 나열된 문장을 맞춘다.
+# **적은 쪽이 20% 미만일 때만** 낸다. 두 종결을 고르게 섞는 글은 실수가 아니라 선택이다 — 알고리즘 가이드
+# 182편은 적은 쪽이 20~39%였고(voice 가 `~예요 / ~합니다` 를 선언), 손으로 고친 문서는 8%(해요체 19 / 229),
+# 블로그는 2~16%였다. 20% 를 넘으면 매번 같은 줄이 붙어 정보가 아니라 소음이 된다.
+HAEYO_EXEMPT = ("세요", "까요", "나요", "가요", "지요")
+K2_MIN_SENTENCES = 2
+K2_MAX_SHARE = 0.2
+TAIL_JUNK = re.compile(r"[\s.!…\"'”’)\]」』*_~]+$")
+TRAILING_PAREN = re.compile(r"\([^()]*\)$")
+
+
+def final_register(sentence: str) -> str:
+    """평서문의 종결 체계 — `hapsyo`(합쇼체) · `haeyo`(해요체) · `""`(그 밖·의문문)."""
+    tail = TAIL_JUNK.sub("", sentence)
+    if sentence.rstrip(" *_\"'”’)]」』").endswith("?"):
+        return ""
+    # `…않습니다(base64 글자에 ⟨코드⟩이 없음).` 처럼 끝에 붙은 괄호 부연은 종결이 아니다.
+    tail = TAIL_JUNK.sub("", TRAILING_PAREN.sub("", tail))
+    if tail.endswith("니다"):
+        return "hapsyo"
+    if tail.endswith("요") and not tail.endswith(HAEYO_EXEMPT):
+        return "haeyo"
+    return ""
+
 # 과장 은유·전투 어휘·완곡어법 무시 — NATURAL_KOREAN_GUIDE §D5·§D6(저자 직접 지적).
 # 실제로 파괴·공격이 일어나는 대목에서는 정당하므로 **판단이 필요한 후보**로만 올린다.
 # 목록은 카탈로그의 D6 항목. 어절 안에 파묻힌 우연한 일치를 막는다 — `약속이지`가 `속이지`로
@@ -226,6 +273,23 @@ class Finding:
 def snippet(s: str, n: int = 46) -> str:
     s = " ".join(s.split())
     return s if len(s) <= n else s[:n] + "…"
+
+
+def tail_snippet(s: str, n: int = 46) -> str:
+    """문장 끝을 보인다 — 종결이 문제인 코드(K2)는 앞머리를 잘라 보여 주면 무엇이 걸렸는지 안 보인다."""
+    s = " ".join(s.split())
+    return s if len(s) <= n else "…" + s[-n:]
+
+
+def around(s: str, m: re.Match, n: int = 46) -> str:
+    """일치한 자리 앞뒤를 보인다 — 긴 문장의 끝에 걸린 K1 을 앞머리만 잘라 보이면 근거가 사라진다."""
+    s2 = " ".join(s.split())
+    if len(s2) <= n:
+        return s2
+    m2 = re.search(re.escape(" ".join(m.group(0).split())), s2)
+    end = m2.end() if m2 else len(s2)
+    start = max(0, end - n)
+    return ("…" if start else "") + s2[start:end] + ("…" if end < len(s2) else "")
 
 
 # 첫 어절에 붙어 병렬을 만드는 조사. `HTTP는 ~, DNS는 ~, SMTP는 ~` 처럼
@@ -624,6 +688,35 @@ def scan(raw: str, waived: set[str] | None = None) -> dict:
             Finding("D6", "S2", "과장 은유(→ review-post)", len(over), over[:5])
         )
 
+    # --- K1 꼬리표 서술어 (S1) / K2 종결 체계 섞임 (S3) -----------------------
+    # 둘 다 **문장 단위**라 목록 줄의 문장도 센다. `- 시간대 설정은 확인 안 됨입니다.` 는 목록이어도
+    # 문장이다. 손으로 고친 문서에서 K1 12문장 중 5문장이 목록 줄에 있었다.
+    body_sentences = list(all_sentences)
+    for b in bullets:
+        body_sentences.extend(split_sentences(re.sub(r"^([-*+]|\d+\.)\s+", "", b)))
+
+    labels = [around(s, m) for s in body_sentences if (m := LABEL_PRED.search(s))]
+    if labels:
+        findings.append(Finding(
+            "K1", "S1", "꼬리표를 서술어로 씀", len(labels),
+            labels[:4] + ["`확인 안 됨입니다` → `확인하지 못했습니다` — 꼬리표는 표 칸·괄호 안에 두고, 문장은 동사로 맺는다"]))
+
+    by_reg: dict[str, list[str]] = {"hapsyo": [], "haeyo": []}
+    for s in body_sentences:
+        reg = final_register(s)
+        if reg:
+            by_reg[reg].append(s)
+    major, minor = (("hapsyo", "haeyo") if len(by_reg["hapsyo"]) >= len(by_reg["haeyo"])
+                    else ("haeyo", "hapsyo"))
+    n_reg = len(by_reg["hapsyo"]) + len(by_reg["haeyo"])
+    if len(by_reg[minor]) >= K2_MIN_SENTENCES and len(by_reg[minor]) / n_reg < K2_MAX_SHARE:
+        name = {"hapsyo": "합쇼체", "haeyo": "해요체"}
+        findings.append(Finding(
+            "K2", "S3", "종결 체계 섞임(합쇼체·해요체)", len(by_reg[minor]),
+            [f"{name[major]} {len(by_reg[major])}문장 · {name[minor]} {len(by_reg[minor])}문장"]
+            + [tail_snippet(s) for s in by_reg[minor][:3]]
+            + ["섞지 않기로 한 글이면 맞춘다. voice 의 register 가 섞기로 했으면 그대로 둔다(L1 소유)"]))
+
     # --- 등급 산정 -----------------------------------------------------------
     # 면제된 코드는 **등급 계산에서 뺀다.** 적발 목록에는 남겨 두되 표시만 한다 —
     # 무엇이 면제됐는지 안 보이면 면제가 옳은지 다시 볼 수 없다.
@@ -698,6 +791,12 @@ def render(path: str, r: dict) -> str:
     out.append("---")
     out.append("**판단이 필요해 스크립트가 못 잡는 항목** — 본문을 직접 읽고 채운다:")
     out.append("  F1~F4(상투 구조·마무리 공식), R4(3의 법칙 강박), R6(품사 편중), R7(대구 강박).")
+    # 손으로 고친 기술 문서 한 편에서 고친 문장 76개 가운데 K1·K2 로 못 잡은 45개가 대부분 아래 갈래였다.
+    # 정규식 후보도 시험했지만 다른 글 222편에서 수십~수백 건씩 오탐이 나서 사람이 읽는 쪽에 둔다.
+    out.append("  영어투·어색한 결합(L0_NATURAL_KOREAN): A1 직역 관용(`차이를 만드는`), A2 사물 주어"
+               "(`저장소는 코드를 들고 있습니다`), A4 명사절 주어(`~는 것은 … 않습니다`), §D2 장소 주어(`받는 쪽이`),")
+    out.append("  §D4 따옴표 명사(`\"X\"를`·`\"X\"는`), §D13 지어낸 연어(`프로토콜을 말하는`·`절에 걸리는지`).")
+    out.append("  인용(`>`) 블록과 표는 세지 않는다 — 안내문을 `>` 로 쓴 글이면 그 안의 문장을 따로 읽는다.")
     out.append("")
     if r.get("waived"):
         out.append("**이 voice 에서 면제된 코드**: " + " · ".join(r["waived"])

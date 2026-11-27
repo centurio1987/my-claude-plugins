@@ -105,6 +105,61 @@ def main() -> int:
           str([f["code"] for f in S.scan(nums)["findings"]]))
     check("숫자 사이가 아닌 쉼표는 여전히 센다", S.commas_outside_parens("1, 2, 3") == 2)
 
+    print("\n[6] K1 — 꼬리표를 서술어로 쓴 문장 (손으로 고친 기술 문서 한 편, 2026-11)")
+    # 고치기 전 원고는 등급 A 였는데 `확인 안 됨입니다` 같은 문장이 산문·목록에 12개 있었고 전부 고쳐졌다.
+    def codes(doc: str) -> set[str]:
+        return {f["code"] for f in S.scan(doc)["findings"]}
+
+    for name, doc in [
+        ("산문 속 `확인 안 됨입니다`", "운영 서버의 시간대 설정은 확인 안 됨입니다.\n"),
+        ("연결형 `확인 안 됨이고`", "예비 서버도 받는지는 보내 보지 않아 확인 안 됨이고, 받더라도 순서가 다릅니다.\n"),
+        ("볼드로 강조한 꼬리표", "실제 설정값을 보지 못해 이 부분은 **확인 안 됨**으로 둡니다.\n"),
+        ("목록 줄 속 문장", "본문 문단입니다.\n\n- 받는 프로그램이 이를 어떻게 다루는지는 확인 안 됨입니다.\n"),
+        ("다른 꼬리표(`없음이고`)", "새 속성 하나에 재배포 없음이고 컬럼을 늘리지 않습니다.\n"),
+    ]:
+        check(f"잡는다: {name}", "K1" in codes(doc), str(codes(doc)))
+    for name, doc in [
+        ("표 칸의 꼬리표", "| 항목 | 결과 |\n| --- | --- |\n| DNS 설정 | 확인 안 됨 |\n"),
+        ("코드 표기로 감싼 이름", "아래는 판단할 수 없어 `확인 안 됨`으로 남긴 항목입니다.\n"),
+        ("따옴표로 감싼 이름", '이 칸의 값은 "해당 없음"이고 비워 두지 않습니다.\n'),
+        ("인용 블록", "> 운영 서버의 시간대 설정은 확인 안 됨입니다.\n"),
+        ("`-음` 으로 끝나는 보통 명사", "어떻게 쓸지는 런타임 마음입니다. 다음 걸음입니다. 남은 물음입니다.\n"),
+        ("고친 문장", "운영 서버의 시간대 설정은 확인하지 못했습니다.\n"),
+    ]:
+        check(f"안 잡는다: {name}", "K1" not in codes(doc), str(codes(doc)))
+    r = S.scan("운영 서버의 시간대 설정은 확인 안 됨입니다.\n")
+    check("K1 은 S1 이라 한 번으로 등급이 A 아래로 내려간다", r["grade"] not in ("A", "B"), r["grade"])
+    check("voice 가 K1 을 면제하면 등급에서 빠진다",
+          S.scan("운영 서버의 시간대 설정은 확인 안 됨입니다.\n", {"K1"})["grade"] == "A")
+
+    print("\n[7] K2 — 합쇼체 글에 섞인 해요체 (S3, 등급에 넣지 않는다)")
+    hap = "".join(f"{i}번 값을 셉니다. " for i in range(1, 19))
+    mixed = hap + "그 값은 맞아요. 이 경로는 달라요.\n"
+    r = S.scan(mixed)
+    k2 = [f for f in r["findings"] if f["code"] == "K2"]
+    check("합쇼체 18문장에 해요체 2문장이 섞이면 K2", bool(k2), str([f["code"] for f in r["findings"]]))
+    r_off = S.scan(mixed, {"K2"})
+    check("K2 는 S3 이라 등급을 바꾸지 않는다",
+          bool(k2) and k2[0]["severity"] == "S3"
+          and (r["grade"], r["s1"], r["s2"]) == (r_off["grade"], r_off["s1"], r_off["s2"]),
+          f"{r['grade']} vs 면제 시 {r_off['grade']}")
+    check("K2 예문은 종결이 보이게 문장 끝을 보인다",
+          bool(k2) and any(w.endswith("맞아요.") or w.endswith("달라요.") for w in k2[0]["where"]),
+          str(k2[0]["where"] if k2 else ""))
+    for name, doc in [
+        ("`~세요`·`~죠`·의문 `~까요?` 는 섞임이 아니다",
+         hap + "직접 확인해 보세요. 그래서 빠르죠. 왜 그럴까요?\n"),
+        ("해요체 한 문장은 우연으로 본다", hap + "그 값은 맞아요.\n"),
+        ("고르게 섞은 글(적은 쪽 20% 이상)은 voice 의 선택이다",
+         "".join(f"{i}번 값을 셉니다. {i}번 칸을 봐요. " for i in range(1, 10)) + "\n"),
+        ("끝에 붙은 괄호 부연은 종결이 아니다",
+         hap + "문제가 생기지 않습니다(글자에 점이 없음). 다음으로 넘어갑니다(아래 절 참고).\n"),
+    ]:
+        check(f"안 잡는다: {name}", "K2" not in codes(doc), str(codes(doc)))
+    check("해요체 글에 섞인 합쇼체도 K2",
+          "K2" in codes("".join(f"{i}번 값을 봐요. " for i in range(1, 19))
+                        + "그 값은 맞습니다. 이 경로는 다릅니다.\n"))
+
     print(f"\n{'='*56}")
     print(f"통과 {PASSES} · 실패 {len(FAILS)}")
     if FAILS:
